@@ -291,8 +291,9 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class VideoLogoWidget extends StatefulWidget {
