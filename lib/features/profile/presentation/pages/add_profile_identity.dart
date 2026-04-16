@@ -130,10 +130,54 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               const SizedBox(height: 24),
               const Divider(color: Color(0xFFE5E7EB), thickness: 1),
               const SizedBox(height: 24),
+              
+              _buildLabelAndTextField('Patient\'s Full Name', 'e.g., Mohamed Saber'),
+              const SizedBox(height: 16),
+              
+              _buildLabelAndTextField('Relationship to You', 'e.g., Grandfather'),
+              const SizedBox(height: 16),
+              
+              _buildLabelAndTextField('Birth Year', 'e.g., 1945'),
+              const SizedBox(height: 16),
+              
+              _buildLabelAndTextField('EMERGENCY CONTACT * (Primary Guardian Phone)', 'e.g., 01119988299'),
+              const SizedBox(height: 16),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLabelAndTextField(String label, String hintText) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1E3A8A), // Dark blue
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Color(0xFF1E3A8A)),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
