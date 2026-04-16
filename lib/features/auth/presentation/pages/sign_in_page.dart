@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:q_link/features/auth/presentation/pages/sign_in_page.dart';
+import 'package:q_link/features/auth/presentation/pages/create_account_page.dart';
 
-class CreateAccountPage extends StatefulWidget {
-  const CreateAccountPage({super.key});
+class SignInPage extends StatefulWidget {
+  const SignInPage({super.key});
 
   @override
-  State<CreateAccountPage> createState() => _CreateAccountPageState();
+  State<SignInPage> createState() => _SignInPageState();
 }
 
-class _CreateAccountPageState extends State<CreateAccountPage> {
+class _SignInPageState extends State<SignInPage> {
   bool _obscurePassword = true;
 
   @override
@@ -68,7 +68,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 
                 // Header Texts
                 const Text(
-                  'Create Account',
+                  'Wearer Hub',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Century Gothic',
@@ -79,7 +79,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Starts your safety journey',
+                  'Secure Access Required',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -88,22 +88,18 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 ),
                 const SizedBox(height: 40),
                 
-                // FullName Field
-                _buildTextField(
-                  hintText: 'FullName',
-                ),
-                const SizedBox(height: 16),
-                
                 // Email Field
                 _buildTextField(
-                  hintText: 'Email Address',
+                  hintText: 'Mohamedsaber22@gmail.com',
+                  prefixIcon: Icons.mail_outline,
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 16),
                 
                 // Password Field
                 _buildTextField(
-                  hintText: 'Password',
+                  hintText: '........',
+                  prefixIcon: Icons.lock_outline,
                   obscureText: _obscurePassword,
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -118,12 +114,30 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     },
                   ),
                 ),
+                const SizedBox(height: 8),
+                
+                // Forgot Password
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: () {
+                      // Forgot password logic
+                    },
+                    child: const Text(
+                      'Forgot Password?',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 30),
                 
-                // Create Button
+                // Sign In Button
                 ElevatedButton(
                   onPressed: () {
-                    // Create account action
+                    // Sign in logic
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF28365B),
@@ -134,7 +148,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     elevation: 0,
                   ),
                   child: const Text(
-                    'Create a wearer Hub',
+                    'Sign In',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -184,26 +198,70 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 30),
+
+                // EMERGENCY Divider
+                Row(
+                  children: [
+                    Expanded(child: Divider(color: Colors.white.withOpacity(0.8), thickness: 1)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text('EMERGENCY', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12)),
+                    ),
+                    Expanded(child: Divider(color: Colors.white.withOpacity(0.8), thickness: 1)),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Emergency Button
+                ElevatedButton(
+                  onPressed: () {
+                    // Emergency action
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFCE223C), // Red color
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25.0),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.white),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'PUBLIC EMERGENCY SCAN',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 30),
                 
-                // Sign In Link
+                // Create Account Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      'Already have an account ? ',
+                      'New to Qlink? ',
                       style: TextStyle(color: Colors.white),
                     ),
                     GestureDetector(
                       onTap: () {
-                        // Navigate to Sign In
+                        // Navigate to Create Account
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (_) => const SignInPage()),
+                          MaterialPageRoute(builder: (_) => const CreateAccountPage()),
                         );
                       },
                       child: const Text(
-                        'Sign In',
+                        'Create Account',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -223,6 +281,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
 
   Widget _buildTextField({
     required String hintText,
+    required IconData prefixIcon,
     bool obscureText = false,
     Widget? suffixIcon,
     TextInputType? keyboardType,
@@ -238,9 +297,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
         style: const TextStyle(color: Colors.black87),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey.shade400),
+          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          prefixIcon: Icon(prefixIcon, color: Colors.grey.shade400),
           suffixIcon: suffixIcon,
         ),
       ),
@@ -272,7 +332,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     );
   }
 
-  // A simple widget to mimic the Google "G" with multi-colors since we don't have fontawesome or svg readily available.
   Widget _buildGoogleIcon() {
     return RichText(
       text: const TextSpan(
