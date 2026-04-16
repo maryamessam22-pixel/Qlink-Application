@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:video_player/video_player.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -7,38 +8,32 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC), // Very light grey/blue background
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+      backgroundColor: Colors.transparent,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          color: Color(0xFFF7F9FC), // fallback
+          image: DecorationImage(
+            image: AssetImage('assets/images/home_bg.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Custom App Bar Header
               Row(
                 children: [
-                   // Logo Image Tinted Blue or Dark
-                  Image.asset(
-                    'assets/images/qlink_logo.png',
-                    height: 28,
-                    color: const Color(0xFF1E3A8A),
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Text(
-                        'Q',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E3A8A),
-                        ),
-                      );
-                    },
-                  ),
+                  const VideoLogoWidget(),
                   const SizedBox(width: 8),
                   const CircleAvatar(
                     radius: 16,
-                    backgroundColor: Colors.grey,
-                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=5'), // Mock avatar
+                    backgroundColor: Colors.transparent,
+                    backgroundImage: AssetImage('assets/images/mypic.png'),
                   ),
                   const Spacer(),
                   const Icon(Icons.language, color: Color(0xFF1E3A8A), size: 28),
@@ -270,11 +265,12 @@ class HomePage extends StatelessWidget {
 
               // Dashed Box Activity
               DottedBorder(
-                color: Colors.grey.shade300,
-                strokeWidth: 1.5,
-                dashPattern: const [8, 4],
-                borderType: BorderType.RRect,
-                radius: const Radius.circular(12),
+                options: RoundedRectDottedBorderOptions(
+                  color: Colors.grey.shade300,
+                  strokeWidth: 1.5,
+                  dashPattern: const [8, 4],
+                  radius: const Radius.circular(12),
+                ),
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 40),
@@ -295,6 +291,64 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class VideoLogoWidget extends StatefulWidget {
+  const VideoLogoWidget({super.key});
+
+  @override
+  State<VideoLogoWidget> createState() => _VideoLogoWidgetState();
+}
+
+class _VideoLogoWidgetState extends State<VideoLogoWidget> {
+  late VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.asset('assets/logos/vid-icon.mp4')
+      ..initialize().then((_) {
+        _controller.setLooping(true);
+        _controller.setVolume(0.0);
+        _controller.play();
+        if (mounted) setState(() {});
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: _controller.value.isInitialized
+          ? FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(
+                width: _controller.value.size.width,
+                height: _controller.value.size.height,
+                child: VideoPlayer(_controller),
+              ),
+            )
+          : const Center(
+              child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1E3A8A)),
+              ),
+            ),
     );
   }
 }
