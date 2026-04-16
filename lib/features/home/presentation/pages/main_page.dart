@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/features/home/presentation/pages/home_page.dart';
 
 class MainPage extends StatefulWidget {
@@ -42,15 +43,19 @@ class _MainPageState extends State<MainPage> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(35),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // Liquid/Glass effect
+              filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25), // Stronger liquid/glass effect
               child: Container(
-                color: Colors.white.withOpacity(0.85),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.4), // More transparent
+                  border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5), // Specular glass highlight
+                  borderRadius: BorderRadius.circular(35),
+                ),
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildNavItem(icon: Icons.home_outlined, filledIcon: Icons.home, label: 'Home', index: 0),
-                    _buildNavItem(icon: Icons.map_outlined, filledIcon: Icons.map, label: 'Map', index: 1),
+                    _buildNavItem(icon: LucideIcons.home, label: 'Home', index: 0),
+                    _buildNavItem(icon: LucideIcons.map, label: 'Map', index: 1),
                     
                     // Center Plus Button
                     GestureDetector(
@@ -68,8 +73,8 @@ class _MainPageState extends State<MainPage> {
                       ),
                     ),
                     
-                    _buildNavItem(icon: Icons.lock_outline, filledIcon: Icons.lock, label: 'Vault', index: 3),
-                    _buildNavItem(icon: Icons.settings_outlined, filledIcon: Icons.settings, label: 'Settings', index: 4),
+                    _buildNavItem(icon: LucideIcons.lock, label: 'Vault', index: 3),
+                    _buildNavItem(icon: LucideIcons.settings, label: 'Settings', index: 4),
                   ],
                 ),
               ),
@@ -82,7 +87,6 @@ class _MainPageState extends State<MainPage> {
 
   Widget _buildNavItem({
     required IconData icon,
-    required IconData filledIcon,
     required String label,
     required int index,
   }) {
@@ -100,7 +104,7 @@ class _MainPageState extends State<MainPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              isSelected ? filledIcon : icon,
+              icon,
               color: isSelected ? const Color(0xFF1B64F2) : Colors.grey.shade500,
               size: 26,
             ),
