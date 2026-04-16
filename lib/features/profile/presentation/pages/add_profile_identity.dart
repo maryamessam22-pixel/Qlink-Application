@@ -142,10 +142,65 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               
               _buildLabelAndTextField('EMERGENCY CONTACT * (Primary Guardian Phone)', 'e.g., 01119988299'),
               const SizedBox(height: 16),
+              
+              _buildAdditionalContactField('Additional Contact 1', 'e.g., 01779998265'),
+              const SizedBox(height: 24),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAdditionalContactField(String label, String hintText) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1E3A8A), // Dark blue
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: hintText,
+                  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFF1E3A8A)),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              height: 48, // matching textfield height
+              width: 48,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFDE8E8), // light red background
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.shade400, width: 1.5),
+              ),
+              child: IconButton(
+                icon: Icon(Icons.close, color: Colors.red.shade600, size: 20),
+                onPressed: () {},
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
