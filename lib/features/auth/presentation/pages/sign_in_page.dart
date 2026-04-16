@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:q_link/features/auth/presentation/pages/create_account_page.dart';
 
 class SignInPage extends StatefulWidget {
-  const SignInPage({super.key});
+  final String role;
+  const SignInPage({super.key, required this.role});
 
   @override
   State<SignInPage> createState() => _SignInPageState();
@@ -67,10 +68,10 @@ class _SignInPageState extends State<SignInPage> {
                 const SizedBox(height: 30),
                 
                 // Header Texts
-                const Text(
-                  'Wearer Hub',
+                Text(
+                  '${widget.role} Hub',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Century Gothic',
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -176,21 +177,21 @@ class _SignInPageState extends State<SignInPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildSocialButton(
-                      iconWidget: Image.asset('assets/icons/fb.png', width: 24, height: 24),
+                      iconWidget: Image.asset('assets/icons/fb.png', width: 42, height: 42),
                       backgroundColor: Colors.transparent,
                       borderColor: Colors.white,
                       onTap: () {},
                     ),
                     const SizedBox(width: 20),
                     _buildSocialButton(
-                      iconWidget: Image.asset('assets/icons/google.png', width: 24, height: 24),
+                      iconWidget: Image.asset('assets/icons/google.png', width: 45, height: 45),
                       backgroundColor: Colors.transparent,
                       borderColor: Colors.white,
                       onTap: () {},
                     ),
                     const SizedBox(width: 20),
                     _buildSocialButton(
-                      iconWidget: Image.asset('assets/icons/apple.png', width: 24, height: 24),
+                      iconWidget: Image.asset('assets/icons/apple.png', width: 45, height: 45),
                       backgroundColor: Colors.transparent,
                       borderColor: Colors.white,
                       onTap: () {},
@@ -256,7 +257,7 @@ class _SignInPageState extends State<SignInPage> {
                         // Navigate to Create Account
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (_) => const CreateAccountPage()),
+                          MaterialPageRoute(builder: (_) => CreateAccountPage(role: widget.role)),
                         );
                       },
                       child: const Text(

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:q_link/features/auth/presentation/pages/sign_in_page.dart';
 
 class CreateAccountPage extends StatefulWidget {
-  const CreateAccountPage({super.key});
+  final String role;
+  
+  const CreateAccountPage({super.key, required this.role});
 
   @override
   State<CreateAccountPage> createState() => _CreateAccountPageState();
@@ -133,9 +135,9 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'Create a wearer Hub',
-                    style: TextStyle(
+                  child: Text(
+                    'Create a ${widget.role} Hub',
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -198,7 +200,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                         // Navigate to Sign In
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (_) => const SignInPage()),
+                          MaterialPageRoute(builder: (_) => SignInPage(role: widget.role)),
                         );
                       },
                       child: const Text(

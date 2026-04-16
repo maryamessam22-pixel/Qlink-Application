@@ -138,7 +138,7 @@ class ChooseRolePage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const SplashPage()),
+                              builder: (_) => const SplashPage(role: 'Guardian')),
                         );
                       },
                     ),
@@ -158,7 +158,7 @@ class ChooseRolePage extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const SplashPage()),
+                              builder: (_) => const SplashPage(role: 'Wearer')),
                         );
                       },
                     ),

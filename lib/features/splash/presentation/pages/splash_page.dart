@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:q_link/features/auth/presentation/pages/create_account_page.dart';
 
 class SplashPage extends StatefulWidget {
-  const SplashPage({super.key});
+  final String role;
+  
+  const SplashPage({super.key, required this.role});
 
   @override
   State<SplashPage> createState() => _SplashPageState();
@@ -17,7 +19,7 @@ class _SplashPageState extends State<SplashPage> {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const CreateAccountPage()),
+          MaterialPageRoute(builder: (_) => CreateAccountPage(role: widget.role)),
         );
       }
     });
