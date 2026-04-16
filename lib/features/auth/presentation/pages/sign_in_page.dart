@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/features/auth/presentation/pages/create_account_page.dart';
+import 'package:q_link/features/home/presentation/pages/main_page.dart';
 
 class SignInPage extends StatefulWidget {
   final String role;
@@ -138,7 +139,11 @@ class _SignInPageState extends State<SignInPage> {
                 // Sign In Button
                 ElevatedButton(
                   onPressed: () {
-                    // Sign in logic
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MainPage()),
+                      (Route<dynamic> route) => false,
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF28365B),

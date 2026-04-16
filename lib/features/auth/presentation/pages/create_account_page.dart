@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/features/auth/presentation/pages/sign_in_page.dart';
+import 'package:q_link/features/home/presentation/pages/main_page.dart';
 
 class CreateAccountPage extends StatefulWidget {
   final String role;
@@ -125,7 +126,11 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 // Create Button
                 ElevatedButton(
                   onPressed: () {
-                    // Create account action
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MainPage()),
+                      (Route<dynamic> route) => false,
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF28365B),
