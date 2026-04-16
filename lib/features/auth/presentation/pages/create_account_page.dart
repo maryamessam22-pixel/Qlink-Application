@@ -162,22 +162,21 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildSocialButton(
-                      icon: Icons.facebook,
-                      iconColor: Colors.white,
-                      backgroundColor: const Color(0xFF1877F2),
-                      onTap: () {},
-                    ),
-                    const SizedBox(width: 20),
-                    _buildSocialButton(
-                      iconWidget: _buildGoogleIcon(),
+                      iconWidget: Image.asset('assets/icons/fb.png', width: 24, height: 24),
                       backgroundColor: Colors.transparent,
                       borderColor: Colors.white,
                       onTap: () {},
                     ),
                     const SizedBox(width: 20),
                     _buildSocialButton(
-                      icon: Icons.apple,
-                      iconColor: Colors.white,
+                      iconWidget: Image.asset('assets/icons/google.png', width: 24, height: 24),
+                      backgroundColor: Colors.transparent,
+                      borderColor: Colors.white,
+                      onTap: () {},
+                    ),
+                    const SizedBox(width: 20),
+                    _buildSocialButton(
+                      iconWidget: Image.asset('assets/icons/apple.png', width: 24, height: 24),
                       backgroundColor: Colors.transparent,
                       borderColor: Colors.white,
                       onTap: () {},
@@ -272,15 +271,5 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     );
   }
 
-  // A simple widget to mimic the Google "G" with multi-colors since we don't have fontawesome or svg readily available.
-  Widget _buildGoogleIcon() {
-    return RichText(
-      text: const TextSpan(
-        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, fontFamily: 'Arial'),
-        children: [
-          TextSpan(text: 'G', style: TextStyle(color: Color(0xFF4285F4))),
-        ],
-      ),
-    );
-  }
+
 }
