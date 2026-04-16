@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:q_link/features/home/presentation/pages/home_page.dart'; // For VideoLogoWidget
+import 'package:q_link/features/home/presentation/pages/home_page.dart';
 
 class AddProfileIdentityPage extends StatefulWidget {
   const AddProfileIdentityPage({super.key});
@@ -19,7 +19,6 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Custom App Bar Header (Same as HomePage)
               Row(
                 children: [
                   const VideoLogoWidget(),
@@ -52,8 +51,6 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                 ],
               ),
               const SizedBox(height: 24),
-              
-              // Cancel Button
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Row(
@@ -72,19 +69,15 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              
-              // Title
               const Text(
                 'Generate Patient Profile',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF1E3A8A), // Dark blue
+                  color: Color(0xFF1E3A8A),
                 ),
               ),
               const SizedBox(height: 16),
-              
-              // Progress Bar
               Row(
                 children: [
                   Expanded(
@@ -145,8 +138,6 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               
               _buildAdditionalContactField('Additional Contact 1', 'e.g., 01779998265'),
               const SizedBox(height: 24),
-              
-              // Add More Contact Number Button
               Container(
                 width: double.infinity,
                 height: 50,
@@ -176,15 +167,13 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                 ),
               ),
               const SizedBox(height: 32),
-              
-              // Continue to Medical Info Button
               GestureDetector(
                 onTap: () {},
                 child: Container(
                   width: double.infinity,
                   height: 54,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E3A8A), // Dark blue solid
+                    color: const Color(0xFF1E3A8A),
                     borderRadius: BorderRadius.circular(27),
                   ),
                   child: const Row(
@@ -204,7 +193,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 120), // Bottom padding
+              const SizedBox(height: 120),
             ],
           ),
         ),
@@ -221,7 +210,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF1E3A8A), // Dark blue
+            color: Color(0xFF1E3A8A),
           ),
         ),
         const SizedBox(height: 8),
@@ -246,10 +235,10 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
             ),
             const SizedBox(width: 12),
             Container(
-              height: 48, // matching textfield height
+              height: 48,
               width: 48,
               decoration: BoxDecoration(
-                color: const Color(0xFFFDE8E8), // light red background
+                color: const Color(0xFFFDE8E8),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.red.shade400, width: 1.5),
               ),
@@ -273,7 +262,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF1E3A8A), // Dark blue
+            color: Color(0xFF1E3A8A),
           ),
         ),
         const SizedBox(height: 8),
