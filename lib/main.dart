@@ -15,7 +15,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: AppConstants.appName,
-      theme: AppTheme.lightTheme,
+      builder: (context, child) {
+        final locale = Localizations.maybeLocaleOf(context);
+        final languageCode = locale?.languageCode ?? 'en';
+        return Theme(
+          data: AppTheme.getTheme(languageCode),
+          child: child!,
+        );
+      },
       home: const ChooseRolePage(),
     );
   }

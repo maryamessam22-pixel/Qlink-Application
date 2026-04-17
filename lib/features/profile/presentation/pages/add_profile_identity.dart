@@ -173,7 +173,11 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                   width: double.infinity,
                   height: 54,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E3A8A),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF0066CC), Color(0xFF273469)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
                     borderRadius: BorderRadius.circular(27),
                   ),
                   child: const Row(
