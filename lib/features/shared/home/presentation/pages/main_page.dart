@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:q_link/features/home/presentation/pages/home_page.dart';
+import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});

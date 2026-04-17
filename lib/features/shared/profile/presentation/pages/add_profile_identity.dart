@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:q_link/features/home/presentation/pages/home_page.dart';
+import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
 
 class AddProfileIdentityPage extends StatefulWidget {
   const AddProfileIdentityPage({super.key});
@@ -115,7 +115,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               Text(
                 'Step 1 of 3: Identity',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 16,
                   color: Colors.grey.shade600,
                   fontWeight: FontWeight.w500,
                 ),

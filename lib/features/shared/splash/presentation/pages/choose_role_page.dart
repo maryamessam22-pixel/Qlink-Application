@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:q_link/features/splash/presentation/pages/splash_page.dart';
+import 'package:q_link/features/shared/splash/presentation/pages/splash_page.dart';
 
 class ChooseRolePage extends StatelessWidget {
   const ChooseRolePage({super.key});

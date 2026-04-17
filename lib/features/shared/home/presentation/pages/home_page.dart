@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:video_player/video_player.dart';
-import 'package:q_link/features/profile/presentation/pages/add_profile_identity.dart';
+import 'package:q_link/features/shared/profile/presentation/pages/add_profile_identity.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

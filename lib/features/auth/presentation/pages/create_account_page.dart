@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/features/auth/presentation/pages/sign_in_page.dart';
-import 'package:q_link/features/home/presentation/pages/main_page.dart';
+import 'package:q_link/features/shared/home/presentation/pages/main_page.dart';
 
 class CreateAccountPage extends StatefulWidget {
   final String role;
