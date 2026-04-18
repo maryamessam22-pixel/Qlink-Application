@@ -96,4 +96,16 @@ class AppState extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  bool _isArabic = false;
+  bool get isArabic => _isArabic;
+
+  void toggleLanguage() {
+    _isArabic = !_isArabic;
+    notifyListeners();
+  }
+
+  String tr(String en, String ar) {
+    return _isArabic ? ar : en;
+  }
 }
