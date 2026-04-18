@@ -6,6 +6,8 @@ import 'package:q_link/features/shared/profile/presentation/pages/add_profile_id
 import 'package:q_link/features/shared/profile/presentation/pages/connect_device_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/profile_management_page.dart';
+import 'package:q_link/features/shared/home/presentation/widgets/header_widget.dart';
+import 'package:q_link/features/shared/home/presentation/widgets/bottom_nav_widget.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -31,57 +33,7 @@ class HomePage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Custom App Bar Header
-              Row(
-                children: [
-                  const VideoLogoWidget(),
-                  const SizedBox(width: 8),
-                  const CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Colors.transparent,
-                    backgroundImage: AssetImage('assets/images/mypic.png'),
-                  ),
-                  const Spacer(),
-                  const Icon(Icons.language, color: Color(0xFF1E3A8A), size: 28),
-                  const SizedBox(width: 16),
-                  Stack(
-                    children: [
-                      const Icon(Icons.notifications_none, color: Color(0xFF1E3A8A), size: 28),
-                      Positioned(
-                        right: 2,
-                        top: 2,
-                        child: Container(
-                          width: 10,
-                          height: 10,
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 30),
-
-              // Welcome Text
-              const Text(
-                'Hello, Mariam Essam',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E3A8A),
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Your Safety Circle Command Center',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF6B7280),
-                ),
-              ),
-              const SizedBox(height: 24),
+              const HeaderWidget(),
 
               // Dynamic Stats and Status
               AnimatedBuilder(
@@ -89,7 +41,27 @@ class HomePage extends StatelessWidget {
                 builder: (context, _) {
                   final appState = AppState();
                   return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // Welcome Text
+                      Text(
+                        appState.tr('Hello, Mariam Essam', 'مرحباً، مريم عصام'),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E3A8A),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        appState.tr('Your Safety Circle Command Center', 'مركز قيادة دائرة الأمان الخاصة بك'),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
                       Row(
                         children: [
                           Expanded(
@@ -115,7 +87,8 @@ class HomePage extends StatelessWidget {
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                         child: Text(
-                                          appState.deviceCount > 0 ? 'ONLINE' : 'OFFLINE',
+                                          appState.tr(appState.deviceCount > 0 ? 'ONLINE' : 'OFFLINE', 
+                                                      appState.deviceCount > 0 ? 'متصل' : 'غير متصل'),
                                           style: TextStyle(
                                             fontSize: 10, 
                                             fontWeight: FontWeight.bold, 
@@ -127,7 +100,7 @@ class HomePage extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 16),
                                   Text('${appState.deviceCount}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1B64F2))),
-                                  const Text('Active Devices', style: TextStyle(fontSize: 13, color: Color(0xFF1B64F2))),
+                                  Text(appState.tr('Active Devices', 'أجهزة نشطة'), style: const TextStyle(fontSize: 13, color: Color(0xFF1B64F2))),
                                 ],
                               ),
                             ),
@@ -151,7 +124,7 @@ class HomePage extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 16),
                                   Text('${appState.profileCount}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0E9F6E))),
-                                  const Text('Protected Members', style: TextStyle(fontSize: 13, color: Color(0xFF0E9F6E))),
+                                  Text(appState.tr('Protected Members', 'الأعضاء المحميون'), style: const TextStyle(fontSize: 13, color: Color(0xFF0E9F6E))),
                                 ],
                               ),
                             ),
@@ -177,12 +150,12 @@ class HomePage extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('System Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0E9F6E))),
+                                  Text(appState.tr('System Status', 'حالة النظام'), style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0E9F6E))),
                                   const SizedBox(height: 4),
                                   Text(
                                     appState.deviceCount > 0 
-                                      ? 'System fully active. ${appState.deviceCount} device(s) linked.' 
-                                      : 'No devices connected till now. No alerts detected.', 
+                                      ? appState.tr('System fully active. ${appState.deviceCount} device(s) linked.', 'النظام يعمل بالكامل. ${appState.deviceCount} جهاز متصل.')
+                                      : appState.tr('No devices connected till now. No alerts detected.', 'لا توجد أجهزة متصلة حتى الآن. لم يتم رصد أي تنبيهات.'), 
                                     style: TextStyle(fontSize: 13, color: Colors.grey.shade700)
                                   ),
                                 ],
