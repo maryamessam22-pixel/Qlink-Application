@@ -9,6 +9,8 @@ class AddMedicalInfoPage extends StatefulWidget {
   final String relationship;
   final String birthYear;
   final List<String> emergencyContacts;
+  final int? editIndex;
+  final ProfileData? existingProfile;
 
   const AddMedicalInfoPage({
     super.key,
@@ -16,6 +18,8 @@ class AddMedicalInfoPage extends StatefulWidget {
     required this.relationship,
     this.birthYear = '',
     this.emergencyContacts = const [],
+    this.editIndex,
+    this.existingProfile,
   });
 
   @override
@@ -31,6 +35,16 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
   final List<String> _bloodTypes = [
     'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingProfile != null) {
+      _allergiesController.text = widget.existingProfile!.allergies;
+      _medicalNotesController.text = widget.existingProfile!.condition;
+      _selectedBloodType = widget.existingProfile!.bloodType;
+    }
+  }
 
   @override
   void dispose() {
@@ -475,6 +489,24 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
   Widget _buildContinueButton() {
     return GestureDetector(
       onTap: () {
+        if (widget.editIndex != null) {
+          final updatedProfile = ProfileData(
+            name: widget.name,
+            relationship: widget.relationship,
+            birthYear: widget.birthYear,
+            emergencyContacts: widget.emergencyContacts,
+            bloodType: _selectedBloodType ?? '',
+            allergies: _allergiesController.text,
+            condition: _medicalNotesController.text,
+            devices: widget.existingProfile?.devices,
+            imagePath: widget.existingProfile?.imagePath ?? 'assets/images/mypic.png',
+            visibility: widget.existingProfile?.visibility,
+          );
+          AppState().updateProfile(widget.editIndex!, updatedProfile);
+          Navigator.popUntil(context, (route) => route.isFirst);
+          return;
+        }
+
         Navigator.push(
           context,
           MaterialPageRoute(

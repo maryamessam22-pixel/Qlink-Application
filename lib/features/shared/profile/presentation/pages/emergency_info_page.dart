@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/features/shared/profile/presentation/pages/add_profile_identity.dart';
 
 class EmergencyInfoPage extends StatelessWidget {
   final int profileIndex;
@@ -113,7 +114,17 @@ class EmergencyInfoPage extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: OutlinedButton.icon(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AddProfileIdentityPage(
+                                          editIndex: profileIndex,
+                                          existingProfile: profile,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                   icon: const Icon(Icons.edit_outlined, size: 16, color: Colors.grey),
                                   label: const Text('Edit Profile', style: TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold)),
                                   style: OutlinedButton.styleFrom(

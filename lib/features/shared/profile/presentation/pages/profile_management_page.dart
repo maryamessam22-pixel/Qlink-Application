@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/emergency_info_page.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/connect_device_page.dart';
+import 'package:q_link/features/shared/profile/presentation/pages/privacy_control_page.dart';
 
 class ProfileManagementPage extends StatelessWidget {
   final int profileIndex;
@@ -102,7 +103,20 @@ class ProfileManagementPage extends StatelessWidget {
                       icon: LucideIcons.eye,
                       title: 'Privacy Control',
                       subtitle: 'Manage visibility',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PrivacyControlPage(
+                              profileIndex: profileIndex,
+                              profile: profile,
+                            ),
+                          ),
+                        ).then((_) {
+                          // Force rebuild of parent when returning
+                          if (context.mounted) (context as Element).markNeedsBuild();
+                        });
+                      },
                     ),
                     _buildFeatureCard(
                       icon: LucideIcons.shield,

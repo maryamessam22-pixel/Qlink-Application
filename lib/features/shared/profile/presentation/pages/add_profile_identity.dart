@@ -5,7 +5,14 @@ import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/add_medical_info.dart';
 
 class AddProfileIdentityPage extends StatefulWidget {
-  const AddProfileIdentityPage({super.key});
+  final int? editIndex;
+  final ProfileData? existingProfile;
+
+  const AddProfileIdentityPage({
+    super.key,
+    this.editIndex,
+    this.existingProfile,
+  });
 
   @override
   State<AddProfileIdentityPage> createState() => _AddProfileIdentityPageState();
@@ -15,16 +22,33 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _relationshipController = TextEditingController();
   final TextEditingController _birthYearController = TextEditingController();
-  final TextEditingController _primaryContactController = TextEditingController();
-  final TextEditingController _secondaryContactController = TextEditingController();
+  final List<TextEditingController> _contactControllers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingProfile != null) {
+      _nameController.text = widget.existingProfile!.name;
+      _relationshipController.text = widget.existingProfile!.relationship;
+      _birthYearController.text = widget.existingProfile!.birthYear;
+      for (var contact in widget.existingProfile!.emergencyContacts) {
+        _contactControllers.add(TextEditingController(text: contact));
+      }
+    }
+    // Ensure at least one contact field
+    if (_contactControllers.isEmpty) {
+      _contactControllers.add(TextEditingController());
+    }
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _relationshipController.dispose();
     _birthYearController.dispose();
-    _primaryContactController.dispose();
-    _secondaryContactController.dispose();
+    for (var controller in _contactControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -147,17 +171,21 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               _buildLabelAndTextField('Patient\'s Full Name', 'e.g., Mohamed Saber', controller: _nameController),
               const SizedBox(height: 16),
               
-              _buildLabelAndTextField('Relationship to You', 'e.g., Grandfather', controller: _relationshipController),
-              const SizedBox(height: 16),
-              
               _buildLabelAndTextField('Birth Year', 'e.g., 1945', controller: _birthYearController),
-              const SizedBox(height: 16),
-              
-              _buildLabelAndTextField('EMERGENCY CONTACT * (Primary Guardian Phone)', 'e.g., 01119988299', controller: _primaryContactController),
-              const SizedBox(height: 16),
-              
-              _buildAdditionalContactField('Additional Contact 1', 'e.g., 01779998265', controller: _secondaryContactController),
               const SizedBox(height: 24),
+              const Text(
+                'EMERGENCY CONTACTS',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1E3A8A)),
+              ),
+              const SizedBox(height: 12),
+              ..._contactControllers.asMap().entries.map((entry) {
+                int index = entry.key;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _buildContactField(index),
+                );
+              }),
+              const SizedBox(height: 8),
               Container(
                 width: double.infinity,
                 height: 50,
@@ -165,8 +193,12 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                   border: Border.all(color: Colors.grey.shade300),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: TextButton       (
-                  onPressed: () {},
+                child: TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _contactControllers.add(TextEditingController());
+                    });
+                  },
                   style: TextButton.styleFrom(
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
@@ -196,10 +228,9 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                         name: _nameController.text,
                         relationship: _relationshipController.text,
                         birthYear: _birthYearController.text,
-                        emergencyContacts: [
-                          _primaryContactController.text,
-                          if (_secondaryContactController.text.isNotEmpty) _secondaryContactController.text,
-                        ],
+                        emergencyContacts: _contactControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+                        editIndex: widget.editIndex,
+                        existingProfile: widget.existingProfile,
                       ),
                     ),
                   );
@@ -317,12 +348,12 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
     );
   }
 
-  Widget _buildAdditionalContactField(String label, String hintText, {TextEditingController? controller}) {
+  Widget _buildContactField(int index) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
+          index == 0 ? 'Primary Guardian' : 'Additional Contact $index',
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
@@ -334,9 +365,9 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
           children: [
             Expanded(
               child: TextField(
-                controller: controller,
+                controller: _contactControllers[index],
                 decoration: InputDecoration(
-                  hintText: hintText,
+                  hintText: 'e.g., 01119988299',
                   hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   enabledBorder: OutlineInputBorder(
@@ -350,20 +381,27 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            Container(
-              height: 48,
-              width: 48,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFDE8E8),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.shade400, width: 1.5),
+            if (index > 0) ...[
+              const SizedBox(width: 12),
+              Container(
+                height: 48,
+                width: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFDE8E8),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade400, width: 1.5),
+                ),
+                child: IconButton(
+                  icon: Icon(Icons.close, color: Colors.red.shade600, size: 20),
+                  onPressed: () {
+                    setState(() {
+                      _contactControllers[index].dispose();
+                      _contactControllers.removeAt(index);
+                    });
+                  },
+                ),
               ),
-              child: IconButton(
-                icon: Icon(Icons.close, color: Colors.red.shade600, size: 20),
-                onPressed: () {},
-              ),
-            ),
+            ],
           ],
         ),
       ],

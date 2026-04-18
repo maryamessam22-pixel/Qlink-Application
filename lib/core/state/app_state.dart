@@ -1,14 +1,31 @@
 import 'package:flutter/material.dart';
 
+class VisibilitySettings {
+  bool showBloodType;
+  bool showAllergies;
+  bool showMedicalNotes;
+  bool showEmergencyContacts;
+  bool showBirthYear;
+
+  VisibilitySettings({
+    this.showBloodType = true,
+    this.showAllergies = true,
+    this.showMedicalNotes = true,
+    this.showEmergencyContacts = true,
+    this.showBirthYear = true,
+  });
+}
+
 class ProfileData {
-  final String name;
-  final String imagePath;
-  final String relationship;
-  final String birthYear;
-  final List<String> emergencyContacts;
-  final String bloodType;
-  final String condition;
-  final String allergies;
+  String name;
+  String imagePath;
+  String relationship;
+  String birthYear;
+  List<String> emergencyContacts;
+  String bloodType;
+  String condition;
+  String allergies;
+  VisibilitySettings visibility;
   final List<DeviceData> devices;
 
   ProfileData({
@@ -20,8 +37,10 @@ class ProfileData {
     this.bloodType = '',
     this.condition = '',
     this.allergies = '',
+    VisibilitySettings? visibility,
     List<DeviceData>? devices,
-  }) : devices = devices ?? [];
+  })  : visibility = visibility ?? VisibilitySettings(),
+        devices = devices ?? [];
 
   bool get hasDevice => devices.isNotEmpty;
 }
@@ -53,6 +72,13 @@ class AppState extends ChangeNotifier {
   void addProfile(ProfileData profile) {
     _profiles.add(profile);
     notifyListeners();
+  }
+
+  void updateProfile(int index, ProfileData profile) {
+    if (index >= 0 && index < _profiles.length) {
+      _profiles[index] = profile;
+      notifyListeners();
+    }
   }
 
   void addDeviceToProfile(int profileIndex, DeviceData device) {
