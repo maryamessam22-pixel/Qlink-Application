@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:q_link/core/state/app_state.dart'; // مسار الـ AppState
 
 class VaultDetailPage extends StatelessWidget {
   final String name;
@@ -30,6 +31,8 @@ class VaultDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = AppState().isArabic; // متغير اللغة
+
     return Scaffold(
       backgroundColor: Colors.white,
       extendBody: true,
@@ -42,27 +45,27 @@ class VaultDetailPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTopBar(context),
+              _buildTopBar(context, isArabic),
               const SizedBox(height: 20),
-              _buildProfileHeader(),
+              _buildProfileHeader(isArabic),
               const SizedBox(height: 28),
-              _buildMedicalSummary(),
+              _buildMedicalSummary(isArabic),
               const SizedBox(height: 28),
-              _buildEmergencyContacts(),
+              _buildEmergencyContacts(isArabic),
               const SizedBox(height: 28),
-              _buildDocuments(),
+              _buildDocuments(isArabic),
               const SizedBox(height: 24),
-              _buildSecurityNote(),
+              _buildSecurityNote(isArabic),
               const SizedBox(height: 120),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(context),
+      bottomNavigationBar: _buildBottomNavBar(context, isArabic),
     );
   }
 
-  Widget _buildTopBar(BuildContext context) {
+  Widget _buildTopBar(BuildContext context, bool isArabic) {
     return Row(
       children: [
         GestureDetector(
@@ -75,9 +78,9 @@ class VaultDetailPage extends StatelessWidget {
                 size: 22,
               ),
               const SizedBox(width: 6),
-              const Text(
-                'Vault',
-                style: TextStyle(
+              Text(
+                isArabic ? 'الخزنة' : 'Vault',
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF1E3A8A),
@@ -102,7 +105,7 @@ class VaultDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader() {
+  Widget _buildProfileHeader(bool isArabic) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -133,7 +136,7 @@ class VaultDetailPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  'Monitored User Since $monitoredSince',
+                  isArabic ? 'مستخدم مراقب منذ $monitoredSince' : 'Monitored User Since $monitoredSince',
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey.shade500,
@@ -146,7 +149,7 @@ class VaultDetailPage extends StatelessWidget {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha:0.12),
+                    color: statusColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -167,13 +170,13 @@ class VaultDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildMedicalSummary() {
+  Widget _buildMedicalSummary(bool isArabic) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Medical Summary',
-          style: TextStyle(
+        Text(
+          isArabic ? 'الملخص الطبي' : 'Medical Summary',
+          style: const TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1F2937),
@@ -183,7 +186,7 @@ class VaultDetailPage extends StatelessWidget {
         _buildMedicalRow(
           icon: Icons.bloodtype_outlined,
           iconColor: const Color(0xFFEF4444),
-          label: 'Blood Type',
+          label: isArabic ? 'فصيلة الدم' : 'Blood Type',
           value: bloodType,
           valueColor: const Color(0xFFEF4444),
         ),
@@ -191,7 +194,7 @@ class VaultDetailPage extends StatelessWidget {
         _buildMedicalRow(
           icon: Icons.favorite_outline,
           iconColor: const Color(0xFF6366F1),
-          label: 'Condition',
+          label: isArabic ? 'الحالة الطبية' : 'Condition',
           value: condition,
           valueColor: const Color(0xFF1B64F2),
         ),
@@ -199,7 +202,7 @@ class VaultDetailPage extends StatelessWidget {
         _buildMedicalRow(
           icon: Icons.error_outline,
           iconColor: const Color(0xFFF59E0B),
-          label: 'Allergies',
+          label: isArabic ? 'الحساسية' : 'Allergies',
           value: allergies,
           valueColor: const Color(0xFFEF4444),
         ),
@@ -222,7 +225,7 @@ class VaultDetailPage extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha:0.1),
+              color: iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: iconColor, size: 18),
@@ -242,7 +245,7 @@ class VaultDetailPage extends StatelessWidget {
               vertical: 4,
             ),
             decoration: BoxDecoration(
-              color: valueColor.withValues(alpha:0.08),
+              color: valueColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -259,13 +262,13 @@ class VaultDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmergencyContacts() {
+  Widget _buildEmergencyContacts(bool isArabic) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Emergency Contacts',
-          style: TextStyle(
+        Text(
+          isArabic ? 'جهات اتصال الطوارئ' : 'Emergency Contacts',
+          style: const TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1F2937),
@@ -336,13 +339,13 @@ class VaultDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDocuments() {
+  Widget _buildDocuments(bool isArabic) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Documents',
-          style: TextStyle(
+        Text(
+          isArabic ? 'المستندات' : 'Documents',
+          style: const TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1F2937),
@@ -354,6 +357,7 @@ class VaultDetailPage extends StatelessWidget {
               subtitle: doc['subtitle'] ?? '',
               iconColor: _getDocIconColor(doc['type'] ?? ''),
               icon: _getDocIcon(doc['type'] ?? ''),
+              isArabic: isArabic,
             )),
       ],
     );
@@ -390,6 +394,7 @@ class VaultDetailPage extends StatelessWidget {
     required String subtitle,
     required Color iconColor,
     required IconData icon,
+    required bool isArabic,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -399,7 +404,7 @@ class VaultDetailPage extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha:0.1),
+              color: iconColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: iconColor, size: 20),
@@ -429,11 +434,11 @@ class VaultDetailPage extends StatelessWidget {
             ),
           ),
           Text(
-            'View',
+            isArabic ? 'عرض' : 'View',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF1B64F2).withValues(alpha:0.8),
+              color: const Color(0xFF1B64F2).withValues(alpha: 0.8),
             ),
           ),
         ],
@@ -441,7 +446,7 @@ class VaultDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSecurityNote() {
+  Widget _buildSecurityNote(bool isArabic) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -462,7 +467,9 @@ class VaultDetailPage extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'You can securely share this vault with medical professionals or emergency helpers when assistance is required. All data is encrypted and only accessible via your permission.',
+              isArabic
+                  ? 'يمكنك مشاركة هذه الخزنة بأمان مع المتخصصين الطبيين أو مساعدي الطوارئ عند الحاجة. جميع البيانات مشفرة ولا يمكن الوصول إليها إلا بإذنك.'
+                  : 'You can securely share this vault with medical professionals or emergency helpers when assistance is required. All data is encrypted and only accessible via your permission.',
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.grey.shade600,
@@ -475,7 +482,7 @@ class VaultDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomNavBar(BuildContext context) {
+  Widget _buildBottomNavBar(BuildContext context, bool isArabic) {
     return SafeArea(
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -484,7 +491,7 @@ class VaultDetailPage extends StatelessWidget {
           borderRadius: BorderRadius.circular(35),
           boxShadow: [
             BoxShadow(
-              color: Colors.blue.withValues(alpha:0.15),
+              color: Colors.blue.withValues(alpha: 0.15),
               blurRadius: 30,
               offset: const Offset(0, 10),
             ),
@@ -496,9 +503,9 @@ class VaultDetailPage extends StatelessWidget {
             filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha:0.4),
+                color: Colors.white.withValues(alpha: 0.4),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha:0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   width: 1.5,
                 ),
                 borderRadius: BorderRadius.circular(35),
@@ -507,8 +514,8 @@ class VaultDetailPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildNavItem(context, icon: LucideIcons.home, label: 'Home'),
-                  _buildNavItem(context, icon: LucideIcons.map, label: 'Map'),
+                  _buildNavItem(context, icon: LucideIcons.home, label: isArabic ? 'الرئيسية' : 'Home'),
+                  _buildNavItem(context, icon: LucideIcons.map, label: isArabic ? 'الخريطة' : 'Map'),
                   GestureDetector(
                     onTap: () {},
                     child: Container(
@@ -527,10 +534,10 @@ class VaultDetailPage extends StatelessWidget {
                   ),
                   _buildNavItem(context,
                       icon: LucideIcons.lock,
-                      label: 'Vault',
+                      label: isArabic ? 'الخزنة' : 'Vault',
                       isSelected: true),
                   _buildNavItem(context,
-                      icon: LucideIcons.settings, label: 'Settings'),
+                      icon: LucideIcons.settings, label: isArabic ? 'الإعدادات' : 'Settings'),
                 ],
               ),
             ),

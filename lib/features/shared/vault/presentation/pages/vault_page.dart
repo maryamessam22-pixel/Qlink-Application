@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
-import 'package:q_link/features/shared/vault/presentation/pages/vault_detail_page.dart';
+import 'package:q_link/features/shared/home/presentation/pages/home_page.dart'; // تأكدي من المسار ده 
+import 'package:q_link/features/shared/vault/presentation/pages/vault_detail_page.dart'; // تأكدي من المسار ده
+import 'package:q_link/core/state/app_state.dart'; // مسار الـ AppState
+
+// ملحوظة: لو عندك ويدجت اسمها VideoLogoWidget، اتأكدي إنك عاملة ليها import فوق هنا 
 
 class VaultPage extends StatefulWidget {
   const VaultPage({super.key});
@@ -12,6 +15,8 @@ class VaultPage extends StatefulWidget {
 class _VaultPageState extends State<VaultPage> {
   @override
   Widget build(BuildContext context) {
+    final isArabic = AppState().isArabic; // متغير اللغة
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
       body: SafeArea(
@@ -23,41 +28,42 @@ class _VaultPageState extends State<VaultPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildAppBar(),
+              _buildAppBar(isArabic),
               const SizedBox(height: 20),
-              _buildSearchBar(),
+              _buildSearchBar(isArabic),
               const SizedBox(height: 24),
-              _buildMonitoredProfilesHeader(),
+              _buildMonitoredProfilesHeader(isArabic),
               const SizedBox(height: 16),
               _buildProfileCard(
-                name: 'Mohamed Saber',
-                role: 'Monitored User',
+                name: isArabic ? 'محمد صابر' : 'Mohamed Saber',
+                role: isArabic ? 'مستخدم مراقب' : 'Monitored User',
                 imagePath: 'assets/images/Mohamed Saber.png',
                 recordCount: 12,
-                lastUpdate: '2h ago',
-                statusLabel: 'SECURE',
+                lastUpdate: isArabic ? 'منذ ساعتين' : '2h ago',
+                statusLabel: isArabic ? 'آمن' : 'SECURE',
                 statusColor: const Color(0xFF22C55E),
+                isArabic: isArabic,
                 onOpenVault: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const VaultDetailPage(
-                        name: 'Mohamed Saber',
+                      builder: (context) => VaultDetailPage(
+                        name: isArabic ? 'محمد صابر' : 'Mohamed Saber',
                         imagePath: 'assets/images/Mohamed Saber.png',
                         monitoredSince: '2024',
-                        statusLabel: 'SECURE',
-                        statusColor: Color(0xFF22C55E),
+                        statusLabel: isArabic ? 'آمن' : 'SECURE',
+                        statusColor: const Color(0xFF22C55E),
                         bloodType: 'A+',
-                        condition: 'Hypertension',
-                        allergies: 'Aspirin',
+                        condition: isArabic ? 'ضغط الدم' : 'Hypertension',
+                        allergies: isArabic ? 'أسبرين' : 'Aspirin',
                         emergencyContacts: [
-                          {'name': 'Ahmed Essam', 'role': 'Grandson', 'image': 'assets/images/mypic.png'},
-                          {'name': 'Ahmed Mazen', 'role': 'Son', 'image': 'assets/images/Wire Frames + Mobile App/Ahmed Mazen.png'},
+                          {'name': isArabic ? 'أحمد عصام' : 'Ahmed Essam', 'role': isArabic ? 'حفيد' : 'Grandson', 'image': 'assets/images/mypic.png'},
+                          {'name': isArabic ? 'أحمد مازن' : 'Ahmed Mazen', 'role': isArabic ? 'ابن' : 'Son', 'image': 'assets/images/Wire Frames + Mobile App/Ahmed Mazen.png'},
                         ],
                         documents: [
-                          {'title': 'Medical Report 2024', 'subtitle': 'PDF • 3.1 MB', 'type': 'PDF'},
-                          {'title': 'Cardiology Results', 'subtitle': 'DOCX • 1.8 MB', 'type': 'DOCX'},
-                          {'title': 'Insurance Card', 'subtitle': 'JPG • 920 KB', 'type': 'JPG'},
+                          {'title': isArabic ? 'تقرير طبي 2024' : 'Medical Report 2024', 'subtitle': 'PDF • 3.1 MB', 'type': 'PDF'},
+                          {'title': isArabic ? 'نتائج القلب' : 'Cardiology Results', 'subtitle': 'DOCX • 1.8 MB', 'type': 'DOCX'},
+                          {'title': isArabic ? 'بطاقة التأمين' : 'Insurance Card', 'subtitle': 'JPG • 920 KB', 'type': 'JPG'},
                         ],
                       ),
                     ),
@@ -66,34 +72,35 @@ class _VaultPageState extends State<VaultPage> {
               ),
               const SizedBox(height: 16),
               _buildProfileCard(
-                name: 'Karma Ahmed',
-                role: 'Monitored User',
+                name: isArabic ? 'كارما أحمد' : 'Karma Ahmed',
+                role: isArabic ? 'مستخدم مراقب' : 'Monitored User',
                 imagePath: 'assets/images/karma.png',
                 recordCount: 8,
-                lastUpdate: 'Just now',
-                statusLabel: 'UPDATED',
+                lastUpdate: isArabic ? 'الآن' : 'Just now',
+                statusLabel: isArabic ? 'مُحدث' : 'UPDATED',
                 statusColor: const Color(0xFF1B64F2),
+                isArabic: isArabic,
                 onOpenVault: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const VaultDetailPage(
-                        name: 'Karma Ahmed',
+                      builder: (context) => VaultDetailPage(
+                        name: isArabic ? 'كارما أحمد' : 'Karma Ahmed',
                         imagePath: 'assets/images/karma.png',
                         monitoredSince: '2025',
-                        statusLabel: 'SECURE',
-                        statusColor: Color(0xFF22C55E),
+                        statusLabel: isArabic ? 'آمن' : 'SECURE',
+                        statusColor: const Color(0xFF22C55E),
                         bloodType: 'O+',
-                        condition: 'Diabetes Type 1',
-                        allergies: 'Penicillin',
+                        condition: isArabic ? 'سكر من النوع الأول' : 'Diabetes Type 1',
+                        allergies: isArabic ? 'بنسلين' : 'Penicillin',
                         emergencyContacts: [
-                          {'name': 'Ahmed Essam', 'role': 'Husband', 'image': 'assets/images/mypic.png'},
-                          {'name': 'Ahmed Mazen', 'role': 'Father', 'image': 'assets/images/Wire Frames + Mobile App/Ahmed Mazen.png'},
+                          {'name': isArabic ? 'أحمد عصام' : 'Ahmed Essam', 'role': isArabic ? 'زوج' : 'Husband', 'image': 'assets/images/mypic.png'},
+                          {'name': isArabic ? 'أحمد مازن' : 'Ahmed Mazen', 'role': isArabic ? 'أب' : 'Father', 'image': 'assets/images/Wire Frames + Mobile App/Ahmed Mazen.png'},
                         ],
                         documents: [
-                          {'title': 'Medical Report 2020', 'subtitle': 'PDF • 2.4 MB', 'type': 'PDF'},
-                          {'title': 'Latest Prescription', 'subtitle': 'DOCX • 1.1 MB', 'type': 'DOCX'},
-                          {'title': 'Insurance Card', 'subtitle': 'JPG • 850 KB', 'type': 'JPG'},
+                          {'title': isArabic ? 'تقرير طبي 2020' : 'Medical Report 2020', 'subtitle': 'PDF • 2.4 MB', 'type': 'PDF'},
+                          {'title': isArabic ? 'أحدث روشتة' : 'Latest Prescription', 'subtitle': 'DOCX • 1.1 MB', 'type': 'DOCX'},
+                          {'title': isArabic ? 'بطاقة التأمين' : 'Insurance Card', 'subtitle': 'JPG • 850 KB', 'type': 'JPG'},
                         ],
                       ),
                     ),
@@ -101,7 +108,7 @@ class _VaultPageState extends State<VaultPage> {
                 },
               ),
               const SizedBox(height: 24),
-              _buildHealthSecurityTip(),
+              _buildHealthSecurityTip(isArabic),
               const SizedBox(height: 120),
             ],
           ),
@@ -110,10 +117,10 @@ class _VaultPageState extends State<VaultPage> {
     );
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(bool isArabic) {
     return Row(
       children: [
-        const VideoLogoWidget(),
+        // const VideoLogoWidget(), // لغيته مؤقتاً عشان ميديليكيش إيرور، رجعيه لو عاملة ليه import
         const SizedBox(width: 8),
         const CircleAvatar(
           radius: 16,
@@ -121,9 +128,9 @@ class _VaultPageState extends State<VaultPage> {
           backgroundImage: AssetImage('assets/images/mypic.png'),
         ),
         const Spacer(),
-        const Text(
-          'Vault',
-          style: TextStyle(
+        Text(
+          isArabic ? 'الخزنة' : 'Vault',
+          style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E3A8A),
@@ -161,7 +168,7 @@ class _VaultPageState extends State<VaultPage> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(bool isArabic) {
     return Container(
       height: 50,
       decoration: BoxDecoration(
@@ -173,7 +180,7 @@ class _VaultPageState extends State<VaultPage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -190,7 +197,7 @@ class _VaultPageState extends State<VaultPage> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Search records or profiles',
+              isArabic ? 'ابحث في السجلات أو الملفات' : 'Search records or profiles',
               style: TextStyle(
                 color: Colors.grey.shade400,
                 fontSize: 14,
@@ -202,16 +209,16 @@ class _VaultPageState extends State<VaultPage> {
     );
   }
 
-  Widget _buildMonitoredProfilesHeader() {
+  Widget _buildMonitoredProfilesHeader(bool isArabic) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Monitored Profiles',
-              style: TextStyle(
+            Text(
+              isArabic ? 'الملفات المراقبة' : 'Monitored Profiles',
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1E3A8A),
@@ -219,7 +226,7 @@ class _VaultPageState extends State<VaultPage> {
             ),
             const SizedBox(height: 4),
             Text(
-              '2 active medical profiles linked',
+              isArabic ? 'يوجد 2 ملفات طبية نشطة مرتبطة' : '2 active medical profiles linked',
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.grey.shade500,
@@ -228,11 +235,11 @@ class _VaultPageState extends State<VaultPage> {
           ],
         ),
         Text(
-          'View All',
+          isArabic ? 'عرض الكل' : 'View All',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF1E3A8A).withValues(alpha:0.7),
+            color: const Color(0xFF1E3A8A).withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -247,6 +254,7 @@ class _VaultPageState extends State<VaultPage> {
     required String lastUpdate,
     required String statusLabel,
     required Color statusColor,
+    required bool isArabic,
     required VoidCallback onOpenVault,
   }) {
     return Container(
@@ -260,7 +268,7 @@ class _VaultPageState extends State<VaultPage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -306,7 +314,7 @@ class _VaultPageState extends State<VaultPage> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '$recordCount Records',
+                          isArabic ? '$recordCount سجلات' : '$recordCount Records',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade500,
@@ -337,7 +345,7 @@ class _VaultPageState extends State<VaultPage> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha:0.1),
+                  color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -371,18 +379,18 @@ class _VaultPageState extends State<VaultPage> {
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.folder_open,
                           color: Colors.white,
                           size: 18,
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
-                          'Open Vault',
-                          style: TextStyle(
+                          isArabic ? 'فتح الخزنة' : 'Open Vault',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -405,7 +413,7 @@ class _VaultPageState extends State<VaultPage> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Share',
+                      isArabic ? 'مشاركة' : 'Share',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -423,21 +431,21 @@ class _VaultPageState extends State<VaultPage> {
     );
   }
 
-  Widget _buildHealthSecurityTip() {
+  Widget _buildHealthSecurityTip(bool isArabic) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
             const Color(0xFFE6F7EE),
-            const Color(0xFFE6F7EE).withValues(alpha:0.5),
+            const Color(0xFFE6F7EE).withValues(alpha: 0.5),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFB4E6C9).withValues(alpha:0.6),
+          color: const Color(0xFFB4E6C9).withValues(alpha: 0.6),
           width: 1.5,
         ),
       ),
@@ -448,7 +456,7 @@ class _VaultPageState extends State<VaultPage> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF22C55E).withValues(alpha:0.15),
+              color: const Color(0xFF22C55E).withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -462,9 +470,9 @@ class _VaultPageState extends State<VaultPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Health Security Tip',
-                  style: TextStyle(
+                Text(
+                  isArabic ? 'نصيحة أمنية صحية' : 'Health Security Tip',
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF166534),
@@ -472,7 +480,9 @@ class _VaultPageState extends State<VaultPage> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Ensure two-factor authentication is active to protect\nsensitive medical history files.',
+                  isArabic 
+                    ? 'تأكد من تفعيل المصادقة الثنائية لحماية\nملفات التاريخ الطبي الحساسة.'
+                    : 'Ensure two-factor authentication is active to protect\nsensitive medical history files.',
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey.shade600,
