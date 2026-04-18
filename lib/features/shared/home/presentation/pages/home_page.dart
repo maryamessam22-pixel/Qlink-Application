@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:video_player/video_player.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/add_profile_identity.dart';
+import 'package:q_link/features/shared/profile/presentation/pages/connect_device_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -244,19 +245,29 @@ class HomePage extends StatelessWidget {
                       style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.9), height: 1.4),
                     ),
                     const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.add_circle_outline, color: Color(0xFF3F83F8)),
-                          SizedBox(width: 8),
-                          Text('Add First Bracelet', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF3F83F8))),
-                        ],
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ConnectDevicePage(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_circle_outline, color: Color(0xFF3F83F8)),
+                            SizedBox(width: 8),
+                            Text('Add First Bracelet', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF3F83F8))),
+                          ],
+                        ),
                       ),
                     ),
                   ],
