@@ -172,6 +172,9 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               _buildLabelAndTextField('Patient\'s Full Name', 'e.g., Mohamed Saber', controller: _nameController),
               const SizedBox(height: 16),
               
+              _buildLabelAndTextField('Relationship to You', 'e.g., Grandfather', controller: _relationshipController),
+              const SizedBox(height: 16),
+              
               _buildLabelAndTextField('Birth Year', 'e.g., 1945', controller: _birthYearController),
               const SizedBox(height: 24),
               const Text(
