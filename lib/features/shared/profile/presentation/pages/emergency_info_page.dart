@@ -71,7 +71,6 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
       allergies: _allergiesController.text,
       condition: _conditionController.text,
       emergencyContacts: _contactControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
-      hasDevice: widget.profile.hasDevice,
       devices: widget.profile.devices,
       imagePath: widget.profile.imagePath,
     );
