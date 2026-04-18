@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
+import 'package:q_link/features/shared/profile/presentation/pages/connect_device_page.dart';
 
 class AddMedicalInfoPage extends StatefulWidget {
   const AddMedicalInfoPage({super.key});
@@ -463,7 +464,12 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
   Widget _buildContinueButton() {
     return GestureDetector(
       onTap: () {
-        // Navigate to next step (Step 3)
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ConnectDevicePage(),
+          ),
+        );
       },
       child: Container(
         width: double.infinity,
