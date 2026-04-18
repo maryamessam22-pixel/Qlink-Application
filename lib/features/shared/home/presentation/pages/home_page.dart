@@ -277,89 +277,95 @@ class HomePage extends StatelessWidget {
               ),
 
               // Connect Bracelet Card
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF4285F4), Color(0xFF273469)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(AppState().tr('Connect a Bracelet', 'توصيل سوار'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                    const SizedBox(height: 8),
-                    Text(
-                      AppState().tr(
-                        'Pair a Qlink bracelet to start protecting your loved ones in real time and expand your safety circle.',
-                        'قم بإقران سوار كيولينك للبدء في حماية أحبائك في الوقت الفعلي وتوسيع دائرة الأمان.',
+              AnimatedBuilder(
+                animation: AppState(),
+                builder: (context, _) {
+                  final appState = AppState();
+                  return Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF4285F4), Color(0xFF273469)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.9), height: 1.4),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    const SizedBox(height: 20),
-                    GestureDetector(
-                      onTap: () {
-                        if (AppState().profileCount == 0) {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: Text(AppState().tr('Profile Required', 'مطلوب ملف تعريف')),
-                              content: Text(AppState().tr(
-                                'You must create a profile first before connecting a bracelet.',
-                                'يجب إنشاء ملف تعريف أولاً قبل توصيل السوار.',
-                              )),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: Text(AppState().tr('Cancel', 'إلغاء')),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(appState.tr('Connect a Bracelet', 'توصيل سوار'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                        const SizedBox(height: 8),
+                        Text(
+                          appState.tr(
+                            'Pair a Qlink bracelet to start protecting your loved ones in real time and expand your safety circle.',
+                            'قم بإقران سوار كيولينك للبدء في حماية أحبائك في الوقت الفعلي وتوسيع دائرة الأمان.',
+                          ),
+                          style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.9), height: 1.4),
+                        ),
+                        const SizedBox(height: 20),
+                        GestureDetector(
+                          onTap: () {
+                            if (appState.profileCount == 0) {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text(appState.tr('Profile Required', 'مطلوب ملف تعريف')),
+                                  content: Text(appState.tr(
+                                    'You must create a profile first before connecting a bracelet.',
+                                    'يجب إنشاء ملف تعريف أولاً قبل توصيل السوار.',
+                                  )),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text(appState.tr('Cancel', 'إلغاء')),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => const AddProfileIdentityPage()),
+                                        );
+                                      },
+                                      child: Text(appState.tr('Create Profile', 'إنشاء ملف تعريف'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
+                                  ],
                                 ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => const AddProfileIdentityPage()),
-                                    );
-                                  },
-                                  child: Text(AppState().tr('Create Profile', 'إنشاء ملف تعريف'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                              );
+                              return;
+                            }
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const ConnectDevicePage()),
+                            );
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.add, color: Color(0xFF273469), size: 24),
+                                const SizedBox(width: 8),
+                                Text(
+                                  appState.deviceCount > 0
+                                      ? appState.tr('Add Bracelet', 'إضافة سوار')
+                                      : appState.tr('Add First Bracelet', 'إضافة أول سوار'),
+                                  style: const TextStyle(color: Color(0xFF273469), fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
-                          );
-                          return;
-                        }
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const ConnectDevicePage()),
-                        );
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.add, color: Color(0xFF273469), size: 24),
-                            const SizedBox(width: 8),
-                            Text(
-                              AppState().deviceCount > 0
-                                  ? AppState().tr('Add Bracelet', 'إضافة سوار')
-                                  : AppState().tr('Add First Bracelet', 'إضافة أول سوار'),
-                              style: const TextStyle(color: Color(0xFF273469), fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 24),
 
