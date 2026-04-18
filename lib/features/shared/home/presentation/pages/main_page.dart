@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
 import 'package:q_link/features/shared/map/presentation/pages/map_page.dart';
 import 'package:q_link/features/shared/vault/presentation/pages/vault_page.dart';
+import 'package:q_link/features/shared/profile/presentation/pages/add_profile_identity.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -62,7 +63,10 @@ class _MainPageState extends State<MainPage> {
                     // Center Plus Button
                     GestureDetector(
                       onTap: () {
-                        // Action for "+"
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AddProfileIdentityPage()),
+                        );
                       },
                       child: Container(
                         width: 50,

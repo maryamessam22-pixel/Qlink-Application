@@ -52,7 +52,7 @@ class _VaultPageState extends State<VaultPage> {
                         allergies: 'Aspirin',
                         emergencyContacts: [
                           {'name': 'Ahmed Essam', 'role': 'Grandson', 'image': 'assets/images/mypic.png'},
-                          {'name': 'Ahmed Mazen', 'role': 'Son', 'image': 'assets/images/mypic.png'},
+                          {'name': 'Ahmed Mazen', 'role': 'Son', 'image': 'assets/images/Wire Frames + Mobile App/Ahmed Mazen.png'},
                         ],
                         documents: [
                           {'title': 'Medical Report 2024', 'subtitle': 'PDF • 3.1 MB', 'type': 'PDF'},
@@ -88,7 +88,7 @@ class _VaultPageState extends State<VaultPage> {
                         allergies: 'Penicillin',
                         emergencyContacts: [
                           {'name': 'Ahmed Essam', 'role': 'Husband', 'image': 'assets/images/mypic.png'},
-                          {'name': 'Ahmed Mazen', 'role': 'Father', 'image': 'assets/images/mypic.png'},
+                          {'name': 'Ahmed Mazen', 'role': 'Father', 'image': 'assets/images/Wire Frames + Mobile App/Ahmed Mazen.png'},
                         ],
                         documents: [
                           {'title': 'Medical Report 2020', 'subtitle': 'PDF • 2.4 MB', 'type': 'PDF'},
