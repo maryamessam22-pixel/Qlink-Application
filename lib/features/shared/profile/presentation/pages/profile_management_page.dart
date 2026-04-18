@@ -41,7 +41,7 @@ class ProfileManagementPage extends StatelessWidget {
                             children: [
                               Icon(Icons.arrow_back, color: Colors.grey.shade600, size: 20),
                               const SizedBox(width: 4),
-                              Text('Back', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                              Text(appState.tr('Back', 'رجوع'), style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
                             ],
                           ),
                         ),
@@ -104,8 +104,8 @@ class ProfileManagementPage extends StatelessWidget {
                     ),
                     _buildFeatureCard(
                       icon: LucideIcons.eye,
-                      title: 'Privacy Control',
-                      subtitle: 'Manage visibility',
+                      title: appState.tr('Privacy Control', 'التحكم في الخصوصية'),
+                      subtitle: appState.tr('Manage visibility', 'إدارة مستوى الرؤية'),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -160,8 +160,8 @@ class ProfileManagementPage extends StatelessWidget {
                     ),
                     _buildFeatureCard(
                       icon: LucideIcons.qrCode,
-                      title: 'QR Preview',
-                      subtitle: 'See what scanners see',
+                      title: appState.tr('QR Preview', 'معاينة QR'),
+                      subtitle: appState.tr('See what scanners see', 'شاهد ما يراه الماسحون'),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -173,14 +173,14 @@ class ProfileManagementPage extends StatelessWidget {
                     ),
 
                     const SizedBox(height: 32),
-                    const Text('Device', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+                    Text(appState.tr('Device', 'الجهاز'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
                     const SizedBox(height: 16),
 
                     // Device Section
                     if (profile.hasDevice)
                       _buildActionItem(
                         icon: Icons.watch_outlined,
-                        title: 'Connected Device',
+                        title: appState.tr('Connected Device', 'الجهاز المتصل'),
                         subtitle: profile.devices.first.code.toUpperCase(),
                         color: Colors.green,
                         onTap: () {},
@@ -188,7 +188,7 @@ class ProfileManagementPage extends StatelessWidget {
                     else
                       _buildActionItem(
                         icon: Icons.add_circle_outline,
-                        title: 'Add Device',
+                        title: appState.tr('Add Device', 'إضافة جهاز'),
                         color: const Color(0xFF1B64F2),
                         onTap: () {
                           Navigator.push(
@@ -202,7 +202,7 @@ class ProfileManagementPage extends StatelessWidget {
                     
                     _buildActionItem(
                       icon: Icons.my_location_outlined,
-                      title: 'Find My Bracelet',
+                      title: appState.tr('Find My Bracelet', 'البحث عن سواري'),
                       onTap: () {},
                     ),
 
@@ -216,7 +216,7 @@ class ProfileManagementPage extends StatelessWidget {
                         side: const BorderSide(color: Colors.red),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                       ),
-                      child: const Text('Delete Bracelet', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                      child: Text(appState.tr('Delete Bracelet', 'حذف السوار'), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 100),
                   ],
@@ -310,17 +310,17 @@ class ProfileManagementPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Profile'),
-        content: Text('Are you sure you want to delete ${profile.name}? This action cannot be undone.'),
+        title: Text(appState.tr('Delete Profile', 'حذف الملف الشخصي')),
+        content: Text('${appState.tr('Are you sure you want to delete', 'هل أنت متأكد أنك تريد حذف')} ${profile.name}? ${appState.tr('This action cannot be undone.', 'لا يمكن التراجع عن هذا الإجراء.')}'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(appState.tr('Cancel', 'إلغاء'))),
           TextButton(
             onPressed: () {
               AppState().removeProfile(profileIndex);
               Navigator.pop(context); // close dialog
               Navigator.pop(context); // go back to home
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text(appState.tr('Delete', 'حذف'), style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -356,8 +356,8 @@ class ProfileManagementPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildNavItem(context, icon: LucideIcons.home, label: 'Home'),
-                  _buildNavItem(context, icon: LucideIcons.map, label: 'Map'),
+                  _buildNavItem(context, icon: LucideIcons.home, label: appState.tr('Home', 'الرئيسية')),
+                  _buildNavItem(context, icon: LucideIcons.map, label: appState.tr('Map', 'الخريطة')),
                   GestureDetector(
                     onTap: () {},
                     child: Container(
@@ -370,8 +370,8 @@ class ProfileManagementPage extends StatelessWidget {
                       child: const Icon(Icons.add, color: Colors.white, size: 28),
                     ),
                   ),
-                  _buildNavItem(context, icon: LucideIcons.lock, label: 'Vault'),
-                  _buildNavItem(context, icon: LucideIcons.settings, label: 'Settings'),
+                  _buildNavItem(context, icon: LucideIcons.lock, label: appState.tr('Vault', 'الخزنة')),
+                  _buildNavItem(context, icon: LucideIcons.settings, label: appState.tr('Settings', 'الإعدادات')),
                 ],
               ),
             ),

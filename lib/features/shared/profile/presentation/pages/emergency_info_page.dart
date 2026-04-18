@@ -82,7 +82,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated successfully.')),
+      SnackBar(content: Text(AppState().tr('Profile updated successfully.', 'تم تحديث الملف الشخصي بنجاح.'))),
     );
   }
 
@@ -121,7 +121,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                             children: [
                               Icon(Icons.arrow_back, color: Colors.grey.shade600, size: 20),
                               const SizedBox(width: 4),
-                              Text('Back', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                              Text(AppState().tr('Back', 'رجوع'), style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
                             ],
                           ),
                         ),
@@ -173,7 +173,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                                     if (_isEditing)
                                       TextField(
                                         controller: _nameController,
-                                        decoration: const InputDecoration(labelText: 'Name', isDense: true),
+                                        decoration: InputDecoration(labelText: AppState().tr('Name', 'الاسم'), isDense: true),
                                       )
                                     else
                                       Row(
@@ -188,7 +188,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                                               children: [
                                                 const Icon(Icons.circle, color: Color(0xFF0E9F6E), size: 10),
                                                 const SizedBox(width: 4),
-                                                const Text('Pulse', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                                Text(AppState().tr('Pulse', 'بض'), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                                               ],
                                             ),
                                         ],
@@ -197,7 +197,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                                     if (_isEditing)
                                       TextField(
                                         controller: _relationshipController,
-                                        decoration: const InputDecoration(labelText: 'Relationship', isDense: true),
+                                        decoration: InputDecoration(labelText: AppState().tr('Relationship', 'صلة القرابة'), isDense: true),
                                       )
                                     else
                                       Text(widget.profile.relationship, style: const TextStyle(color: Colors.grey)),
@@ -214,7 +214,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                                   child: OutlinedButton.icon(
                                     onPressed: _cancelEdits,
                                     icon: const Icon(Icons.close, size: 16, color: Colors.grey),
-                                    label: const Text('Cancel', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                                    label: Text(AppState().tr('Cancel', 'إلغاء'), style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
                                     style: OutlinedButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(vertical: 12),
                                       side: BorderSide(color: Colors.grey.shade300),
@@ -227,7 +227,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                                   child: OutlinedButton.icon(
                                     onPressed: _saveEdits,
                                     icon: const Icon(Icons.check, size: 16, color: Colors.green),
-                                    label: const Text('Save Edits', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                                    label: Text(AppState().tr('Save Edits', 'حفظ التعديلات'), style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
                                     style: OutlinedButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(vertical: 12),
                                       side: const BorderSide(color: Colors.green),
@@ -244,7 +244,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                                       });
                                     },
                                     icon: const Icon(Icons.edit_outlined, size: 16, color: Colors.grey),
-                                    label: const Text('Edit Profile', style: TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold)),
+                                    label: Text(AppState().tr('Edit Profile', 'تعديل الملف'), style: const TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold)),
                                     style: OutlinedButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(vertical: 12),
                                       side: BorderSide(color: Colors.grey.shade300),
@@ -260,7 +260,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                                       Navigator.popUntil(context, (r) => r.isFirst);
                                     },
                                     icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
-                                    label: const Text('Delete', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                                    label: Text(AppState().tr('Delete', 'حذف'), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                                     style: OutlinedButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(vertical: 12),
                                       side: const BorderSide(color: Colors.red),
@@ -281,15 +281,15 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        Expanded(child: _buildVitalItem('BLOOD_TYPE', _bloodTypeController.text.isEmpty ? 'N/A' : widget.profile.bloodType, controller: _bloodTypeController)),
+                        Expanded(child: _buildVitalItem(AppState().tr('BLOOD_TYPE', 'فصيلة_الدم'), _bloodTypeController.text.isEmpty ? AppState().tr('N/A', 'غير متوفر') : widget.profile.bloodType, controller: _bloodTypeController)),
                         const SizedBox(width: 16),
-                        Expanded(child: _buildVitalItem('BIRTH_YEAR', _birthYearController.text.isEmpty ? 'N/A' : widget.profile.birthYear, controller: _birthYearController)),
+                        Expanded(child: _buildVitalItem(AppState().tr('BIRTH_YEAR', 'سنة_الميلاد'), _birthYearController.text.isEmpty ? AppState().tr('N/A', 'غير متوفر') : widget.profile.birthYear, controller: _birthYearController)),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    _buildFullWidthCard('Allergies', widget.profile.allergies.isEmpty ? 'No allergies provided' : widget.profile.allergies, controller: _allergiesController),
+                    _buildFullWidthCard(AppState().tr('Allergies', 'الحساسية'), widget.profile.allergies.isEmpty ? AppState().tr('No allergies provided', 'لم يتم تقديم بيانات حساسية') : widget.profile.allergies, controller: _allergiesController),
                     const SizedBox(height: 16),
-                    _buildFullWidthCard('Medical Notes', widget.profile.condition.isEmpty ? 'No notes provided' : widget.profile.condition, controller: _conditionController),
+                    _buildFullWidthCard(AppState().tr('Medical Notes', 'ملاحظات طبية'), widget.profile.condition.isEmpty ? AppState().tr('No notes provided', 'لا توجد ملاحظات') : widget.profile.condition, controller: _conditionController),
 
                     const SizedBox(height: 32),
 
@@ -308,7 +308,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Connected Bracelet', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1B64F2))),
+                                Text(AppState().tr('Connected Bracelet', 'السوار المتصل'), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1B64F2))),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
@@ -334,8 +334,8 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text('LAST_LOCATION', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
-                                      Text('Home - Just now', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                                      Text(AppState().tr('LAST_LOCATION', 'آخر_موقع'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey)),
+                                      Text(AppState().tr('Home - Just now', 'المنزل - الآن'), style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                                     ],
                                   ),
                                 ),
@@ -364,7 +364,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 ),
-                                child: const Text('Locate Bracelet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                child: Text(AppState().tr('Locate Bracelet', 'تحديد موقع السوار'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                               ),
                             ),
                           ],
@@ -378,11 +378,11 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                     const SizedBox(height: 32),
 
                     // Document Access
-                    const Text('Document Access', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+                    Text(AppState().tr('Document Access', 'الوصول إلى المستندات'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
                     const SizedBox(height: 16),
-                    _buildLargeButton('View QR Code', const Color(0xFF273469), Icons.qr_code_scanner),
+                    _buildLargeButton(AppState().tr('View QR Code', 'عرض رمز QR'), const Color(0xFF273469), Icons.qr_code_scanner),
                     const SizedBox(height: 12),
-                    _buildLargeButton('Enter Medical Vault', const Color(0xFF1B64F2), LucideIcons.lock),
+                    _buildLargeButton(AppState().tr('Enter Medical Vault', 'دخول الخزنة الطبية'), const Color(0xFF1B64F2), LucideIcons.lock),
                     
                     const SizedBox(height: 100),
                   ],
@@ -460,7 +460,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('EMERGENCY_CONTACTS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+          Text(AppState().tr('EMERGENCY_CONTACTS', 'جهات_اتصال_الطوارئ'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
           const SizedBox(height: 16),
           if (_isEditing) ...[
             ..._contactControllers.asMap().entries.map((e) {
@@ -472,7 +472,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                       child: TextField(
                         controller: e.value,
                         decoration: InputDecoration(
-                          labelText: e.key == 0 ? 'Primary Guardian' : 'Contact ${e.key + 1}',
+                          labelText: e.key == 0 ? AppState().tr('Primary Guardian', 'الوصي الأساسي') : '${AppState().tr('Contact', 'جهة اتصال')} ${e.key + 1}',
                           isDense: true,
                           border: const OutlineInputBorder(),
                         ),
@@ -499,11 +499,11 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                 });
               },
               icon: const Icon(Icons.add),
-              label: const Text('Add Contact'),
+              label: Text(AppState().tr('Add Contact', 'إضافة جهة اتصال')),
             ),
           ] else ...[
             if (widget.profile.emergencyContacts.isEmpty)
-              const Text('No emergency contacts added', style: TextStyle(color: Colors.grey, fontSize: 13))
+              Text(AppState().tr('No emergency contacts added', 'لم يتم إضافة جهات اتصال طوارئ'), style: const TextStyle(color: Colors.grey, fontSize: 13))
             else
               ...widget.profile.emergencyContacts.asMap().entries.map((e) {
                 return Padding(
@@ -511,7 +511,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(e.key == 0 ? 'Primary Guardian' : 'Contact ${e.key + 1}', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                      Text(e.key == 0 ? AppState().tr('Primary Guardian', 'الوصي الأساسي') : '${AppState().tr('Contact', 'جهة اتصال')} ${e.key + 1}', style: const TextStyle(color: Colors.grey, fontSize: 13)),
                       Text(e.value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1F2937))),
                     ],
                   ),
@@ -566,8 +566,8 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildNavItem(context, icon: LucideIcons.home, label: 'Home'),
-                  _buildNavItem(context, icon: LucideIcons.map, label: 'Map'),
+                  _buildNavItem(context, icon: LucideIcons.home, label: AppState().tr('Home', 'الرئيسية')),
+                  _buildNavItem(context, icon: LucideIcons.map, label: AppState().tr('Map', 'الخريطة')),
                   GestureDetector(
                     onTap: () {},
                     child: Container(
@@ -580,8 +580,8 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                       child: const Icon(Icons.add, color: Colors.white, size: 28),
                     ),
                   ),
-                  _buildNavItem(context, icon: LucideIcons.lock, label: 'Vault'),
-                  _buildNavItem(context, icon: LucideIcons.settings, label: 'Settings'),
+                  _buildNavItem(context, icon: LucideIcons.lock, label: AppState().tr('Vault', 'الخزنة')),
+                  _buildNavItem(context, icon: LucideIcons.settings, label: AppState().tr('Settings', 'الإعدادات')),
                 ],
               ),
             ),

@@ -46,7 +46,7 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
     
     AppState().updateProfile(widget.profileIndex, widget.profile);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Privacy settings updated')),
+      SnackBar(content: Text(AppState().tr('Privacy settings updated', 'تم تحديث إعدادات الخصوصية'))),
     );
   }
 
@@ -72,7 +72,7 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
                             children: [
                               Icon(Icons.arrow_back, color: Colors.grey.shade600, size: 20),
                               const SizedBox(width: 4),
-                              Text('Back', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                              Text(AppState().tr('Back', 'رجوع'), style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
                             ],
                           ),
                         ),
@@ -80,21 +80,21 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
                     ),
                     const SizedBox(height: 32),
 
-                    const Text(
-                      'QR Code Visibility',
+                      Text(
+                        AppState().tr('QR Code Visibility', 'رؤية رمز QR'),
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Choose what information appears when someone scans the bracelet',
+                      AppState().tr('Choose what information appears when someone scans the bracelet', 'اختر المعلومات التي تظهر عندما يقوم شخص ما بمسح السوار'),
                       style: TextStyle(color: Colors.grey.shade600, fontSize: 13, height: 1.4),
                     ),
                     const SizedBox(height: 32),
 
                     _buildVisibilityItem(
                       icon: Icons.bloodtype_outlined,
-                      title: 'Blood Type',
-                      subtitle: widget.profile.bloodType.isNotEmpty ? widget.profile.bloodType : 'Not set',
+                      title: AppState().tr('Blood Type', 'فصيلة الدم'),
+                      subtitle: widget.profile.bloodType.isNotEmpty ? widget.profile.bloodType : AppState().tr('Not set', 'غير محدد'),
                       value: _showBloodType,
                       color: Colors.red,
                       onChanged: (val) => setState(() {
@@ -104,8 +104,8 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
                     ),
                     _buildVisibilityItem(
                       icon: Icons.warning_amber_rounded,
-                      title: 'Allergies',
-                      subtitle: widget.profile.allergies.isNotEmpty ? 'Set' : 'Not set',
+                      title: AppState().tr('Allergies', 'الحساسية'),
+                      subtitle: widget.profile.allergies.isNotEmpty ? AppState().tr('Set', 'محدد') : AppState().tr('Not set', 'غير محدد'),
                       value: _showAllergies,
                       color: Colors.orange,
                       onChanged: (val) => setState(() {
@@ -115,8 +115,8 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
                     ),
                     _buildVisibilityItem(
                       icon: Icons.favorite_outline,
-                      title: 'Medical Notes',
-                      subtitle: widget.profile.condition.isNotEmpty ? 'Set' : 'Not set',
+                      title: AppState().tr('Medical Notes', 'ملاحظات طبية'),
+                      subtitle: widget.profile.condition.isNotEmpty ? AppState().tr('Set', 'محدد') : AppState().tr('Not set', 'غير محدد'),
                       value: _showMedicalNotes,
                       color: Colors.red,
                       onChanged: (val) => setState(() {
@@ -126,8 +126,8 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
                     ),
                     _buildVisibilityItem(
                       icon: Icons.call_outlined,
-                      title: 'Emergency Contacts',
-                      subtitle: '${widget.profile.emergencyContacts.length} contacts',
+                      title: AppState().tr('Emergency Contacts', 'جهات اتصال الطوارئ'),
+                      subtitle: '${widget.profile.emergencyContacts.length} ${AppState().tr('contacts', 'جهات اتصال')}',
                       value: _showEmergencyContacts,
                       color: Colors.green,
                       onChanged: (val) => setState(() {
@@ -137,8 +137,8 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
                     ),
                     _buildVisibilityItem(
                       icon: Icons.calendar_today_outlined,
-                      title: 'Birth Year',
-                      subtitle: widget.profile.birthYear.isNotEmpty ? widget.profile.birthYear : 'Not set',
+                      title: AppState().tr('Birth Year', 'سنة الميلاد'),
+                      subtitle: widget.profile.birthYear.isNotEmpty ? widget.profile.birthYear : AppState().tr('Not set', 'غير محدد'),
                       value: _showBirthYear,
                       color: Colors.blue,
                       onChanged: (val) => setState(() {
@@ -148,8 +148,8 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
                     ),
                     _buildVisibilityItem(
                       icon: Icons.family_restroom_outlined,
-                      title: 'Relationship',
-                      subtitle: widget.profile.relationship.isNotEmpty ? widget.profile.relationship : 'Not set',
+                      title: AppState().tr('Relationship', 'صلة القرابة'),
+                      subtitle: widget.profile.relationship.isNotEmpty ? widget.profile.relationship : AppState().tr('Not set', 'غير محدد'),
                       value: _showRelationship,
                       color: Colors.purple,
                       onChanged: (val) => setState(() {
@@ -166,7 +166,7 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
                         padding: const EdgeInsets.symmetric(vertical: 18),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text('Preview QR View', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                      child: Text(AppState().tr('Preview QR View', 'معاينة رمز QR'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                     ),
                   ],
                 ),
@@ -256,8 +256,8 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildNavItem(context, icon: LucideIcons.home, label: 'Home'),
-                  _buildNavItem(context, icon: LucideIcons.map, label: 'Map'),
+                  _buildNavItem(context, icon: LucideIcons.home, label: AppState().tr('Home', 'الرئيسية')),
+                  _buildNavItem(context, icon: LucideIcons.map, label: AppState().tr('Map', 'الخريطة')),
                   GestureDetector(
                     onTap: () {},
                     child: Container(
@@ -270,8 +270,8 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
                       child: const Icon(Icons.add, color: Colors.white, size: 28),
                     ),
                   ),
-                  _buildNavItem(context, icon: LucideIcons.lock, label: 'Vault'),
-                  _buildNavItem(context, icon: LucideIcons.settings, label: 'Settings'),
+                  _buildNavItem(context, icon: LucideIcons.lock, label: AppState().tr('Vault', 'الخزنة')),
+                  _buildNavItem(context, icon: LucideIcons.settings, label: AppState().tr('Settings', 'الإعدادات')),
                 ],
               ),
             ),
