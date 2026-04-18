@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
+import 'package:q_link/features/shared/map/presentation/pages/map_page.dart';
+import 'package:q_link/features/shared/vault/presentation/pages/vault_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -15,9 +17,9 @@ class _MainPageState extends State<MainPage> {
 
   final List<Widget> _pages = [
     const HomePage(),
-    const Center(child: Text('Map View')),
-    const Center(child: Text('Actions')), // Center + button place
-    const Center(child: Text('Vault View')),
+    const MapPage(),
+    const Center(child: Text('Actions')),
+    const VaultPage(),
     const Center(child: Text('Settings View')),
   ];
 
