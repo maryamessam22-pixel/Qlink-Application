@@ -4,6 +4,8 @@ class ProfileData {
   final String name;
   final String imagePath;
   final String relationship;
+  final String birthYear;
+  final List<String> emergencyContacts;
   final String bloodType;
   final String condition;
   final String allergies;
@@ -13,6 +15,8 @@ class ProfileData {
     required this.name,
     required this.imagePath,
     required this.relationship,
+    this.birthYear = '',
+    this.emergencyContacts = const [],
     this.bloodType = '',
     this.condition = '',
     this.allergies = '',

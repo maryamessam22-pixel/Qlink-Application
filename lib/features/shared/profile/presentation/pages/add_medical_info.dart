@@ -7,10 +7,15 @@ import 'package:q_link/features/shared/profile/presentation/pages/connect_device
 class AddMedicalInfoPage extends StatefulWidget {
   final String name;
   final String relationship;
+  final String birthYear;
+  final List<String> emergencyContacts;
+
   const AddMedicalInfoPage({
     super.key,
     required this.name,
     required this.relationship,
+    this.birthYear = '',
+    this.emergencyContacts = const [],
   });
 
   @override
@@ -476,6 +481,8 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
             builder: (context) => ConnectDevicePage(
               name: widget.name,
               relationship: widget.relationship,
+              birthYear: widget.birthYear,
+              emergencyContacts: widget.emergencyContacts,
               bloodType: _selectedBloodType ?? '',
               allergies: _allergiesController.text,
               condition: _medicalNotesController.text,

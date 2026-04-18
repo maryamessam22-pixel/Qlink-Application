@@ -9,6 +9,8 @@ class ConnectDevicePage extends StatefulWidget {
   final int? targetProfileIndex;
   final String? name;
   final String? relationship;
+  final String? birthYear;
+  final List<String>? emergencyContacts;
   final String? bloodType;
   final String? allergies;
   final String? condition;
@@ -18,6 +20,8 @@ class ConnectDevicePage extends StatefulWidget {
     this.targetProfileIndex,
     this.name,
     this.relationship,
+    this.birthYear,
+    this.emergencyContacts,
     this.bloodType,
     this.allergies,
     this.condition,
@@ -381,6 +385,8 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
               name: widget.name ?? 'New Profile',
               imagePath: 'assets/images/mypic.png',
               relationship: widget.relationship ?? 'Member',
+              birthYear: widget.birthYear ?? '',
+              emergencyContacts: widget.emergencyContacts ?? [],
               bloodType: widget.bloodType ?? '',
               allergies: widget.allergies ?? '',
               condition: widget.condition ?? '',
@@ -447,6 +453,8 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
             name: widget.name ?? 'New Profile',
             relationship: widget.relationship ?? 'Member',
             imagePath: 'assets/images/mypic.png',
+            birthYear: widget.birthYear ?? '',
+            emergencyContacts: widget.emergencyContacts ?? [],
             bloodType: widget.bloodType ?? '',
             allergies: widget.allergies ?? '',
             condition: widget.condition ?? '',

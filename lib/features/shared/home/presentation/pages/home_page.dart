@@ -5,6 +5,7 @@ import 'package:video_player/video_player.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/add_profile_identity.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/connect_device_page.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/features/shared/profile/presentation/pages/profile_management_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -481,7 +482,17 @@ class HomePage extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfileManagementPage(
+                          profileIndex: index,
+                          profile: profile,
+                        ),
+                      ),
+                    );
+                  },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     side: const BorderSide(color: Color(0xFFF3F4F6)),

@@ -14,11 +14,17 @@ class AddProfileIdentityPage extends StatefulWidget {
 class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _relationshipController = TextEditingController();
+  final TextEditingController _birthYearController = TextEditingController();
+  final TextEditingController _primaryContactController = TextEditingController();
+  final TextEditingController _secondaryContactController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
     _relationshipController.dispose();
+    _birthYearController.dispose();
+    _primaryContactController.dispose();
+    _secondaryContactController.dispose();
     super.dispose();
   }
 
@@ -144,13 +150,13 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               _buildLabelAndTextField('Relationship to You', 'e.g., Grandfather', controller: _relationshipController),
               const SizedBox(height: 16),
               
-              _buildLabelAndTextField('Birth Year', 'e.g., 1945'),
+              _buildLabelAndTextField('Birth Year', 'e.g., 1945', controller: _birthYearController),
               const SizedBox(height: 16),
               
-              _buildLabelAndTextField('EMERGENCY CONTACT * (Primary Guardian Phone)', 'e.g., 01119988299'),
+              _buildLabelAndTextField('EMERGENCY CONTACT * (Primary Guardian Phone)', 'e.g., 01119988299', controller: _primaryContactController),
               const SizedBox(height: 16),
               
-              _buildAdditionalContactField('Additional Contact 1', 'e.g., 01779998265'),
+              _buildAdditionalContactField('Additional Contact 1', 'e.g., 01779998265', controller: _secondaryContactController),
               const SizedBox(height: 24),
               Container(
                 width: double.infinity,
@@ -189,6 +195,11 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                       builder: (context) => AddMedicalInfoPage(
                         name: _nameController.text,
                         relationship: _relationshipController.text,
+                        birthYear: _birthYearController.text,
+                        emergencyContacts: [
+                          _primaryContactController.text,
+                          if (_secondaryContactController.text.isNotEmpty) _secondaryContactController.text,
+                        ],
                       ),
                     ),
                   );
@@ -306,7 +317,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
     );
   }
 
-  Widget _buildAdditionalContactField(String label, String hintText) {
+  Widget _buildAdditionalContactField(String label, String hintText, {TextEditingController? controller}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -323,6 +334,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
           children: [
             Expanded(
               child: TextField(
+                controller: controller,
                 decoration: InputDecoration(
                   hintText: hintText,
                   hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
