@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
+import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/features/shared/profile/presentation/pages/syncing_page.dart';
 
 class ConnectDevicePage extends StatefulWidget {
   const ConnectDevicePage({super.key});
@@ -15,9 +17,10 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   final TextEditingController _codeController = TextEditingController();
 
   final List<String> _deviceTypes = [
-    'Qlink Pulse',
-    'Qlink Band',
-    'Qlink Tag',
+    'Qlink Smart Bracelet "Nova"',
+    'Qlink Smart Bracelet "Pulse"',
+    'Qlink Band "Non Digital"',
+    'Link Smart Watch',
   ];
 
   @override
@@ -335,7 +338,31 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   Widget _buildConnectButton() {
     return GestureDetector(
       onTap: () {
-        // Handle connect bracelet
+        if (_selectedDeviceType != null && _codeController.text.isNotEmpty) {
+          AppState().addDevice(DeviceData(
+            deviceType: _selectedDeviceType!,
+            code: _codeController.text,
+            connectedAt: DateTime.now(),
+          ));
+          
+          AppState().addProfile(ProfileData(
+            name: 'New Profile',
+            imagePath: 'assets/images/mypic.png',
+          ));
+          
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SyncingPage(
+                title: 'Syncing to Hardware',
+                subtitle: 'Encrypting data into bracelet\'s hardware ID',
+                onComplete: () {
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                },
+              ),
+            ),
+          );
+        }
       },
       child: Container(
         width: double.infinity,
@@ -368,8 +395,24 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   Widget _buildSkipButton() {
     return GestureDetector(
       onTap: () {
-        // Skip and go back to home
-        Navigator.popUntil(context, (route) => route.isFirst);
+        // Add profile before skipping hardware link
+        AppState().addProfile(ProfileData(
+          name: 'New Profile',
+          imagePath: 'assets/images/mypic.png',
+        ));
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SyncingPage(
+              title: 'Finalizing Profile',
+              subtitle: 'Saving medical information and creating QR ID',
+              onComplete: () {
+                Navigator.popUntil(context, (route) => route.isFirst);
+              },
+            ),
+          ),
+        );
       },
       child: Container(
         width: double.infinity,

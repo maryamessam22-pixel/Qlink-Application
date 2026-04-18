@@ -3,6 +3,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:video_player/video_player.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/add_profile_identity.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/connect_device_page.dart';
+import 'package:q_link/core/state/app_state.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -80,96 +81,117 @@ class HomePage extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Stats Row
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE6F0FE),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              // Dynamic Stats and Status
+              AnimatedBuilder(
+                animation: AppState(),
+                builder: (context, _) {
+                  final appState = AppState();
+                  return Column(
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Icon(Icons.devices_outlined, color: Color(0xFF1B64F2)),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFD1D5DB).withOpacity(0.5),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Text(
-                                  'OFFLINE',
-                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF4B5563)),
-                                ),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE6F0FE),
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                            ],
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Icon(Icons.devices_outlined, color: Color(0xFF1B64F2)),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: (appState.deviceCount > 0 
+                                            ? const Color(0xFF0E9F6E) 
+                                            : const Color(0xFFD1D5DB)).withOpacity(0.5),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          appState.deviceCount > 0 ? 'ONLINE' : 'OFFLINE',
+                                          style: TextStyle(
+                                            fontSize: 10, 
+                                            fontWeight: FontWeight.bold, 
+                                            color: appState.deviceCount > 0 ? Colors.white : const Color(0xFF4B5563)
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text('${appState.deviceCount}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1B64F2))),
+                                  const Text('Active Devices', style: TextStyle(fontSize: 13, color: Color(0xFF1B64F2))),
+                                ],
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: 16),
-                          const Text('0', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1B64F2))),
-                          const Text('Active Devices', style: TextStyle(fontSize: 13, color: Color(0xFF1B64F2))),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE2F8EE),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Icon(Icons.group_outlined, color: Color(0xFF0E9F6E)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text('${appState.profileCount}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0E9F6E))),
+                                  const Text('Protected Members', style: TextStyle(fontSize: 13, color: Color(0xFF0E9F6E))),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE2F8EE),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Icon(Icons.group_outlined, color: Color(0xFF0E9F6E)),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          const Text('0', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0E9F6E))),
-                          const Text('Protected Members', style: TextStyle(fontSize: 13, color: Color(0xFF0E9F6E))),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-              // System Status
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEAF8F0),
-                  border: Border.all(color: const Color(0xFFB4E6C9)),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.check_circle, color: Color(0xFF0E9F6E)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('System Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0E9F6E))),
-                          const SizedBox(height: 4),
-                          Text('No devices connected till now. No alerts detected.', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
-                        ],
+                      // System Status
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: appState.deviceCount > 0 ? const Color(0xFFDEF7EC) : const Color(0xFFEAF8F0),
+                          border: Border.all(color: appState.deviceCount > 0 ? const Color(0xFF84E1BC) : const Color(0xFFB4E6C9)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Icons.check_circle, color: appState.deviceCount > 0 ? const Color(0xFF0E9F6E) : const Color(0xFF0E9F6E)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('System Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0E9F6E))),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    appState.deviceCount > 0 
+                                      ? 'System fully active. ${appState.deviceCount} device(s) linked.' 
+                                      : 'No devices connected till now. No alerts detected.', 
+                                    style: TextStyle(fontSize: 13, color: Colors.grey.shade700)
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 20),
 

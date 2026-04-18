@@ -51,7 +51,7 @@ class _VaultPageState extends State<VaultPage> {
                         condition: 'Hypertension',
                         allergies: 'Aspirin',
                         emergencyContacts: [
-                          {'name': 'Mariam Essam', 'role': 'Granddaughter', 'image': 'assets/images/mypic.png'},
+                          {'name': 'Ahmed Essam', 'role': 'Grandson', 'image': 'assets/images/mypic.png'},
                           {'name': 'Ahmed Mazen', 'role': 'Son', 'image': 'assets/images/mypic.png'},
                         ],
                         documents: [
@@ -87,8 +87,8 @@ class _VaultPageState extends State<VaultPage> {
                         condition: 'Diabetes Type 1',
                         allergies: 'Penicillin',
                         emergencyContacts: [
-                          {'name': 'Mariam Essam', 'role': 'Mom', 'image': 'assets/images/mypic.png'},
-                          {'name': 'Ahmed Mazen', 'role': 'Dad', 'image': 'assets/images/mypic.png'},
+                          {'name': 'Ahmed Essam', 'role': 'Husband', 'image': 'assets/images/mypic.png'},
+                          {'name': 'Ahmed Mazen', 'role': 'Father', 'image': 'assets/images/mypic.png'},
                         ],
                         documents: [
                           {'title': 'Medical Report 2020', 'subtitle': 'PDF • 2.4 MB', 'type': 'PDF'},
