@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: AppConstants.appName,
+          locale: isArabic ? const Locale('ar') : const Locale('en'),
           builder: (context, child) {
             return Directionality(
               textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
