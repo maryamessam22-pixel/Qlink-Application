@@ -336,9 +336,23 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   }
 
   Widget _buildConnectButton() {
-    return GestureDetector(
-      onTap: () {
-        if (_selectedDeviceType != null && _codeController.text.isNotEmpty) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          if (_selectedDeviceType == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please select a device type')),
+            );
+            return;
+          }
+          if (_codeController.text.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please enter the bracelet code')),
+            );
+            return;
+          }
+
           AppState().addDevice(DeviceData(
             deviceType: _selectedDeviceType!,
             code: _codeController.text,
@@ -362,31 +376,39 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
               ),
             ),
           );
-        }
-      },
-      child: Container(
-        width: double.infinity,
-        height: 54,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF0066CC), Color(0xFF273469)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(27),
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Connect the Bracelet',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
+        },
+        borderRadius: BorderRadius.circular(27),
+        child: Container(
+          width: double.infinity,
+          height: 54,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF0066CC), Color(0xFF273469)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
             ),
-          ],
+            borderRadius: BorderRadius.circular(27),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0066CC).withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Connect the Bracelet',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
