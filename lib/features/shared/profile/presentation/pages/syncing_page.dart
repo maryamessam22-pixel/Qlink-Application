@@ -85,7 +85,7 @@ class _SyncingPageState extends State<SyncingPage> {
               ),
               const SizedBox(height: 20),
               Text(
-                'Loading..',
+                AppState().tr('Loading..', 'جاري التحميل..'),
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,

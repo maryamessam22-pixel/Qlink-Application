@@ -37,7 +37,7 @@ class PublicPreviewQrPage extends StatelessWidget {
                           children: [
                             Icon(Icons.arrow_back, color: Colors.white, size: 20),
                             SizedBox(width: 4),
-                            Text('Close Preview', style: TextStyle(color: Colors.white, fontSize: 16)),
+                            Text(AppState().tr('Close Preview', 'إغلاق المعاينة'), style: const TextStyle(color: Colors.white, fontSize: 16)),
                           ],
                         ),
                       ),
@@ -53,9 +53,9 @@ class PublicPreviewQrPage extends StatelessWidget {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.warning_amber_rounded, color: Colors.white, size: 16),
-                        SizedBox(width: 8),
-                        Text('Emergency Info', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                        const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 16),
+                        const SizedBox(width: 8),
+                        Text(AppState().tr('Emergency Info', 'معلومات الطوارئ'), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ),
@@ -65,10 +65,10 @@ class PublicPreviewQrPage extends StatelessWidget {
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'This is what rescues see when they scan\nthe QR code',
+                  Text(
+                    AppState().tr('This is what rescues see when they scan\nthe QR code', 'هذا ما يراه المنقذون عند مسح\nرمز QR الخاص بك'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
+                    style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
                   ),
                 ],
               ),
@@ -81,23 +81,23 @@ class PublicPreviewQrPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (profile.visibility.showAllergies && profile.allergies.isNotEmpty)
-                    _buildInfoCard('Allergies', profile.allergies),
+                    _buildInfoCard(AppState().tr('Allergies', 'الحساسية'), profile.allergies),
                   
                   const SizedBox(height: 16),
                   Row(
                     children: [
                       if (profile.visibility.showBloodType && profile.bloodType.isNotEmpty)
-                        Expanded(child: _buildInfoCard('Blood Type', profile.bloodType)),
+                        Expanded(child: _buildInfoCard(AppState().tr('Blood Type', 'فصيلة الدم'), profile.bloodType)),
                       if (profile.visibility.showBloodType && profile.bloodType.isNotEmpty && profile.visibility.showBirthYear && profile.birthYear.isNotEmpty)
                         const SizedBox(width: 16),
                       if (profile.visibility.showBirthYear && profile.birthYear.isNotEmpty)
-                        Expanded(child: _buildInfoCard('Years', _calculateAge(profile.birthYear))),
+                        Expanded(child: _buildInfoCard(AppState().tr('Age', 'العمر'), _calculateAge(profile.birthYear))),
                     ],
                   ),
 
                   if (profile.visibility.showMedicalNotes && profile.condition.isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    _buildInfoCard('Medical Notes', profile.condition),
+                    _buildInfoCard(AppState().tr('Medical Notes', 'ملاحظات طبية'), profile.condition),
                   ],
 
                   if (profile.visibility.showEmergencyContacts && profile.emergencyContacts.isNotEmpty) ...[
@@ -115,13 +115,16 @@ class PublicPreviewQrPage extends StatelessWidget {
               color: const Color(0xFF1E293B), // Slightly lighter dark blue for footer
               child: Column(
                 children: [
-                  const Text(
-                    'Stay Protected with Qlink!',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  Text(
+                    AppState().tr('Stay Protected with Qlink!', 'ابقَ محميًا مع كيولينك!'),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Qlink helps protect you and your loved ones\nby providing instant access to critical\nMedical information during emergencies.',
+                    AppState().tr(
+                      'Qlink helps protect you and your loved ones\nby providing instant access to critical\nMedical information during emergencies.',
+                      'تساعد شركة كيولينك في حمايتك وحماية أحبائك\nمن خلال توفير وصول فوري إلى المعلومات\nالطبية الهامة أثناء حالات الطوارئ.'
+                    ),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey.shade400, fontSize: 13, height: 1.5),
                   ),
@@ -136,7 +139,7 @@ class PublicPreviewQrPage extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
-                          child: const Text('Install the App', style: TextStyle(color: Color(0xFF131A2A), fontWeight: FontWeight.bold)),
+                          child: Text(AppState().tr('Install the App', 'تثبيت التطبيق'), style: const TextStyle(color: Color(0xFF131A2A), fontWeight: FontWeight.bold)),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -148,7 +151,7 @@ class PublicPreviewQrPage extends StatelessWidget {
                             side: const BorderSide(color: Colors.grey),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
-                          child: const Text('Create Account', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          child: Text(AppState().tr('Create Account', 'إنشاء حساب'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],
@@ -159,13 +162,13 @@ class PublicPreviewQrPage extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Text('Privacy Policy', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                      Text('Terms of Service', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                      Text('Support', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                      Text(AppState().tr('Privacy Policy', 'سياسة الخصوصية'), style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                      Text(AppState().tr('Terms of Service', 'شروط الخدمة'), style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                      Text(AppState().tr('Support', 'الدعم'), style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Text('© 2026 Qlink Emergency. All rights reserved.', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                  Text(AppState().tr('© 2026 Qlink Emergency. All rights reserved.', '© 2026 كيولينك لخدمات الطوارئ. جميع الحقوق محفوظة.'), style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -180,7 +183,7 @@ class PublicPreviewQrPage extends StatelessWidget {
     int? year = int.tryParse(birthYear);
     if (year != null) {
       int currentYear = DateTime.now().year;
-      return '${currentYear - year} years';
+      return '${currentYear - year} ${AppState().tr('years', 'سنة')}';
     }
     return birthYear;
   }
@@ -225,7 +228,7 @@ class PublicPreviewQrPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Emergency Contacts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
+          Text(AppState().tr('Emergency Contacts', 'جهات اتصال الطوارئ'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
           const SizedBox(height: 16),
           ...contacts.map((contact) => Container(
                 margin: const EdgeInsets.only(bottom: 12),
