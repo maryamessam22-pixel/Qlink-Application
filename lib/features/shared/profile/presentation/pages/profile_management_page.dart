@@ -20,6 +20,7 @@ class ProfileManagementPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appState = AppState();
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
       body: SafeArea(
@@ -87,8 +88,8 @@ class ProfileManagementPage extends StatelessWidget {
                     // Info Cards
                     _buildFeatureCard(
                       icon: Icons.language_outlined,
-                      title: 'Emergency Info',
-                      subtitle: 'Public - visible when scanned',
+                      title: appState.tr('Emergency Info', 'معلومات الطوارئ'),
+                      subtitle: appState.tr('Public - visible when scanned', 'عام - مرئي عند المسح'),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -122,13 +123,13 @@ class ProfileManagementPage extends StatelessWidget {
                     ),
                     _buildFeatureCard(
                       icon: LucideIcons.shield,
-                      title: 'Vault',
-                      subtitle: 'App-only • Secured with lock\nAccess sensitive reports',
+                      title: appState.tr('Vault', 'الخزنة'),
+                      subtitle: appState.tr('App-only • Secured with lock\nAccess sensitive reports', 'للتطبيق فقط • محمي برمز\nالوصول للتقارير الحساسة'),
                       isLocked: true,
                       onTap: () {
                         // Safe conversion of primitive list to Maps
                         List<Map<String, String>> mappedContacts = profile.emergencyContacts.map((contact) {
-                          return {'name': 'Contact', 'phone': contact};
+                          return {'name': appState.tr('Contact', 'جهة اتصال'), 'phone': contact};
                         }).toList();
 
                         Navigator.push(
@@ -137,8 +138,8 @@ class ProfileManagementPage extends StatelessWidget {
                             builder: (context) => VaultDetailPage(
                               name: profile.name,
                               imagePath: profile.imagePath,
-                              monitoredSince: 'Since connected',
-                              statusLabel: profile.hasDevice ? 'Active' : 'No Device',
+                              monitoredSince: appState.tr('Since connected', 'منذ الاتصال'),
+                              statusLabel: profile.hasDevice ? appState.tr('Active', 'نشط') : appState.tr('No Device', 'لا يوجد جهاز'),
                               statusColor: profile.hasDevice ? const Color(0xFFE8F5E9) : const Color(0xFFFDE8E8),
                               bloodType: profile.bloodType,
                               condition: profile.condition,
