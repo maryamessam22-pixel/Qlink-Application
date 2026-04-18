@@ -6,6 +6,7 @@ import 'package:q_link/features/shared/profile/presentation/pages/emergency_info
 import 'package:q_link/features/shared/profile/presentation/pages/connect_device_page.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/privacy_control_page.dart';
 import 'package:q_link/features/shared/vault/presentation/pages/vault_detail_page.dart';
+import 'package:q_link/features/shared/profile/presentation/pages/public_preview_qr_page.dart';
 
 class ProfileManagementPage extends StatelessWidget {
   final int profileIndex;
@@ -160,7 +161,14 @@ class ProfileManagementPage extends StatelessWidget {
                       icon: LucideIcons.qrCode,
                       title: 'QR Preview',
                       subtitle: 'See what scanners see',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PublicPreviewQrPage(profile: profile),
+                          ),
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 32),
