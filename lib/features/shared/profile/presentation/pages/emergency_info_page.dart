@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/widgets/language_toggle.dart';
 
 class EmergencyInfoPage extends StatefulWidget {
   final int profileIndex;
@@ -95,8 +96,12 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+    return AnimatedBuilder(
+      animation: AppState(),
+      builder: (context, _) {
+        final appState = AppState();
+        return Scaffold(
+          backgroundColor: const Color(0xFFF7F9FC),
       body: SafeArea(
         child: Column(
           children: [
@@ -121,10 +126,46 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                             children: [
                               Icon(Icons.arrow_back, color: Colors.grey.shade600, size: 20),
                               const SizedBox(width: 4),
-                              Text(AppState().tr('Back', 'رجوع'), style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                              Text(appState.tr('Back', 'رجوع'), style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
                             ],
                           ),
                         ),
+                        const Spacer(),
+                        const LanguageToggle(),
+                        const SizedBox(width: 12),
+                        GestureDetector(
+                          onTap: () {
+                            if (_isEditing) {
+                              _saveEdits();
+                            } else {
+                              setState(() {
+                                _isEditing = true;
+                              });
+                            }
+                          },
+                          child: Text(
+                            _isEditing ? appState.tr('Save', 'حفظ') : appState.tr('Edit', 'تعديل'),
+                            style: const TextStyle(
+                              color: Color(0xFF1B64F2),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        if (_isEditing) ...[
+                          const SizedBox(width: 16),
+                          GestureDetector(
+                            onTap: _cancelEdits,
+                            child: Text(
+                              appState.tr('Cancel', 'إلغاء'),
+                              style: TextStyle(
+                                color: Colors.red.shade600,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -393,6 +434,8 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
         ),
       ),
       bottomNavigationBar: _buildBottomNav(context),
+        );
+      },
     );
   }
 

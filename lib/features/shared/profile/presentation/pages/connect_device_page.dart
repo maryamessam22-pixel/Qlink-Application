@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/syncing_page.dart';
 
 class ConnectDevicePage extends StatefulWidget {
@@ -50,48 +51,53 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      extendBody: true,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 24.0,
-            vertical: 16.0,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildAppBar(),
-              const SizedBox(height: 24),
-              _buildBackButton(),
-              const SizedBox(height: 20),
-              _buildTitle(),
-              const SizedBox(height: 16),
-              _buildProgressBar(),
-              const SizedBox(height: 8),
-              _buildStepLabel(),
-              const SizedBox(height: 24),
-              const Divider(
-                color: Color(0xFFE5E7EB),
-                thickness: 1,
+    return AnimatedBuilder(
+      animation: AppState(),
+      builder: (context, _) {
+        return Scaffold(
+          backgroundColor: Colors.white,
+          extendBody: true,
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 16.0,
               ),
-              const SizedBox(height: 24),
-              _buildInfoCard(),
-              const SizedBox(height: 28),
-              _buildDeviceTypeDropdown(),
-              const SizedBox(height: 24),
-              _buildCodeField(),
-              const SizedBox(height: 36),
-              _buildConnectButton(),
-              const SizedBox(height: 14),
-              _buildSkipButton(),
-              const SizedBox(height: 120),
-            ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildAppBar(),
+                  const SizedBox(height: 24),
+                  _buildBackButton(),
+                  const SizedBox(height: 20),
+                  _buildTitle(),
+                  const SizedBox(height: 16),
+                  _buildProgressBar(),
+                  const SizedBox(height: 8),
+                  _buildStepLabel(),
+                  const SizedBox(height: 24),
+                  const Divider(
+                    color: Color(0xFFE5E7EB),
+                    thickness: 1,
+                  ),
+                  const SizedBox(height: 24),
+                  _buildInfoCard(),
+                  const SizedBox(height: 28),
+                  _buildDeviceTypeDropdown(),
+                  const SizedBox(height: 24),
+                  _buildCodeField(),
+                  const SizedBox(height: 36),
+                  _buildConnectButton(),
+                  const SizedBox(height: 14),
+                  _buildSkipButton(),
+                  const SizedBox(height: 120),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
-      bottomNavigationBar: _buildBottomNavBar(),
+          bottomNavigationBar: _buildBottomNavBar(),
+        );
+      },
     );
   }
 
@@ -106,11 +112,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           backgroundImage: AssetImage('assets/images/mypic.png'),
         ),
         const Spacer(),
-        const Icon(
-          Icons.language,
-          color: Color(0xFF1E3A8A),
-          size: 28,
-        ),
+        const LanguageToggle(),
         const SizedBox(width: 16),
         Stack(
           children: [

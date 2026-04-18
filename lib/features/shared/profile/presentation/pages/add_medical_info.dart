@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/connect_device_page.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/widgets/language_toggle.dart';
 
 class AddMedicalInfoPage extends StatefulWidget {
   final String name;
@@ -57,7 +58,10 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AnimatedBuilder(
+      animation: AppState(),
+      builder: (context, _) {
+        return Scaffold(
       backgroundColor: Colors.white,
       extendBody: true,
       body: SafeArea(
@@ -155,6 +159,8 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           ),
         ),
       ),
+        );
+      },
     );
   }
 
@@ -195,11 +201,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           backgroundImage: AssetImage('assets/images/mypic.png'),
         ),
         const Spacer(),
-        const Icon(
-          Icons.language,
-          color: Color(0xFF1E3A8A),
-          size: 28,
-        ),
+        const LanguageToggle(),
         const SizedBox(width: 16),
         Stack(
           children: [

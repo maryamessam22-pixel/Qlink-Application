@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/widgets/language_toggle.dart';
 
 class PrivacyControlPage extends StatefulWidget {
   final int profileIndex;
@@ -52,32 +53,38 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Back
-                    Row(
+    return AnimatedBuilder(
+      animation: AppState(),
+      builder: (context, _) {
+        final appState = AppState();
+        return Scaffold(
+          backgroundColor: const Color(0xFFF7F9FC),
+          body: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Row(
-                            children: [
-                              Icon(Icons.arrow_back, color: Colors.grey.shade600, size: 20),
-                              const SizedBox(width: 4),
-                              Text(AppState().tr('Back', 'رجوع'), style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
-                            ],
-                          ),
+                        // Back
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.arrow_back, color: Colors.grey.shade600, size: 20),
+                                  const SizedBox(width: 4),
+                                  Text(appState.tr('Back', 'رجوع'), style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                                ],
+                              ),
+                            ),
+                            const Spacer(),
+                            const LanguageToggle(),
+                          ],
                         ),
-                      ],
-                    ),
                     const SizedBox(height: 32),
 
                       Text(
@@ -175,7 +182,9 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(context),
+          bottomNavigationBar: _buildBottomNav(context),
+        );
+      },
     );
   }
 

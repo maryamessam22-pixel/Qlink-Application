@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
 
 class HeaderWidget extends StatelessWidget {
@@ -23,12 +24,7 @@ class HeaderWidget extends StatelessWidget {
                 backgroundImage: AssetImage('assets/images/mypic.png'),
               ),
               const Spacer(),
-              GestureDetector(
-                onTap: () {
-                  appState.toggleLanguage();
-                },
-                child: const Icon(Icons.language, color: Color(0xFF1E3A8A), size: 28),
-              ),
+              LanguageToggle(),
               const SizedBox(width: 16),
               Stack(
                 children: [

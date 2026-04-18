@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:q_link/features/shared/home/presentation/pages/home_page.dart'; // تأكدي من المسار ده 
-import 'package:q_link/features/shared/vault/presentation/pages/vault_detail_page.dart'; // تأكدي من المسار ده
-import 'package:q_link/core/state/app_state.dart'; // مسار الـ AppState
-
-// ملحوظة: لو عندك ويدجت اسمها VideoLogoWidget، اتأكدي إنك عاملة ليها import فوق هنا 
+import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
+import 'package:q_link/features/shared/vault/presentation/pages/vault_detail_page.dart';
+import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/widgets/language_toggle.dart';
 
 class VaultPage extends StatefulWidget {
   const VaultPage({super.key});
@@ -15,112 +14,115 @@ class VaultPage extends StatefulWidget {
 class _VaultPageState extends State<VaultPage> {
   @override
   Widget build(BuildContext context) {
-    final isArabic = AppState().isArabic; // متغير اللغة
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20.0,
-            vertical: 16.0,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildAppBar(isArabic),
-              const SizedBox(height: 20),
-              _buildSearchBar(isArabic),
-              const SizedBox(height: 24),
-              _buildMonitoredProfilesHeader(isArabic),
-              const SizedBox(height: 16),
-              _buildProfileCard(
-                name: isArabic ? 'محمد صابر' : 'Mohamed Saber',
-                role: isArabic ? 'مستخدم مراقب' : 'Monitored User',
-                imagePath: 'assets/images/Mohamed Saber.png',
-                recordCount: 12,
-                lastUpdate: isArabic ? 'منذ ساعتين' : '2h ago',
-                statusLabel: isArabic ? 'آمن' : 'SECURE',
-                statusColor: const Color(0xFF22C55E),
-                isArabic: isArabic,
-                onOpenVault: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => VaultDetailPage(
-                        name: isArabic ? 'محمد صابر' : 'Mohamed Saber',
-                        imagePath: 'assets/images/Mohamed Saber.png',
-                        monitoredSince: '2024',
-                        statusLabel: isArabic ? 'آمن' : 'SECURE',
-                        statusColor: const Color(0xFF22C55E),
-                        bloodType: 'A+',
-                        condition: isArabic ? 'ضغط الدم' : 'Hypertension',
-                        allergies: isArabic ? 'أسبرين' : 'Aspirin',
-                        emergencyContacts: [
-                          {'name': isArabic ? 'أحمد عصام' : 'Ahmed Essam', 'role': isArabic ? 'حفيد' : 'Grandson', 'image': 'assets/images/mypic.png'},
-                          {'name': isArabic ? 'أحمد مازن' : 'Ahmed Mazen', 'role': isArabic ? 'ابن' : 'Son', 'image': 'assets/images/Wire Frames + Mobile App/Ahmed Mazen.png'},
-                        ],
-                        documents: [
-                          {'title': isArabic ? 'تقرير طبي 2024' : 'Medical Report 2024', 'subtitle': 'PDF • 3.1 MB', 'type': 'PDF'},
-                          {'title': isArabic ? 'نتائج القلب' : 'Cardiology Results', 'subtitle': 'DOCX • 1.8 MB', 'type': 'DOCX'},
-                          {'title': isArabic ? 'بطاقة التأمين' : 'Insurance Card', 'subtitle': 'JPG • 920 KB', 'type': 'JPG'},
-                        ],
-                      ),
-                    ),
-                  );
-                },
+    return AnimatedBuilder(
+      animation: AppState(),
+      builder: (context, _) {
+        final appState = AppState();
+        return Scaffold(
+          backgroundColor: const Color(0xFFF7F9FC),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 16.0,
               ),
-              const SizedBox(height: 16),
-              _buildProfileCard(
-                name: isArabic ? 'كارما أحمد' : 'Karma Ahmed',
-                role: isArabic ? 'مستخدم مراقب' : 'Monitored User',
-                imagePath: 'assets/images/karma.png',
-                recordCount: 8,
-                lastUpdate: isArabic ? 'الآن' : 'Just now',
-                statusLabel: isArabic ? 'مُحدث' : 'UPDATED',
-                statusColor: const Color(0xFF1B64F2),
-                isArabic: isArabic,
-                onOpenVault: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => VaultDetailPage(
-                        name: isArabic ? 'كارما أحمد' : 'Karma Ahmed',
-                        imagePath: 'assets/images/karma.png',
-                        monitoredSince: '2025',
-                        statusLabel: isArabic ? 'آمن' : 'SECURE',
-                        statusColor: const Color(0xFF22C55E),
-                        bloodType: 'O+',
-                        condition: isArabic ? 'سكر من النوع الأول' : 'Diabetes Type 1',
-                        allergies: isArabic ? 'بنسلين' : 'Penicillin',
-                        emergencyContacts: [
-                          {'name': isArabic ? 'أحمد عصام' : 'Ahmed Essam', 'role': isArabic ? 'زوج' : 'Husband', 'image': 'assets/images/mypic.png'},
-                          {'name': isArabic ? 'أحمد مازن' : 'Ahmed Mazen', 'role': isArabic ? 'أب' : 'Father', 'image': 'assets/images/Wire Frames + Mobile App/Ahmed Mazen.png'},
-                        ],
-                        documents: [
-                          {'title': isArabic ? 'تقرير طبي 2020' : 'Medical Report 2020', 'subtitle': 'PDF • 2.4 MB', 'type': 'PDF'},
-                          {'title': isArabic ? 'أحدث روشتة' : 'Latest Prescription', 'subtitle': 'DOCX • 1.1 MB', 'type': 'DOCX'},
-                          {'title': isArabic ? 'بطاقة التأمين' : 'Insurance Card', 'subtitle': 'JPG • 850 KB', 'type': 'JPG'},
-                        ],
-                      ),
-                    ),
-                  );
-                },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildAppBar(),
+                  const SizedBox(height: 20),
+                  _buildSearchBar(),
+                  const SizedBox(height: 24),
+                  _buildMonitoredProfilesHeader(),
+                  const SizedBox(height: 16),
+                  _buildProfileCard(
+                    name: appState.tr('Mohamed Saber', 'محمد صابر'),
+                    role: appState.tr('Monitored User', 'مستخدم مراقب'),
+                    imagePath: 'assets/images/Mohamed Saber.png',
+                    recordCount: 12,
+                    lastUpdate: appState.tr('2h ago', 'منذ ساعتين'),
+                    statusLabel: appState.tr('SECURE', 'آمن'),
+                    statusColor: const Color(0xFF22C55E),
+                    onOpenVault: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => VaultDetailPage(
+                            name: appState.tr('Mohamed Saber', 'محمد صابر'),
+                            imagePath: 'assets/images/Mohamed Saber.png',
+                            monitoredSince: '2024',
+                            statusLabel: appState.tr('SECURE', 'آمن'),
+                            statusColor: const Color(0xFF22C55E),
+                            bloodType: 'A+',
+                            condition: appState.tr('Hypertension', 'ضغط الدم'),
+                            allergies: appState.tr('Aspirin', 'أسبرين'),
+                            emergencyContacts: [
+                              {'name': appState.tr('Ahmed Essam', 'أحمد عصام'), 'role': appState.tr('Grandson', 'حفيد'), 'image': 'assets/images/mypic.png'},
+                              {'name': appState.tr('Ahmed Mazen', 'أحمد مازن'), 'role': appState.tr('Son', 'ابن'), 'image': 'assets/images/Wire Frames + Mobile App/Ahmed Mazen.png'},
+                            ],
+                            documents: [
+                              {'title': appState.tr('Medical Report 2024', 'تقرير طبي 2024'), 'subtitle': 'PDF • 3.1 MB', 'type': 'PDF'},
+                              {'title': appState.tr('Cardiology Results', 'نتائج القلب'), 'subtitle': 'DOCX • 1.8 MB', 'type': 'DOCX'},
+                              {'title': appState.tr('Insurance Card', 'بطاقة التأمين'), 'subtitle': 'JPG • 920 KB', 'type': 'JPG'},
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _buildProfileCard(
+                    name: appState.tr('Karma Ahmed', 'كارما أحمد'),
+                    role: appState.tr('Monitored User', 'مستخدم مراقب'),
+                    imagePath: 'assets/images/karma.png',
+                    recordCount: 8,
+                    lastUpdate: appState.tr('Just now', 'الآن'),
+                    statusLabel: appState.tr('UPDATED', 'مُحدث'),
+                    statusColor: const Color(0xFF1B64F2),
+                    onOpenVault: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => VaultDetailPage(
+                            name: appState.tr('Karma Ahmed', 'كارما أحمد'),
+                            imagePath: 'assets/images/karma.png',
+                            monitoredSince: '2025',
+                            statusLabel: appState.tr('SECURE', 'آمن'),
+                            statusColor: const Color(0xFF22C55E),
+                            bloodType: 'O+',
+                            condition: appState.tr('Diabetes Type 1', 'سكر من النوع الأول'),
+                            allergies: appState.tr('Penicillin', 'بنسلين'),
+                            emergencyContacts: [
+                              {'name': appState.tr('Ahmed Essam', 'أحمد عصام'), 'role': appState.tr('Husband', 'زوج'), 'image': 'assets/images/mypic.png'},
+                              {'name': appState.tr('Ahmed Mazen', 'أحمد مازن'), 'role': appState.tr('Father', 'أب'), 'image': 'assets/images/Wire Frames + Mobile App/Ahmed Mazen.png'},
+                            ],
+                            documents: [
+                              {'title': appState.tr('Medical Report 2020', 'تقرير طبي 2020'), 'subtitle': 'PDF • 2.4 MB', 'type': 'PDF'},
+                              {'title': appState.tr('Latest Prescription', 'أحدث روشتة'), 'subtitle': 'DOCX • 1.1 MB', 'type': 'DOCX'},
+                              {'title': appState.tr('Insurance Card', 'بطاقة التأمين'), 'subtitle': 'JPG • 850 KB', 'type': 'JPG'},
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  _buildHealthSecurityTip(),
+                  const SizedBox(height: 120),
+                ],
               ),
-              const SizedBox(height: 24),
-              _buildHealthSecurityTip(isArabic),
-              const SizedBox(height: 120),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildAppBar(bool isArabic) {
+  Widget _buildAppBar() {
+    final appState = AppState();
     return Row(
       children: [
-        // const VideoLogoWidget(), // لغيته مؤقتاً عشان ميديليكيش إيرور، رجعيه لو عاملة ليه import
+        const VideoLogoWidget(),
         const SizedBox(width: 8),
         const CircleAvatar(
           radius: 16,
@@ -129,7 +131,7 @@ class _VaultPageState extends State<VaultPage> {
         ),
         const Spacer(),
         Text(
-          isArabic ? 'الخزنة' : 'Vault',
+          appState.tr('Vault', 'الخزنة'),
           style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -137,11 +139,7 @@ class _VaultPageState extends State<VaultPage> {
           ),
         ),
         const Spacer(),
-        const Icon(
-          Icons.language,
-          color: Color(0xFF1E3A8A),
-          size: 28,
-        ),
+        const LanguageToggle(),
         const SizedBox(width: 16),
         Stack(
           children: [
@@ -168,7 +166,8 @@ class _VaultPageState extends State<VaultPage> {
     );
   }
 
-  Widget _buildSearchBar(bool isArabic) {
+  Widget _buildSearchBar() {
+    final appState = AppState();
     return Container(
       height: 50,
       decoration: BoxDecoration(
@@ -197,7 +196,7 @@ class _VaultPageState extends State<VaultPage> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              isArabic ? 'ابحث في السجلات أو الملفات' : 'Search records or profiles',
+              appState.tr('Search records or profiles', 'ابحث في السجلات أو الملفات'),
               style: TextStyle(
                 color: Colors.grey.shade400,
                 fontSize: 14,
@@ -209,7 +208,8 @@ class _VaultPageState extends State<VaultPage> {
     );
   }
 
-  Widget _buildMonitoredProfilesHeader(bool isArabic) {
+  Widget _buildMonitoredProfilesHeader() {
+    final appState = AppState();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -217,7 +217,7 @@ class _VaultPageState extends State<VaultPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isArabic ? 'الملفات المراقبة' : 'Monitored Profiles',
+              appState.tr('Monitored Profiles', 'الملفات المراقبة'),
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -226,7 +226,7 @@ class _VaultPageState extends State<VaultPage> {
             ),
             const SizedBox(height: 4),
             Text(
-              isArabic ? 'يوجد 2 ملفات طبية نشطة مرتبطة' : '2 active medical profiles linked',
+              appState.tr('2 active medical profiles linked', 'يوجد 2 ملفات طبية نشطة مرتبطة'),
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.grey.shade500,
@@ -235,7 +235,7 @@ class _VaultPageState extends State<VaultPage> {
           ],
         ),
         Text(
-          isArabic ? 'عرض الكل' : 'View All',
+          appState.tr('View All', 'عرض الكل'),
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -254,9 +254,10 @@ class _VaultPageState extends State<VaultPage> {
     required String lastUpdate,
     required String statusLabel,
     required Color statusColor,
-    required bool isArabic,
     required VoidCallback onOpenVault,
   }) {
+    final appState = AppState();
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -314,7 +315,7 @@ class _VaultPageState extends State<VaultPage> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          isArabic ? '$recordCount سجلات' : '$recordCount Records',
+                          appState.tr('$recordCount Records', '$recordCount سجلات'),
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade500,
@@ -389,7 +390,7 @@ class _VaultPageState extends State<VaultPage> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          isArabic ? 'فتح الخزنة' : 'Open Vault',
+                          appState.tr('Open Vault', 'فتح الخزنة'),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 14,
@@ -413,7 +414,7 @@ class _VaultPageState extends State<VaultPage> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      isArabic ? 'مشاركة' : 'Share',
+                      appState.tr('Share', 'مشاركة'),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -431,7 +432,8 @@ class _VaultPageState extends State<VaultPage> {
     );
   }
 
-  Widget _buildHealthSecurityTip(bool isArabic) {
+  Widget _buildHealthSecurityTip() {
+    final appState = AppState();
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -471,7 +473,7 @@ class _VaultPageState extends State<VaultPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isArabic ? 'نصيحة أمنية صحية' : 'Health Security Tip',
+                  appState.tr('Health Security Tip', 'نصيحة أمنية صحية'),
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -480,9 +482,10 @@ class _VaultPageState extends State<VaultPage> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  isArabic 
-                    ? 'تأكد من تفعيل المصادقة الثنائية لحماية\nملفات التاريخ الطبي الحساسة.'
-                    : 'Ensure two-factor authentication is active to protect\nsensitive medical history files.',
+                  appState.tr(
+                    'Ensure two-factor authentication is active to protect\nsensitive medical history files.',
+                    'تأكد من تفعيل المصادقة الثنائية لحماية\nملفات التاريخ الطبي الحساسة.'
+                  ),
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey.shade600,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/widgets/language_toggle.dart';
 
 class PublicPreviewQrPage extends StatelessWidget {
   final ProfileData profile;
@@ -11,38 +12,44 @@ class PublicPreviewQrPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF131A2A), // Dark blue background
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Top Red Section
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(top: 60, left: 24, right: 24, bottom: 40),
-              decoration: const BoxDecoration(
-                color: Color(0xFFD32F2F), // Red background
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                            const SizedBox(width: 4),
-                            Text(AppState().tr('Close Preview', 'إغلاق المعاينة'), style: const TextStyle(color: Colors.white, fontSize: 16)),
-                          ],
-                        ),
-                      ),
-                    ],
+    return AnimatedBuilder(
+      animation: AppState(),
+      builder: (context, _) {
+        final appState = AppState();
+        return Scaffold(
+          backgroundColor: const Color(0xFF131A2A), // Dark blue background
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                // Top Red Section
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(top: 60, left: 24, right: 24, bottom: 40),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFD32F2F), // Red background
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(30),
+                      bottomRight: Radius.circular(30),
+                    ),
                   ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                                const SizedBox(width: 4),
+                                Text(appState.tr('Close Preview', 'إغلاق المعاينة'), style: const TextStyle(color: Colors.white, fontSize: 16)),
+                              ],
+                            ),
+                          ),
+                          const Spacer(),
+                          const LanguageToggle(),
+                        ],
+                      ),
                   const SizedBox(height: 32),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -176,6 +183,8 @@ class PublicPreviewQrPage extends StatelessWidget {
           ],
         ),
       ),
+        );
+      },
     );
   }
 

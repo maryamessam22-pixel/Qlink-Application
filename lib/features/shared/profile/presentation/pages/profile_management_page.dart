@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/emergency_info_page.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/connect_device_page.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/privacy_control_page.dart';
@@ -20,69 +21,89 @@ class ProfileManagementPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appState = AppState();
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Back and Title
-                    Row(
+    return AnimatedBuilder(
+      animation: AppState(),
+      builder: (context, _) {
+        final appState = AppState();
+        return Scaffold(
+          backgroundColor: const Color(0xFFF7F9FC),
+          body: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Row(
+                        // Back and Title
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.arrow_back,
+                                      color: Colors.grey.shade600, size: 20),
+                                  const SizedBox(width: 4),
+                                  Text(appState.tr('Back', 'رجوع'),
+                                      style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 16)),
+                                ],
+                              ),
+                            ),
+                            const Spacer(),
+                            const LanguageToggle(),
+                          ],
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Profile Header
+                        Center(
+                          child: Column(
                             children: [
-                              Icon(Icons.arrow_back, color: Colors.grey.shade600, size: 20),
-                              const SizedBox(width: 4),
-                              Text(appState.tr('Back', 'رجوع'), style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF273469),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                alignment: Alignment.center,
+                                child: profile.imagePath.contains('mypic')
+                                    ? Text(
+                                        profile.name.isNotEmpty
+                                            ? profile.name[0].toUpperCase()
+                                            : '?',
+                                        style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 40,
+                                            fontWeight: FontWeight.bold))
+                                    : ClipRRect(
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: Image.asset(profile.imagePath,
+                                            fit: BoxFit.cover,
+                                            width: 100,
+                                            height: 100),
+                                      ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                profile.name,
+                                style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1E3A8A)),
+                              ),
+                              Text(
+                                profile.relationship,
+                                style: const TextStyle(
+                                    fontSize: 14, color: Color(0xFF1B64F2)),
+                              ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Profile Header
-                    Center(
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF273469),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            alignment: Alignment.center,
-                            child: profile.imagePath.contains('mypic') 
-                              ? Text(
-                                  profile.name.isNotEmpty ? profile.name[0].toUpperCase() : '?', 
-                                  style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold)
-                                )
-                              : ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Image.asset(profile.imagePath, fit: BoxFit.cover, width: 100, height: 100),
-                                ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            profile.name,
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
-                          ),
-                          Text(
-                            profile.relationship,
-                            style: const TextStyle(fontSize: 14, color: Color(0xFF1B64F2)),
-                          ),
-                        ],
-                      ),
-                    ),
                     const SizedBox(height: 32),
 
                     // Info Cards
@@ -226,7 +247,9 @@ class ProfileManagementPage extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(context),
+          bottomNavigationBar: _buildBottomNav(context),
+        );
+      },
     );
   }
 
