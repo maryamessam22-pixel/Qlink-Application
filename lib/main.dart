@@ -14,21 +14,30 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final appState = AppState();
+
     return AnimatedBuilder(
-      animation: AppState(),
+      animation: appState,
       builder: (context, _) {
-        final isArabic = AppState().isArabic;
+        final isArabic = appState.isArabic;
         final languageCode = isArabic ? 'ar' : 'en';
-        
+
+        // Get base theme
         final baseTheme = AppTheme.getTheme(languageCode);
-        final textTheme = isArabic 
+
+        // Apply appropriate font based on language
+        final textTheme = isArabic
             ? GoogleFonts.notoKufiArabicTextTheme(baseTheme.textTheme)
             : GoogleFonts.robotoTextTheme(baseTheme.textTheme);
 
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: AppConstants.appName,
-          locale: isArabic ? const Locale('ar') : const Locale('en'),
+          // Set locale and text direction
+          locale: isArabic
+              ? const Locale('ar', 'SA')
+              : const Locale('en', 'US'),
+          supportedLocales: const [Locale('en', 'US'), Locale('ar', 'SA')],
           builder: (context, child) {
             return Directionality(
               textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,

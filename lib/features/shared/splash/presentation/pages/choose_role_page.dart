@@ -1,176 +1,189 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:q_link/features/shared/splash/presentation/pages/splash_page.dart';
+import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/localization/app_localization.dart';
 
 class ChooseRolePage extends StatelessWidget {
   const ChooseRolePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF6B728E),
-      body: Stack(
-        children: [
-          // Background
-          Positioned(
-            top: -150,
-            left: -100,
-            child: Container(
-              width: 500,
-              height: 500,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF8B8DAC).withOpacity(0.8),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -200,
-            left: -100,
-            child: Container(
-              width: 600,
-              height: 600,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFFCF8F9D).withOpacity(0.7),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -150,
-            right: -100,
-            child: Container(
-              width: 500,
-              height: 500,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF558ABA).withOpacity(0.8),
-              ),
-            ),
-          ),
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 400,
-              height: 400,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF6A87A6).withOpacity(0.8),
-              ),
-            ),
-          ),
+    final appState = AppState();
 
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
-              child: Container(color: Colors.transparent),
-            ),
-          ),
-
-          // Foreground
-          SafeArea(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 24.0, vertical: 20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 20),
-
-                    // Logo
-                    Center(
-                      child: Image.asset(
-                        'assets/images/qlink_logo.png',
-                        height: 60,
-                        color: Colors.white,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Text(
-                            'Qlink',
-                            style: TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    const Text(
-                      'Welcome to Qlink',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'Century Gothic',
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    const Text(
-                      'Choose how you want to use the app.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
-                      ),
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    // Guardian
-                    _buildRoleCard(
-                      icon: Icons.gpp_good_outlined,
-                      iconColor: const Color(0xFF015CB7),
-                      iconBgColor: const Color(0xFFE8F1FC),
-                      title: 'Guardian',
-                      description:
-                          'Monitor and protect your loved ones, receive alerts, and track real-time locations.',
-                      buttonText: 'Continue as Guardian',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const SplashPage(role: 'Guardian')),
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Wearer
-                    _buildRoleCard(
-                      icon: Icons.watch_outlined,
-                      iconColor: const Color(0xFF8A2BE2),
-                      iconBgColor: const Color(0xFFF4E8FC),
-                      title: 'Wearer',
-                      description:
-                          'Use the app with your Qlink safety bracelet to stay connected and send emergency alerts.',
-                      buttonText: 'Continue as Wearer',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const SplashPage(role: 'Wearer')),
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 10),
-                  ],
+    return AnimatedBuilder(
+      animation: appState,
+      builder: (context, _) {
+        return Scaffold(
+          backgroundColor: const Color(0xFF6B728E),
+          body: Stack(
+            children: [
+              // Background
+              Positioned(
+                top: -150,
+                left: -100,
+                child: Container(
+                  width: 500,
+                  height: 500,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFF8B8DAC).withOpacity(0.8),
+                  ),
                 ),
               ),
-            ),
+              Positioned(
+                bottom: -200,
+                left: -100,
+                child: Container(
+                  width: 600,
+                  height: 600,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFFCF8F9D).withOpacity(0.7),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: -150,
+                right: -100,
+                child: Container(
+                  width: 500,
+                  height: 500,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFF558ABA).withOpacity(0.8),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: -100,
+                right: -100,
+                child: Container(
+                  width: 400,
+                  height: 400,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFF6A87A6).withOpacity(0.8),
+                  ),
+                ),
+              ),
+
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+                  child: Container(color: Colors.transparent),
+                ),
+              ),
+
+              // Foreground
+              SafeArea(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 20.0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 20),
+
+                        // Logo
+                        Center(
+                          child: Image.asset(
+                            'assets/images/qlink_logo.png',
+                            height: 60,
+                            color: Colors.white,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Text(
+                                appState.qlink,
+                                style: const TextStyle(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        Text(
+                          appState.welcomeToQlink,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontFamily: 'Century Gothic',
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        Text(
+                          appState.chooseHowYouWantToUse,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white70,
+                          ),
+                        ),
+
+                        const SizedBox(height: 40),
+
+                        // Guardian
+                        _buildRoleCard(
+                          icon: Icons.gpp_good_outlined,
+                          iconColor: const Color(0xFF015CB7),
+                          iconBgColor: const Color(0xFFE8F1FC),
+                          title: appState.guardian,
+                          description: appState.guardianDescription,
+                          buttonText: appState.continueAsGuardian,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const SplashPage(role: 'Guardian'),
+                              ),
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Wearer
+                        _buildRoleCard(
+                          icon: Icons.watch_outlined,
+                          iconColor: const Color(0xFF8A2BE2),
+                          iconBgColor: const Color(0xFFF4E8FC),
+                          title: appState.wearer,
+                          description: appState.wearerDescription,
+                          buttonText: appState.continueAsWearer,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const SplashPage(role: 'Wearer'),
+                              ),
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -195,8 +208,7 @@ class ChooseRolePage extends StatelessWidget {
           ),
         ],
       ),
-      padding:
-          const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -207,11 +219,7 @@ class ChooseRolePage extends StatelessWidget {
               color: iconBgColor,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              size: 36,
-              color: iconColor,
-            ),
+            child: Icon(icon, size: 36, color: iconColor),
           ),
           const SizedBox(height: 16),
           Text(
