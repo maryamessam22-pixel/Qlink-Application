@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
+import 'package:q_link/features/shared/vault/presentation/pages/vault_detail_page.dart';
 
 class VaultPage extends StatefulWidget {
   const VaultPage({super.key});
@@ -36,6 +37,32 @@ class _VaultPageState extends State<VaultPage> {
                 lastUpdate: '2h ago',
                 statusLabel: 'SECURE',
                 statusColor: const Color(0xFF22C55E),
+                onOpenVault: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const VaultDetailPage(
+                        name: 'Mohamed Saber',
+                        imagePath: 'assets/images/Mohamed Saber.png',
+                        monitoredSince: '2024',
+                        statusLabel: 'SECURE',
+                        statusColor: Color(0xFF22C55E),
+                        bloodType: 'A+',
+                        condition: 'Hypertension',
+                        allergies: 'Aspirin',
+                        emergencyContacts: [
+                          {'name': 'Mariam Essam', 'role': 'Granddaughter', 'image': 'assets/images/mypic.png'},
+                          {'name': 'Ahmed Mazen', 'role': 'Son', 'image': 'assets/images/mypic.png'},
+                        ],
+                        documents: [
+                          {'title': 'Medical Report 2024', 'subtitle': 'PDF • 3.1 MB', 'type': 'PDF'},
+                          {'title': 'Cardiology Results', 'subtitle': 'DOCX • 1.8 MB', 'type': 'DOCX'},
+                          {'title': 'Insurance Card', 'subtitle': 'JPG • 920 KB', 'type': 'JPG'},
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               _buildProfileCard(
@@ -46,6 +73,32 @@ class _VaultPageState extends State<VaultPage> {
                 lastUpdate: 'Just now',
                 statusLabel: 'UPDATED',
                 statusColor: const Color(0xFF1B64F2),
+                onOpenVault: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const VaultDetailPage(
+                        name: 'Karma Ahmed',
+                        imagePath: 'assets/images/mypic.png',
+                        monitoredSince: '2025',
+                        statusLabel: 'SECURE',
+                        statusColor: Color(0xFF22C55E),
+                        bloodType: 'O+',
+                        condition: 'Diabetes Type 1',
+                        allergies: 'Penicillin',
+                        emergencyContacts: [
+                          {'name': 'Mariam Essam', 'role': 'Mom', 'image': 'assets/images/mypic.png'},
+                          {'name': 'Ahmed Mazen', 'role': 'Dad', 'image': 'assets/images/mypic.png'},
+                        ],
+                        documents: [
+                          {'title': 'Medical Report 2020', 'subtitle': 'PDF • 2.4 MB', 'type': 'PDF'},
+                          {'title': 'Latest Prescription', 'subtitle': 'DOCX • 1.1 MB', 'type': 'DOCX'},
+                          {'title': 'Insurance Card', 'subtitle': 'JPG • 850 KB', 'type': 'JPG'},
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 24),
               _buildHealthSecurityTip(),
@@ -194,6 +247,7 @@ class _VaultPageState extends State<VaultPage> {
     required String lastUpdate,
     required String statusLabel,
     required Color statusColor,
+    required VoidCallback onOpenVault,
   }) {
     return Container(
       padding: const EdgeInsets.all(18),
@@ -303,7 +357,7 @@ class _VaultPageState extends State<VaultPage> {
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: onOpenVault,
                   child: Container(
                     height: 42,
                     decoration: BoxDecoration(
