@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:q_link/core/state/app_state.dart';
 
 class SyncingPage extends StatefulWidget {
   final String title;

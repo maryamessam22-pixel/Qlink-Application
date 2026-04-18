@@ -310,17 +310,17 @@ class ProfileManagementPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(appState.tr('Delete Profile', 'حذف الملف الشخصي')),
-        content: Text('${appState.tr('Are you sure you want to delete', 'هل أنت متأكد أنك تريد حذف')} ${profile.name}? ${appState.tr('This action cannot be undone.', 'لا يمكن التراجع عن هذا الإجراء.')}'),
+        title: Text(AppState().tr('Delete Profile', 'حذف الملف الشخصي')),
+        content: Text('${AppState().tr('Are you sure you want to delete', 'هل أنت متأكد أنك تريد حذف')} ${profile.name}? ${AppState().tr('This action cannot be undone.', 'لا يمكن التراجع عن هذا الإجراء.')}'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(appState.tr('Cancel', 'إلغاء'))),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppState().tr('Cancel', 'إلغاء'))),
           TextButton(
             onPressed: () {
               AppState().removeProfile(profileIndex);
               Navigator.pop(context); // close dialog
               Navigator.pop(context); // go back to home
             },
-            child: Text(appState.tr('Delete', 'حذف'), style: const TextStyle(color: Colors.red)),
+            child: Text(AppState().tr('Delete', 'حذف'), style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -356,8 +356,8 @@ class ProfileManagementPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildNavItem(context, icon: LucideIcons.home, label: appState.tr('Home', 'الرئيسية')),
-                  _buildNavItem(context, icon: LucideIcons.map, label: appState.tr('Map', 'الخريطة')),
+                  _buildNavItem(context, icon: LucideIcons.home, label: AppState().tr('Home', 'الرئيسية')),
+                  _buildNavItem(context, icon: LucideIcons.map, label: AppState().tr('Map', 'الخريطة')),
                   GestureDetector(
                     onTap: () {},
                     child: Container(
@@ -370,8 +370,8 @@ class ProfileManagementPage extends StatelessWidget {
                       child: const Icon(Icons.add, color: Colors.white, size: 28),
                     ),
                   ),
-                  _buildNavItem(context, icon: LucideIcons.lock, label: appState.tr('Vault', 'الخزنة')),
-                  _buildNavItem(context, icon: LucideIcons.settings, label: appState.tr('Settings', 'الإعدادات')),
+                  _buildNavItem(context, icon: LucideIcons.lock, label: AppState().tr('Vault', 'الخزنة')),
+                  _buildNavItem(context, icon: LucideIcons.settings, label: AppState().tr('Settings', 'الإعدادات')),
                 ],
               ),
             ),

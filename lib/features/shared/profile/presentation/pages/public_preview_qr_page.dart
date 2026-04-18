@@ -33,10 +33,10 @@ class PublicPreviewQrPage extends StatelessWidget {
                     children: [
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                            SizedBox(width: 4),
+                            const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                            const SizedBox(width: 4),
                             Text(AppState().tr('Close Preview', 'إغلاق المعاينة'), style: const TextStyle(color: Colors.white, fontSize: 16)),
                           ],
                         ),
@@ -50,7 +50,7 @@ class PublicPreviewQrPage extends StatelessWidget {
                       color: Colors.white.withValues(alpha:0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 16),
