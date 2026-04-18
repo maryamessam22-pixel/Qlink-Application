@@ -146,7 +146,7 @@ class VaultDetailPage extends StatelessWidget {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.12),
+                    color: statusColor.withValues(alpha:0.12),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -222,7 +222,7 @@ class VaultDetailPage extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha:0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: iconColor, size: 18),
@@ -242,7 +242,7 @@ class VaultDetailPage extends StatelessWidget {
               vertical: 4,
             ),
             decoration: BoxDecoration(
-              color: valueColor.withOpacity(0.08),
+              color: valueColor.withValues(alpha:0.08),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -399,7 +399,7 @@ class VaultDetailPage extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: iconColor, size: 20),
@@ -433,7 +433,7 @@ class VaultDetailPage extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF1B64F2).withOpacity(0.8),
+              color: const Color(0xFF1B64F2).withValues(alpha:0.8),
             ),
           ),
         ],
@@ -484,7 +484,7 @@ class VaultDetailPage extends StatelessWidget {
           borderRadius: BorderRadius.circular(35),
           boxShadow: [
             BoxShadow(
-              color: Colors.blue.withOpacity(0.15),
+              color: Colors.blue.withValues(alpha:0.15),
               blurRadius: 30,
               offset: const Offset(0, 10),
             ),
@@ -496,9 +496,9 @@ class VaultDetailPage extends StatelessWidget {
             filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.4),
+                color: Colors.white.withValues(alpha:0.4),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha:0.5),
                   width: 1.5,
                 ),
                 borderRadius: BorderRadius.circular(35),

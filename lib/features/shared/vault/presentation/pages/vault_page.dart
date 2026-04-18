@@ -173,7 +173,7 @@ class _VaultPageState extends State<VaultPage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha:0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -232,7 +232,7 @@ class _VaultPageState extends State<VaultPage> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF1E3A8A).withOpacity(0.7),
+            color: const Color(0xFF1E3A8A).withValues(alpha:0.7),
           ),
         ),
       ],
@@ -260,7 +260,7 @@ class _VaultPageState extends State<VaultPage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha:0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -337,7 +337,7 @@ class _VaultPageState extends State<VaultPage> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -430,14 +430,14 @@ class _VaultPageState extends State<VaultPage> {
         gradient: LinearGradient(
           colors: [
             const Color(0xFFE6F7EE),
-            const Color(0xFFE6F7EE).withOpacity(0.5),
+            const Color(0xFFE6F7EE).withValues(alpha:0.5),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFB4E6C9).withOpacity(0.6),
+          color: const Color(0xFFB4E6C9).withValues(alpha:0.6),
           width: 1.5,
         ),
       ),
@@ -448,7 +448,7 @@ class _VaultPageState extends State<VaultPage> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF22C55E).withOpacity(0.15),
+              color: const Color(0xFF22C55E).withValues(alpha:0.15),
               shape: BoxShape.circle,
             ),
             child: const Icon(

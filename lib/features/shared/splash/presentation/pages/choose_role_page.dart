@@ -27,7 +27,7 @@ class ChooseRolePage extends StatelessWidget {
                   height: 500,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFF8B8DAC).withOpacity(0.8),
+                    color: const Color(0xFF8B8DAC).withValues(alpha:0.8),
                   ),
                 ),
               ),
@@ -39,7 +39,7 @@ class ChooseRolePage extends StatelessWidget {
                   height: 600,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFFCF8F9D).withOpacity(0.7),
+                    color: const Color(0xFFCF8F9D).withValues(alpha:0.7),
                   ),
                 ),
               ),
@@ -51,7 +51,7 @@ class ChooseRolePage extends StatelessWidget {
                   height: 500,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFF558ABA).withOpacity(0.8),
+                    color: const Color(0xFF558ABA).withValues(alpha:0.8),
                   ),
                 ),
               ),
@@ -63,7 +63,7 @@ class ChooseRolePage extends StatelessWidget {
                   height: 400,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFF6A87A6).withOpacity(0.8),
+                    color: const Color(0xFF6A87A6).withValues(alpha:0.8),
                   ),
                 ),
               ),
@@ -86,7 +86,31 @@ class ChooseRolePage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SizedBox(height: 20),
+                        // Language toggle
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: GestureDetector(
+                            onTap: () => appState.toggleLanguage(),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.white30),
+                              ),
+                              child: Text(
+                                appState.isArabic ? 'EN' : 'AR',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
 
                         // Logo
                         Center(
@@ -202,7 +226,7 @@ class ChooseRolePage extends StatelessWidget {
         borderRadius: BorderRadius.circular(24.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha:0.08),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),

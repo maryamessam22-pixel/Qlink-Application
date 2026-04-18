@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
-import 'package:q_link/features/shared/profile/presentation/pages/add_profile_identity.dart';
 
 class EmergencyInfoPage extends StatefulWidget {
   final int profileIndex;
@@ -138,7 +137,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withValues(alpha:0.04),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -349,7 +348,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                               decoration: BoxDecoration(
                                 color: const Color(0xFFE6F0FE),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const Color(0xFF1B64F2).withOpacity(0.3)),
+                                border: Border.all(color: const Color(0xFF1B64F2).withValues(alpha:0.3)),
                               ),
                               child: const Center(
                                 child: Icon(Icons.person_pin_circle, color: Color(0xFF1B64F2), size: 40),
@@ -547,7 +546,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
           borderRadius: BorderRadius.circular(35),
           boxShadow: [
             BoxShadow(
-              color: Colors.blue.withOpacity(0.15),
+              color: Colors.blue.withValues(alpha:0.15),
               blurRadius: 30,
               offset: const Offset(0, 10),
             ),
@@ -559,8 +558,8 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
             filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.4),
-                border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+                color: Colors.white.withValues(alpha:0.4),
+                border: Border.all(color: Colors.white.withValues(alpha:0.5), width: 1.5),
                 borderRadius: BorderRadius.circular(35),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 8),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:q_link/features/shared/home/presentation/pages/main_page.dart';
 
@@ -16,6 +17,14 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
 
   @override
   Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: AppState(),
+      builder: (context, _) => _buildPage(context),
+    );
+  }
+
+  Widget _buildPage(BuildContext context) {
+    final appState = AppState();
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -70,10 +79,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 const SizedBox(height: 30),
                 
                 // Header Texts
-                const Text(
-                  'Create Account',
+                Text(
+                  appState.tr('Create Account', 'إنشاء حساب'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Century Gothic',
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -82,31 +91,26 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Starts your safety journey',
+                  appState.tr('Starts your safety journey', 'ابدأ رحلة سلامتك'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 40),
-                
-                // FullName Field
-                _buildTextField(
-                  hintText: 'FullName',
-                ),
+
+                _buildTextField(hintText: appState.tr('Full Name', 'الاسم الكامل')),
                 const SizedBox(height: 16),
-                
-                // Email Field
+
                 _buildTextField(
-                  hintText: 'Email Address',
+                  hintText: appState.tr('Email Address', 'عنوان البريد الإلكتروني'),
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 16),
-                
-                // Password Field
+
                 _buildTextField(
-                  hintText: 'Password',
+                  hintText: appState.tr('Password', 'كلمة المرور'),
                   obscureText: _obscurePassword,
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -141,7 +145,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     elevation: 0,
                   ),
                   child: Text(
-                    'Create a ${widget.role} Hub',
+                    appState.tr('Create a ${widget.role} Hub', 'إنشاء حساب ${widget.role}'),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -154,12 +158,12 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 // OR Divider
                 Row(
                   children: [
-                    Expanded(child: Divider(color: Colors.white.withOpacity(0.8), thickness: 1)),
+                    Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.8), thickness: 1)),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text('OR', style: TextStyle(color: Colors.white.withOpacity(0.8))),
+                      child: Text(appState.tr('OR', 'أو'), style: TextStyle(color: Colors.white.withValues(alpha: 0.8))),
                     ),
-                    Expanded(child: Divider(color: Colors.white.withOpacity(0.8), thickness: 1)),
+                    Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.8), thickness: 1)),
                   ],
                 ),
                 const SizedBox(height: 30),
@@ -196,21 +200,20 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'Already have an account ? ',
-                      style: TextStyle(color: Colors.white),
+                    Text(
+                      appState.tr('Already have an account ? ', 'هل لديك حساب بالفعل؟ '),
+                      style: const TextStyle(color: Colors.white),
                     ),
                     GestureDetector(
                       onTap: () {
-                        // Navigate to Sign In
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(builder: (_) => SignInPage(role: widget.role)),
                         );
                       },
-                      child: const Text(
-                        'Sign In',
-                        style: TextStyle(
+                      child: Text(
+                        appState.tr('Sign In', 'تسجيل الدخول'),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),

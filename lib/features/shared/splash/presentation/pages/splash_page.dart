@@ -49,7 +49,7 @@ class _SplashPageState extends State<SplashPage> {
                   height: 400,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFFB81428).withOpacity(0.9),
+                    color: const Color(0xFFB81428).withValues(alpha: 0.9),
                   ),
                 ),
               ),
@@ -61,7 +61,7 @@ class _SplashPageState extends State<SplashPage> {
                   height: 400,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFF015CB7).withOpacity(0.9),
+                    color: const Color(0xFF015CB7).withValues(alpha: 0.9),
                   ),
                 ),
               ),
@@ -70,7 +70,7 @@ class _SplashPageState extends State<SplashPage> {
               Positioned.fill(
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-                  child: Container(color: Colors.white.withOpacity(0.3)),
+                  child: Container(color: Colors.white.withValues(alpha: 0.3)),
                 ),
               ),
 

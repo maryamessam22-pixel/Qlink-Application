@@ -112,7 +112,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
             borderRadius: BorderRadius.circular(35),
             boxShadow: [
               BoxShadow(
-                color: Colors.blue.withOpacity(0.15),
+                color: Colors.blue.withValues(alpha:0.15),
                 blurRadius: 30,
                 offset: const Offset(0, 10),
               ),
@@ -124,16 +124,16 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
               filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.4),
-                  border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+                  color: Colors.white.withValues(alpha:0.4),
+                  border: Border.all(color: Colors.white.withValues(alpha:0.5), width: 1.5),
                   borderRadius: BorderRadius.circular(35),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildNavItem(icon: LucideIcons.home, label: 'Home'),
-                    _buildNavItem(icon: LucideIcons.map, label: 'Map'),
+                    _buildNavItem(icon: LucideIcons.home, label: AppState().tr('Home', 'الرئيسية')),
+                    _buildNavItem(icon: LucideIcons.map, label: AppState().tr('Map', 'الخريطة')),
                     GestureDetector(
                       onTap: () {},
                       child: Container(
@@ -146,8 +146,8 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
                         child: const Icon(Icons.add, color: Colors.white, size: 28),
                       ),
                     ),
-                    _buildNavItem(icon: LucideIcons.lock, label: 'Vault'),
-                    _buildNavItem(icon: LucideIcons.settings, label: 'Settings'),
+                    _buildNavItem(icon: LucideIcons.lock, label: AppState().tr('Vault', 'الخزنة')),
+                    _buildNavItem(icon: LucideIcons.settings, label: AppState().tr('Settings', 'الإعدادات')),
                   ],
                 ),
               ),
@@ -238,7 +238,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           ),
           const SizedBox(width: 4),
           Text(
-            'Back',
+            AppState().tr('Back', 'رجوع'),
             style: TextStyle(
               fontSize: 16,
               color: Colors.grey.shade500,
@@ -251,9 +251,9 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
   }
 
   Widget _buildTitle() {
-    return const Text(
-      'Generate Patient Profile',
-      style: TextStyle(
+    return Text(
+      AppState().tr('Generate Patient Profile', 'إنشاء ملف المريض'),
+      style: const TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.w800,
         color: Color(0xFF1E3A8A),
@@ -299,7 +299,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
 
   Widget _buildStepLabel() {
     return Text(
-      'Step 2 of 3: Medical',
+      AppState().tr('Step 2 of 3: Medical', 'الخطوة 2 من 3: الطبية'),
       style: TextStyle(
         fontSize: 16,
         color: Colors.grey.shade600,
@@ -312,9 +312,9 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Safety Notes',
-          style: TextStyle(
+        Text(
+          AppState().tr('Safety Notes', 'ملاحظات السلامة'),
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E3A8A),
@@ -325,7 +325,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           controller: _safetyNotesController,
           maxLines: 4,
           decoration: InputDecoration(
-            hintText: 'e.g., Additional safety information',
+            hintText: AppState().tr('e.g., Additional safety information', 'مثال: معلومات سلامة إضافية'),
             hintStyle: TextStyle(
               color: Colors.grey.shade400,
               fontSize: 13,
@@ -352,9 +352,9 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Allergies',
-          style: TextStyle(
+        Text(
+          AppState().tr('Allergies', 'الحساسية'),
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E3A8A),
@@ -365,7 +365,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           controller: _allergiesController,
           maxLines: 4,
           decoration: InputDecoration(
-            hintText: 'e.g., Penicillin, Peanuts, Shellfish',
+            hintText: AppState().tr('e.g., Penicillin, Peanuts, Shellfish', 'مثال: البنسيلين، الفول السوداني، المحار'),
             hintStyle: TextStyle(
               color: Colors.grey.shade400,
               fontSize: 13,
@@ -392,9 +392,9 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Blood Type',
-          style: TextStyle(
+        Text(
+          AppState().tr('Blood Type', 'فصيلة الدم'),
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E3A8A),
@@ -451,9 +451,9 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Medical Notes',
-          style: TextStyle(
+        Text(
+          AppState().tr('Medical Notes', 'ملاحظات طبية'),
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E3A8A),
@@ -464,7 +464,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           controller: _medicalNotesController,
           maxLines: 4,
           decoration: InputDecoration(
-            hintText: 'e.g., Diabetic',
+            hintText: AppState().tr('e.g., Diabetic', 'مثال: مريض سكري'),
             hintStyle: TextStyle(
               color: Colors.grey.shade400,
               fontSize: 13,
@@ -534,12 +534,12 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           ),
           borderRadius: BorderRadius.circular(27),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Continue',
-              style: TextStyle(
+              AppState().tr('Continue', 'متابعة'),
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,

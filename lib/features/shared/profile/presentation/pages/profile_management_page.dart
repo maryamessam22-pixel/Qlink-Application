@@ -244,7 +244,7 @@ class ProfileManagementPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha:0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -294,7 +294,7 @@ class ProfileManagementPage extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: (color ?? const Color(0xFF1B64F2)).withOpacity(0.1),
+            color: (color ?? const Color(0xFF1B64F2)).withValues(alpha:0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: color ?? const Color(0xFF1B64F2), size: 20),
@@ -336,7 +336,7 @@ class ProfileManagementPage extends StatelessWidget {
           borderRadius: BorderRadius.circular(35),
           boxShadow: [
             BoxShadow(
-              color: Colors.blue.withOpacity(0.15),
+              color: Colors.blue.withValues(alpha:0.15),
               blurRadius: 30,
               offset: const Offset(0, 10),
             ),
@@ -348,8 +348,8 @@ class ProfileManagementPage extends StatelessWidget {
             filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.4),
-                border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+                color: Colors.white.withValues(alpha:0.4),
+                border: Border.all(color: Colors.white.withValues(alpha:0.5), width: 1.5),
                 borderRadius: BorderRadius.circular(35),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 8),

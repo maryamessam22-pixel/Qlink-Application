@@ -23,5 +23,5 @@ class AppColors {
   ];
 
   // Helper for transparency
-  static Color withOpacity(Color color, double opacity) => color.withOpacity(opacity);
+  static Color withAlpha(Color color, double opacity) => color.withValues(alpha: opacity);
 }

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:video_player/video_player.dart';
@@ -7,7 +6,6 @@ import 'package:q_link/features/shared/profile/presentation/pages/connect_device
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/profile_management_page.dart';
 import 'package:q_link/features/shared/home/presentation/widgets/header_widget.dart';
-import 'package:q_link/features/shared/home/presentation/widgets/bottom_nav_widget.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -83,7 +81,7 @@ class HomePage extends StatelessWidget {
                                         decoration: BoxDecoration(
                                           color: (appState.deviceCount > 0 
                                             ? const Color(0xFF0E9F6E) 
-                                            : const Color(0xFFD1D5DB)).withOpacity(0.5),
+                                            : const Color(0xFFD1D5DB)).withValues(alpha: 0.5),
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                         child: Text(
@@ -183,9 +181,9 @@ class HomePage extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Protected Member',
-                            style: TextStyle(
+                          Text(
+                            appState.tr('Protected Member', 'العضو المحمي'),
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF1E3A8A),
@@ -198,7 +196,7 @@ class HomePage extends StatelessWidget {
                                 MaterialPageRoute(builder: (context) => const AddProfileIdentityPage()),
                               );
                             },
-                            child: const Text('+ Add Member', style: TextStyle(color: Color(0xFF1B64F2), fontWeight: FontWeight.bold)),
+                            child: Text(appState.tr('+ Add Member', '+ إضافة عضو'), style: const TextStyle(color: Color(0xFF1B64F2), fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
@@ -232,11 +230,14 @@ class HomePage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Create a Profile', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                            Text(AppState().tr('Create a Profile', 'إنشاء ملف تعريف'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                             const SizedBox(height: 8),
                             Text(
-                              'Create a medical ID for a loved one to activate their emergency QR protection immediately.',
-                              style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.9), height: 1.4),
+                              AppState().tr(
+                                'Create a medical ID for a loved one to activate their emergency QR protection immediately.',
+                                'أنشئ بطاقة معرف طبية لأحد أحبائك لتفعيل الحماية الطارئة QR فوراً.',
+                              ),
+                              style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.9), height: 1.4),
                             ),
                             const SizedBox(height: 20),
                             GestureDetector(
@@ -253,14 +254,14 @@ class HomePage extends StatelessWidget {
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const Row(
+                                child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.add_box, color: Color(0xFF0E9F6E), size: 20),
-                                    SizedBox(width: 8),
+                                    const Icon(Icons.add_box, color: Color(0xFF0E9F6E), size: 20),
+                                    const SizedBox(width: 8),
                                     Text(
-                                      'Add First Profile',
-                                      style: TextStyle(color: Color(0xFF0E9F6E), fontWeight: FontWeight.bold),
+                                      AppState().tr('Add First Profile', 'إضافة الملف الأول'),
+                                      style: const TextStyle(color: Color(0xFF0E9F6E), fontWeight: FontWeight.bold),
                                     ),
                                   ],
                                 ),
@@ -289,11 +290,14 @@ class HomePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Connect a Bracelet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    Text(AppState().tr('Connect a Bracelet', 'توصيل سوار'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                     const SizedBox(height: 8),
                     Text(
-                      'Pair a Qlink bracelet to start protecting your loved ones in real time and expand your safety circle.',
-                      style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.9), height: 1.4),
+                      AppState().tr(
+                        'Pair a Qlink bracelet to start protecting your loved ones in real time and expand your safety circle.',
+                        'قم بإقران سوار كيولينك للبدء في حماية أحبائك في الوقت الفعلي وتوسيع دائرة الأمان.',
+                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.9), height: 1.4),
                     ),
                     const SizedBox(height: 20),
                     GestureDetector(
@@ -302,12 +306,15 @@ class HomePage extends StatelessWidget {
                           showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
-                              title: const Text('Profile Required'),
-                              content: const Text('You must create a profile first before connecting a bracelet.'),
+                              title: Text(AppState().tr('Profile Required', 'مطلوب ملف تعريف')),
+                              content: Text(AppState().tr(
+                                'You must create a profile first before connecting a bracelet.',
+                                'يجب إنشاء ملف تعريف أولاً قبل توصيل السوار.',
+                              )),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(context),
-                                  child: const Text('Cancel'),
+                                  child: Text(AppState().tr('Cancel', 'إلغاء')),
                                 ),
                                 TextButton(
                                   onPressed: () {
@@ -317,7 +324,7 @@ class HomePage extends StatelessWidget {
                                       MaterialPageRoute(builder: (context) => const AddProfileIdentityPage()),
                                     );
                                   },
-                                  child: const Text('Create Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  child: Text(AppState().tr('Create Profile', 'إنشاء ملف تعريف'), style: const TextStyle(fontWeight: FontWeight.bold)),
                                 ),
                               ],
                             ),
@@ -342,7 +349,9 @@ class HomePage extends StatelessWidget {
                             const Icon(Icons.add, color: Color(0xFF273469), size: 24),
                             const SizedBox(width: 8),
                             Text(
-                              AppState().deviceCount > 0 ? 'Add Bracelet' : 'Add First Bracelet',
+                              AppState().deviceCount > 0
+                                  ? AppState().tr('Add Bracelet', 'إضافة سوار')
+                                  : AppState().tr('Add First Bracelet', 'إضافة أول سوار'),
                               style: const TextStyle(color: Color(0xFF273469), fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -367,9 +376,9 @@ class HomePage extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Recent Activity',
-                            style: TextStyle(
+                          Text(
+                            appState.tr('Recent Activity', 'النشاط الأخير'),
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF1E3A8A),
@@ -378,7 +387,7 @@ class HomePage extends StatelessWidget {
                           TextButton(
                             onPressed: () {},
                             child: Text(
-                              hasDevice ? 'View All' : 'See all',
+                              hasDevice ? appState.tr('View All', 'عرض الكل') : appState.tr('See all', 'عرض الكل'),
                               style: TextStyle(
                                 color: hasDevice ? const Color(0xFF1B64F2) : Colors.grey,
                                 fontWeight: FontWeight.bold
@@ -417,7 +426,7 @@ class HomePage extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -498,7 +507,7 @@ class HomePage extends StatelessWidget {
                     backgroundColor: const Color(0xFFF9FAFB),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: const Text('View Profile', style: TextStyle(color: Color(0xFF1B64F2), fontWeight: FontWeight.w600)),
+                  child: Text(AppState().tr('View Profile', 'عرض الملف'), style: const TextStyle(color: Color(0xFF1B64F2), fontWeight: FontWeight.w600)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -507,11 +516,11 @@ class HomePage extends StatelessWidget {
                   ? OutlinedButton.icon(
                       onPressed: () {},
                       icon: const Icon(Icons.check_circle, color: Colors.purple, size: 18),
-                      label: const Text('Added Device', style: TextStyle(color: Colors.purple, fontWeight: FontWeight.w600)),
+                      label: Text(AppState().tr('Added Device', 'جهاز مضاف'), style: const TextStyle(color: Colors.purple, fontWeight: FontWeight.w600)),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide(color: Colors.purple.withOpacity(0.1)),
-                        backgroundColor: Colors.purple.withOpacity(0.05),
+                        side: BorderSide(color: Colors.purple.withValues(alpha: 0.1)),
+                        backgroundColor: Colors.purple.withValues(alpha: 0.05),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                     )
@@ -524,11 +533,11 @@ class HomePage extends StatelessWidget {
                       },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: BorderSide(color: Colors.purple.withOpacity(0.1)),
-                        backgroundColor: Colors.purple.withOpacity(0.05),
+                        side: BorderSide(color: Colors.purple.withValues(alpha: 0.1)),
+                        backgroundColor: Colors.purple.withValues(alpha: 0.05),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
-                      child: const Text('+ Add Device', style: TextStyle(color: Colors.purple, fontWeight: FontWeight.w600)),
+                      child: Text(AppState().tr('+ Add Device', '+ إضافة جهاز'), style: const TextStyle(color: Colors.purple, fontWeight: FontWeight.w600)),
                     ),
               ),
             ],
@@ -536,7 +545,7 @@ class HomePage extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Text('Home - Just now', style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+              Text(AppState().tr('Home - Just now', 'المنزل - الآن'), style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
             ],
           ),
         ],
@@ -560,7 +569,7 @@ class HomePage extends StatelessWidget {
           children: [
             Icon(Icons.history, size: 40, color: Colors.grey.shade400),
             const SizedBox(height: 12),
-            Text('No activity yet', style: TextStyle(color: Colors.grey.shade500)),
+            Text(AppState().tr('No activity yet', 'لا يوجد نشاط بعد'), style: TextStyle(color: Colors.grey.shade500)),
           ],
         ),
       ),
@@ -602,7 +611,7 @@ class HomePage extends StatelessWidget {
                 height: 150,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                 ),
                 child: Center(
                   child: Container(
@@ -644,7 +653,7 @@ class HomePage extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -656,7 +665,7 @@ class HomePage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 24),

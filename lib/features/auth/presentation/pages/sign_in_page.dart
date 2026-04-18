@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/auth/presentation/pages/create_account_page.dart';
 import 'package:q_link/features/shared/home/presentation/pages/main_page.dart';
 
@@ -15,6 +16,14 @@ class _SignInPageState extends State<SignInPage> {
 
   @override
   Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: AppState(),
+      builder: (context, _) => _buildPage(context),
+    );
+  }
+
+  Widget _buildPage(BuildContext context) {
+    final appState = AppState();
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -81,11 +90,11 @@ class _SignInPageState extends State<SignInPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Secure Access Required',
+                  appState.tr('Secure Access Required', 'مطلوب الوصول الآمن'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -125,8 +134,8 @@ class _SignInPageState extends State<SignInPage> {
                     onTap: () {
                       // Forgot password logic
                     },
-                    child: const Text(
-                      'Forgot Password?',
+                    child: Text(
+                      appState.tr('Forgot Password?', 'هل نسيت كلمة المرور؟'),
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -153,9 +162,9 @@ class _SignInPageState extends State<SignInPage> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'Sign In',
-                    style: TextStyle(
+                  child: Text(
+                    appState.tr('Sign In', 'تسجيل الدخول'),
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -167,12 +176,12 @@ class _SignInPageState extends State<SignInPage> {
                 // OR Divider
                 Row(
                   children: [
-                    Expanded(child: Divider(color: Colors.white.withOpacity(0.8), thickness: 1)),
+                    Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.8), thickness: 1)),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text('OR', style: TextStyle(color: Colors.white.withOpacity(0.8))),
+                      child: Text(appState.tr('OR', 'أو'), style: TextStyle(color: Colors.white.withValues(alpha: 0.8))),
                     ),
-                    Expanded(child: Divider(color: Colors.white.withOpacity(0.8), thickness: 1)),
+                    Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.8), thickness: 1)),
                   ],
                 ),
                 const SizedBox(height: 30),
@@ -208,12 +217,12 @@ class _SignInPageState extends State<SignInPage> {
                 // EMERGENCY Divider
                 Row(
                   children: [
-                    Expanded(child: Divider(color: Colors.white.withOpacity(0.8), thickness: 1)),
+                    Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.8), thickness: 1)),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text('EMERGENCY', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12)),
+                      child: Text(appState.tr('EMERGENCY', 'طوارئ'), style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12)),
                     ),
-                    Expanded(child: Divider(color: Colors.white.withOpacity(0.8), thickness: 1)),
+                    Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.8), thickness: 1)),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -236,9 +245,9 @@ class _SignInPageState extends State<SignInPage> {
                     children: [
                       const Icon(Icons.error_outline, color: Colors.white),
                       const SizedBox(width: 10),
-                      const Text(
-                        'PUBLIC EMERGENCY SCAN',
-                        style: TextStyle(
+                      Text(
+                        appState.tr('PUBLIC EMERGENCY SCAN', 'مسح الطوارئ العام'),
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -253,21 +262,20 @@ class _SignInPageState extends State<SignInPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'New to Qlink? ',
-                      style: TextStyle(color: Colors.white),
+                    Text(
+                      appState.tr('New to Qlink? ', 'جديد في كيولينك؟ '),
+                      style: const TextStyle(color: Colors.white),
                     ),
                     GestureDetector(
                       onTap: () {
-                        // Navigate to Create Account
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(builder: (_) => CreateAccountPage(role: widget.role)),
                         );
                       },
-                      child: const Text(
-                        'Create Account',
-                        style: TextStyle(
+                      child: Text(
+                        appState.tr('Create Account', 'إنشاء حساب'),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),

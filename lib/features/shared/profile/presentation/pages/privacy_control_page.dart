@@ -200,7 +200,7 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -236,7 +236,7 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
           borderRadius: BorderRadius.circular(35),
           boxShadow: [
             BoxShadow(
-              color: Colors.blue.withOpacity(0.15),
+              color: Colors.blue.withValues(alpha:0.15),
               blurRadius: 30,
               offset: const Offset(0, 10),
             ),
@@ -248,8 +248,8 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
             filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.4),
-                border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+                color: Colors.white.withValues(alpha:0.4),
+                border: Border.all(color: Colors.white.withValues(alpha:0.5), width: 1.5),
                 borderRadius: BorderRadius.circular(35),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 8),

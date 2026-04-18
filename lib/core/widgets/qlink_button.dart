@@ -29,7 +29,7 @@ class QlinkButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: (gradient?.first ?? AppColors.primaryGradient.first).withOpacity(0.3),
+            color: (gradient?.first ?? AppColors.primaryGradient.first).withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

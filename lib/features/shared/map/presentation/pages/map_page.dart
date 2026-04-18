@@ -86,7 +86,7 @@ class _MapPageState extends State<MapPage> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
+                      color: Colors.black.withValues(alpha:0.15),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -141,7 +141,7 @@ class _MapPageState extends State<MapPage> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha:0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -291,7 +291,7 @@ class _MapPageState extends State<MapPage> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha:0.2),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -304,7 +304,7 @@ class _MapPageState extends State<MapPage> {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: Colors.white.withValues(alpha:0.15),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -340,7 +340,7 @@ class _MapPageState extends State<MapPage> {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1B64F2).withOpacity(0.35),
+              color: const Color(0xFF1B64F2).withValues(alpha:0.35),
               blurRadius: 14,
               offset: const Offset(0, 5),
             ),
@@ -384,7 +384,7 @@ class _MapPageState extends State<MapPage> {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha:0.1),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -403,7 +403,7 @@ class _MapGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFD1D5DB).withOpacity(0.4)
+      ..color = const Color(0xFFD1D5DB).withValues(alpha:0.4)
       ..strokeWidth = 0.5;
 
     // Draw horizontal grid lines
@@ -426,7 +426,7 @@ class _MapGridPainter extends CustomPainter {
 
     // Draw some road-like lines
     final roadPaint = Paint()
-      ..color = const Color(0xFFFFFFFF).withOpacity(0.7)
+      ..color = const Color(0xFFFFFFFF).withValues(alpha:0.7)
       ..strokeWidth = 4;
 
     // Horizontal road

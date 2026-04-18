@@ -226,7 +226,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
         color: const Color(0xFFF0FFF4),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFFB4E6C9).withOpacity(0.6),
+          color: const Color(0xFFB4E6C9).withValues(alpha:0.6),
           width: 1.5,
         ),
       ),
@@ -420,7 +420,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
             borderRadius: BorderRadius.circular(27),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF0066CC).withOpacity(0.3),
+                color: const Color(0xFF0066CC).withValues(alpha:0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -511,7 +511,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           borderRadius: BorderRadius.circular(35),
           boxShadow: [
             BoxShadow(
-              color: Colors.blue.withOpacity(0.15),
+              color: Colors.blue.withValues(alpha:0.15),
               blurRadius: 30,
               offset: const Offset(0, 10),
             ),
@@ -523,9 +523,9 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
             filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.4),
+                color: Colors.white.withValues(alpha:0.4),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha:0.5),
                   width: 1.5,
                 ),
                 borderRadius: BorderRadius.circular(35),
