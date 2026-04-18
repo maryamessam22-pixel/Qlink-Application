@@ -68,7 +68,7 @@ class _VaultPageState extends State<VaultPage> {
               _buildProfileCard(
                 name: 'Karma Ahmed',
                 role: 'Monitored User',
-                imagePath: 'assets/images/mypic.png',
+                imagePath: 'assets/images/karma.png',
                 recordCount: 8,
                 lastUpdate: 'Just now',
                 statusLabel: 'UPDATED',
@@ -79,7 +79,7 @@ class _VaultPageState extends State<VaultPage> {
                     MaterialPageRoute(
                       builder: (context) => const VaultDetailPage(
                         name: 'Karma Ahmed',
-                        imagePath: 'assets/images/mypic.png',
+                        imagePath: 'assets/images/karma.png',
                         monitoredSince: '2025',
                         statusLabel: 'SECURE',
                         statusColor: Color(0xFF22C55E),

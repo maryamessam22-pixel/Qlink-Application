@@ -51,7 +51,7 @@ class _MapPageState extends State<MapPage> {
               left: 200,
               top: 160,
               name: 'KARMA AHMED',
-              imagePath: 'assets/images/mypic.png',
+              imagePath: 'assets/images/karma.png',
               hasStatusDot: true,
             ),
           ],
