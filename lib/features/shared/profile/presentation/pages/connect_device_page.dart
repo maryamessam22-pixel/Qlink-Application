@@ -6,7 +6,22 @@ import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/syncing_page.dart';
 
 class ConnectDevicePage extends StatefulWidget {
-  const ConnectDevicePage({super.key});
+  final int? targetProfileIndex;
+  final String? name;
+  final String? relationship;
+  final String? bloodType;
+  final String? allergies;
+  final String? condition;
+
+  const ConnectDevicePage({
+    super.key,
+    this.targetProfileIndex,
+    this.name,
+    this.relationship,
+    this.bloodType,
+    this.allergies,
+    this.condition,
+  });
 
   @override
   State<ConnectDevicePage> createState() => _ConnectDevicePageState();
@@ -353,16 +368,25 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
             return;
           }
 
-          AppState().addDevice(DeviceData(
+          final device = DeviceData(
             deviceType: _selectedDeviceType!,
             code: _codeController.text,
             connectedAt: DateTime.now(),
-          ));
-          
-          AppState().addProfile(ProfileData(
-            name: 'New Profile',
-            imagePath: 'assets/images/mypic.png',
-          ));
+          );
+
+          if (widget.targetProfileIndex != null) {
+            AppState().addDeviceToProfile(widget.targetProfileIndex!, device);
+          } else {
+            AppState().addProfile(ProfileData(
+              name: widget.name ?? 'New Profile',
+              imagePath: 'assets/images/mypic.png',
+              relationship: widget.relationship ?? 'Member',
+              bloodType: widget.bloodType ?? '',
+              allergies: widget.allergies ?? '',
+              condition: widget.condition ?? '',
+            ));
+            AppState().addDeviceToProfile(AppState().profileCount - 1, device);
+          }
           
           Navigator.push(
             context,
@@ -417,11 +441,17 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   Widget _buildSkipButton() {
     return GestureDetector(
       onTap: () {
-        // Add profile before skipping hardware link
-        AppState().addProfile(ProfileData(
-          name: 'New Profile',
-          imagePath: 'assets/images/mypic.png',
-        ));
+        // Add profile before skipping hardware link if needed
+        if (widget.targetProfileIndex == null) {
+          AppState().addProfile(ProfileData(
+            name: widget.name ?? 'New Profile',
+            relationship: widget.relationship ?? 'Member',
+            imagePath: 'assets/images/mypic.png',
+            bloodType: widget.bloodType ?? '',
+            allergies: widget.allergies ?? '',
+            condition: widget.condition ?? '',
+          ));
+        }
 
         Navigator.push(
           context,

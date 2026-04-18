@@ -12,6 +12,16 @@ class AddProfileIdentityPage extends StatefulWidget {
 }
 
 class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _relationshipController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _relationshipController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -128,10 +138,10 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               const Divider(color: Color(0xFFE5E7EB), thickness: 1),
               const SizedBox(height: 24),
               
-              _buildLabelAndTextField('Patient\'s Full Name', 'e.g., Mohamed Saber'),
+              _buildLabelAndTextField('Patient\'s Full Name', 'e.g., Mohamed Saber', controller: _nameController),
               const SizedBox(height: 16),
               
-              _buildLabelAndTextField('Relationship to You', 'e.g., Grandfather'),
+              _buildLabelAndTextField('Relationship to You', 'e.g., Grandfather', controller: _relationshipController),
               const SizedBox(height: 16),
               
               _buildLabelAndTextField('Birth Year', 'e.g., 1945'),
@@ -176,7 +186,10 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const AddMedicalInfoPage(),
+                      builder: (context) => AddMedicalInfoPage(
+                        name: _nameController.text,
+                        relationship: _relationshipController.text,
+                      ),
                     ),
                   );
                 },
@@ -345,7 +358,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
     );
   }
 
-  Widget _buildLabelAndTextField(String label, String hintText) {
+  Widget _buildLabelAndTextField(String label, String hintText, {TextEditingController? controller}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -359,6 +372,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
         ),
         const SizedBox(height: 8),
         TextField(
+          controller: controller,
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),

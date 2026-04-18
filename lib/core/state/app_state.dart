@@ -3,17 +3,23 @@ import 'package:flutter/material.dart';
 class ProfileData {
   final String name;
   final String imagePath;
+  final String relationship;
   final String bloodType;
   final String condition;
   final String allergies;
+  final List<DeviceData> devices;
 
   ProfileData({
     required this.name,
     required this.imagePath,
+    required this.relationship,
     this.bloodType = '',
     this.condition = '',
     this.allergies = '',
-  });
+    List<DeviceData>? devices,
+  }) : devices = devices ?? [];
+
+  bool get hasDevice => devices.isNotEmpty;
 }
 
 class DeviceData {
@@ -34,34 +40,27 @@ class AppState extends ChangeNotifier {
   AppState._internal();
 
   final List<ProfileData> _profiles = [];
-  final List<DeviceData> _devices = [];
 
   List<ProfileData> get profiles => List.unmodifiable(_profiles);
-  List<DeviceData> get devices => List.unmodifiable(_devices);
 
   int get profileCount => _profiles.length;
-  int get deviceCount => _devices.length;
+  int get deviceCount => _profiles.fold(0, (sum, p) => sum + p.devices.length);
 
   void addProfile(ProfileData profile) {
     _profiles.add(profile);
     notifyListeners();
   }
 
-  void addDevice(DeviceData device) {
-    _devices.add(device);
-    notifyListeners();
+  void addDeviceToProfile(int profileIndex, DeviceData device) {
+    if (profileIndex >= 0 && profileIndex < _profiles.length) {
+      _profiles[profileIndex].devices.add(device);
+      notifyListeners();
+    }
   }
 
   void removeProfile(int index) {
     if (index >= 0 && index < _profiles.length) {
       _profiles.removeAt(index);
-      notifyListeners();
-    }
-  }
-
-  void removeDevice(int index) {
-    if (index >= 0 && index < _devices.length) {
-      _devices.removeAt(index);
       notifyListeners();
     }
   }

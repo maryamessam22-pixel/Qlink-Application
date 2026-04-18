@@ -5,7 +5,13 @@ import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/connect_device_page.dart';
 
 class AddMedicalInfoPage extends StatefulWidget {
-  const AddMedicalInfoPage({super.key});
+  final String name;
+  final String relationship;
+  const AddMedicalInfoPage({
+    super.key,
+    required this.name,
+    required this.relationship,
+  });
 
   @override
   State<AddMedicalInfoPage> createState() => _AddMedicalInfoPageState();
@@ -467,7 +473,13 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const ConnectDevicePage(),
+            builder: (context) => ConnectDevicePage(
+              name: widget.name,
+              relationship: widget.relationship,
+              bloodType: _selectedBloodType ?? '',
+              allergies: _allergiesController.text,
+              condition: _medicalNotesController.text,
+            ),
           ),
         );
       },
