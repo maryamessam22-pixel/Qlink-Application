@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/add_medical_info.dart';
+import 'package:q_link/core/state/app_state.dart';
 
 class AddProfileIdentityPage extends StatefulWidget {
   final int? editIndex;
