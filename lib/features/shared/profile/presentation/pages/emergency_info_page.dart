@@ -4,7 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/add_profile_identity.dart';
 
-class EmergencyInfoPage extends StatelessWidget {
+class EmergencyInfoPage extends StatefulWidget {
   final int profileIndex;
   final ProfileData profile;
 
@@ -13,6 +13,87 @@ class EmergencyInfoPage extends StatelessWidget {
     required this.profileIndex,
     required this.profile,
   });
+
+  @override
+  State<EmergencyInfoPage> createState() => _EmergencyInfoPageState();
+}
+
+class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
+  bool _isEditing = false;
+
+  late TextEditingController _nameController;
+  late TextEditingController _relationshipController;
+  late TextEditingController _bloodTypeController;
+  late TextEditingController _birthYearController;
+  late TextEditingController _conditionController;
+  late TextEditingController _allergiesController;
+  late List<TextEditingController> _contactControllers;
+
+  @override
+  void initState() {
+    super.initState();
+    _initControllers();
+  }
+
+  void _initControllers() {
+    _nameController = TextEditingController(text: widget.profile.name);
+    _relationshipController = TextEditingController(text: widget.profile.relationship);
+    _bloodTypeController = TextEditingController(text: widget.profile.bloodType);
+    _birthYearController = TextEditingController(text: widget.profile.birthYear);
+    _conditionController = TextEditingController(text: widget.profile.condition);
+    _allergiesController = TextEditingController(text: widget.profile.allergies);
+    _contactControllers = widget.profile.emergencyContacts.map((c) => TextEditingController(text: c)).toList();
+    if (_contactControllers.isEmpty) {
+      _contactControllers.add(TextEditingController());
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _relationshipController.dispose();
+    _bloodTypeController.dispose();
+    _birthYearController.dispose();
+    _conditionController.dispose();
+    _allergiesController.dispose();
+    for (var c in _contactControllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  void _saveEdits() {
+    final updatedProfile = ProfileData(
+      name: _nameController.text,
+      relationship: _relationshipController.text,
+      birthYear: _birthYearController.text,
+      bloodType: _bloodTypeController.text,
+      allergies: _allergiesController.text,
+      condition: _conditionController.text,
+      emergencyContacts: _contactControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+      hasDevice: widget.profile.hasDevice,
+      devices: widget.profile.devices,
+      imagePath: widget.profile.imagePath,
+    );
+    updatedProfile.visibility = widget.profile.visibility; // Preserve privacy settings
+
+    AppState().updateProfile(widget.profileIndex, updatedProfile);
+    
+    setState(() {
+      _isEditing = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile updated successfully.')),
+    );
+  }
+
+  void _cancelEdits() {
+    setState(() {
+      _isEditing = false;
+      _initControllers(); // Reset to original values
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +112,13 @@ class EmergencyInfoPage extends StatelessWidget {
                     Row(
                       children: [
                         GestureDetector(
-                          onTap: () => Navigator.pop(context),
+                          onTap: () {
+                            if (_isEditing) {
+                              _cancelEdits();
+                            } else {
+                              Navigator.pop(context);
+                            }
+                          },
                           child: Row(
                             children: [
                               Icon(Icons.arrow_back, color: Colors.grey.shade600, size: 20),
@@ -70,14 +157,14 @@ class EmergencyInfoPage extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 alignment: Alignment.center,
-                                child: profile.imagePath.contains('mypic') 
+                                child: widget.profile.imagePath.contains('mypic') 
                                   ? Text(
-                                      profile.name.isNotEmpty ? profile.name[0].toUpperCase() : '?', 
+                                      widget.profile.name.isNotEmpty ? widget.profile.name[0].toUpperCase() : '?', 
                                       style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)
                                     )
                                   : ClipRRect(
                                       borderRadius: BorderRadius.circular(12),
-                                      child: Image.asset(profile.imagePath, fit: BoxFit.cover, width: 70, height: 70),
+                                      child: Image.asset(widget.profile.imagePath, fit: BoxFit.cover, width: 70, height: 70),
                                     ),
                               ),
                               const SizedBox(width: 16),
@@ -85,25 +172,37 @@ class EmergencyInfoPage extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          profile.name,
-                                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
-                                        ),
-                                        if (profile.hasDevice)
-                                          Row(
-                                            children: [
-                                              const Icon(Icons.circle, color: Color(0xFF0E9F6E), size: 10),
-                                              const SizedBox(width: 4),
-                                              const Text('Pulse', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                                            ],
+                                    if (_isEditing)
+                                      TextField(
+                                        controller: _nameController,
+                                        decoration: const InputDecoration(labelText: 'Name', isDense: true),
+                                      )
+                                    else
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            widget.profile.name,
+                                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
                                           ),
-                                      ],
-                                    ),
+                                          if (widget.profile.hasDevice)
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.circle, color: Color(0xFF0E9F6E), size: 10),
+                                                const SizedBox(width: 4),
+                                                const Text('Pulse', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                              ],
+                                            ),
+                                        ],
+                                      ),
                                     const SizedBox(height: 4),
-                                    Text(profile.relationship, style: const TextStyle(color: Colors.grey)),
+                                    if (_isEditing)
+                                      TextField(
+                                        controller: _relationshipController,
+                                        decoration: const InputDecoration(labelText: 'Relationship', isDense: true),
+                                      )
+                                    else
+                                      Text(widget.profile.relationship, style: const TextStyle(color: Colors.grey)),
                                   ],
                                 ),
                               ),
@@ -112,44 +211,66 @@ class EmergencyInfoPage extends StatelessWidget {
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => AddProfileIdentityPage(
-                                          editIndex: profileIndex,
-                                          existingProfile: profile,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  icon: const Icon(Icons.edit_outlined, size: 16, color: Colors.grey),
-                                  label: const Text('Edit Profile', style: TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold)),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    side: BorderSide(color: Colors.grey.shade300),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              if (_isEditing) ...[
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _cancelEdits,
+                                    icon: const Icon(Icons.close, size: 16, color: Colors.grey),
+                                    label: const Text('Cancel', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      side: BorderSide(color: Colors.grey.shade300),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () {
-                                    AppState().removeProfile(profileIndex);
-                                    Navigator.popUntil(context, (r) => r.isFirst);
-                                  },
-                                  icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
-                                  label: const Text('Delete', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    side: const BorderSide(color: Colors.red),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _saveEdits,
+                                    icon: const Icon(Icons.check, size: 16, color: Colors.green),
+                                    label: const Text('Save Edits', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      side: const BorderSide(color: Colors.green),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ] else ...[
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {
+                                      setState(() {
+                                        _isEditing = true;
+                                      });
+                                    },
+                                    icon: const Icon(Icons.edit_outlined, size: 16, color: Colors.grey),
+                                    label: const Text('Edit Profile', style: TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold)),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      side: BorderSide(color: Colors.grey.shade300),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {
+                                      AppState().removeProfile(widget.profileIndex);
+                                      Navigator.popUntil(context, (r) => r.isFirst);
+                                    },
+                                    icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                                    label: const Text('Delete', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      side: const BorderSide(color: Colors.red),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ],
@@ -162,18 +283,20 @@ class EmergencyInfoPage extends StatelessWidget {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        Expanded(child: _buildVitalItem('BLOOD_TYPE', profile.bloodType.isEmpty ? 'N/A' : profile.bloodType)),
+                        Expanded(child: _buildVitalItem('BLOOD_TYPE', _bloodTypeController.text.isEmpty ? 'N/A' : widget.profile.bloodType, controller: _bloodTypeController)),
                         const SizedBox(width: 16),
-                        Expanded(child: _buildVitalItem('BIRTH_YEAR', profile.birthYear.isEmpty ? 'N/A' : profile.birthYear)),
+                        Expanded(child: _buildVitalItem('BIRTH_YEAR', _birthYearController.text.isEmpty ? 'N/A' : widget.profile.birthYear, controller: _birthYearController)),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    _buildFullWidthCard('Medical Notes', profile.condition.isEmpty ? 'No notes provided' : profile.condition),
+                    _buildFullWidthCard('Allergies', widget.profile.allergies.isEmpty ? 'No allergies provided' : widget.profile.allergies, controller: _allergiesController),
+                    const SizedBox(height: 16),
+                    _buildFullWidthCard('Medical Notes', widget.profile.condition.isEmpty ? 'No notes provided' : widget.profile.condition, controller: _conditionController),
 
                     const SizedBox(height: 32),
 
                     // Connected Bracelet Section
-                    if (profile.hasDevice) ...[
+                    if (widget.profile.hasDevice) ...[
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
@@ -253,7 +376,7 @@ class EmergencyInfoPage extends StatelessWidget {
                     ],
 
                     // Emergency Contacts
-                    _buildContactsCard(profile.emergencyContacts),
+                    _buildContactsCard(),
                     const SizedBox(height: 32),
 
                     // Document Access
@@ -275,7 +398,7 @@ class EmergencyInfoPage extends StatelessWidget {
     );
   }
 
-  Widget _buildVitalItem(String label, String value) {
+  Widget _buildVitalItem(String label, String value, {required TextEditingController controller}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -288,13 +411,20 @@ class EmergencyInfoPage extends StatelessWidget {
         children: [
           Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
           const SizedBox(height: 4),
-          Text(value, style: TextStyle(fontSize: 16, color: Colors.grey.shade700)),
+          if (_isEditing)
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(isDense: true, border: UnderlineInputBorder()),
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+            )
+          else
+            Text(value, style: TextStyle(fontSize: 16, color: Colors.grey.shade700)),
         ],
       ),
     );
   }
 
-  Widget _buildFullWidthCard(String label, String content) {
+  Widget _buildFullWidthCard(String label, String content, {required TextEditingController controller}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -307,13 +437,21 @@ class EmergencyInfoPage extends StatelessWidget {
         children: [
           Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
           const SizedBox(height: 8),
-          Text(content, style: TextStyle(color: Colors.grey.shade700, height: 1.4)),
+          if (_isEditing)
+            TextField(
+              controller: controller,
+              maxLines: null,
+              decoration: const InputDecoration(isDense: true, border: OutlineInputBorder()),
+              style: TextStyle(color: Colors.grey.shade700, height: 1.4),
+            )
+          else
+            Text(content, style: TextStyle(color: Colors.grey.shade700, height: 1.4)),
         ],
       ),
     );
   }
 
-  Widget _buildContactsCard(List<String> contacts) {
+  Widget _buildContactsCard() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -326,21 +464,62 @@ class EmergencyInfoPage extends StatelessWidget {
         children: [
           const Text('EMERGENCY_CONTACTS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
           const SizedBox(height: 16),
-          if (contacts.isEmpty)
-            const Text('No emergency contacts added', style: TextStyle(color: Colors.grey, fontSize: 13))
-          else
-            ...contacts.asMap().entries.map((e) {
+          if (_isEditing) ...[
+            ..._contactControllers.asMap().entries.map((e) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Text(e.key == 0 ? 'Primary Guardian' : 'Contact ${e.key + 1}', style: const TextStyle(color: Colors.grey, fontSize: 13)),
-                    Text(e.value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1F2937))),
+                    Expanded(
+                      child: TextField(
+                        controller: e.value,
+                        decoration: InputDecoration(
+                          labelText: e.key == 0 ? 'Primary Guardian' : 'Contact ${e.key + 1}',
+                          isDense: true,
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    if (e.key > 0)
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            _contactControllers[e.key].dispose();
+                            _contactControllers.removeAt(e.key);
+                          });
+                        },
+                      ),
                   ],
                 ),
               );
             }),
+            TextButton.icon(
+              onPressed: () {
+                setState(() {
+                  _contactControllers.add(TextEditingController());
+                });
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Add Contact'),
+            ),
+          ] else ...[
+            if (widget.profile.emergencyContacts.isEmpty)
+              const Text('No emergency contacts added', style: TextStyle(color: Colors.grey, fontSize: 13))
+            else
+              ...widget.profile.emergencyContacts.asMap().entries.map((e) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(e.key == 0 ? 'Primary Guardian' : 'Contact ${e.key + 1}', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                      Text(e.value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1F2937))),
+                    ],
+                  ),
+                );
+              }),
+          ],
         ],
       ),
     );
