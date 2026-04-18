@@ -399,8 +399,9 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildProtectedMemberCard(BuildContext context, int index, ProfileData profile) {
     return Container(
@@ -480,7 +481,7 @@ class HomePage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     side: const BorderSide(color: Color(0xFFF3F4F6)),
                     backgroundColor: const Color(0xFFF9FAFB),
-                    shape: BorderRadius.circular(8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   child: const Text('View Profile', style: TextStyle(color: Color(0xFF1B64F2), fontWeight: FontWeight.w600)),
                 ),
@@ -496,7 +497,7 @@ class HomePage extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         side: BorderSide(color: Colors.purple.withOpacity(0.1)),
                         backgroundColor: Colors.purple.withOpacity(0.05),
-                        shape: BorderRadius.circular(8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                     )
                   : OutlinedButton(
@@ -510,7 +511,7 @@ class HomePage extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         side: BorderSide(color: Colors.purple.withOpacity(0.1)),
                         backgroundColor: Colors.purple.withOpacity(0.05),
-                        shape: BorderRadius.circular(8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       child: const Text('+ Add Device', style: TextStyle(color: Colors.purple, fontWeight: FontWeight.w600)),
                     ),
