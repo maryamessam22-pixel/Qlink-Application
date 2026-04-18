@@ -103,7 +103,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                     Icon(Icons.arrow_back, color: Colors.grey.shade500, size: 20),
                     const SizedBox(width: 4),
                     Text(
-                      'Cancel',
+                      AppState().tr('Cancel', 'إلغاء'),
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey.shade500,
@@ -114,9 +114,9 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
-                'Generate Patient Profile',
-                style: TextStyle(
+              Text(
+                AppState().tr('Generate Patient Profile', 'إنشاء ملف المريض'),
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF1E3A8A),
@@ -158,7 +158,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Step 1 of 3: Identity',
+                AppState().tr('Step 1 of 3: Identity', 'الخطوة 1 من 3: الهوية'),
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey.shade600,
@@ -169,17 +169,17 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               const Divider(color: Color(0xFFE5E7EB), thickness: 1),
               const SizedBox(height: 24),
               
-              _buildLabelAndTextField('Patient\'s Full Name', 'e.g., Mohamed Saber', controller: _nameController),
+              _buildLabelAndTextField(AppState().tr('Patient\'s Full Name', 'الاسم الكامل للمريض'), AppState().tr('e.g., Mohamed Saber', 'مثال: محمد صابر'), controller: _nameController),
               const SizedBox(height: 16),
               
-              _buildLabelAndTextField('Relationship to You', 'e.g., Grandfather', controller: _relationshipController),
+              _buildLabelAndTextField(AppState().tr('Relationship to You', 'صلة القرابة'), AppState().tr('e.g., Grandfather', 'مثال: الجد'), controller: _relationshipController),
               const SizedBox(height: 16),
               
-              _buildLabelAndTextField('Birth Year', 'e.g., 1945', controller: _birthYearController),
+              _buildLabelAndTextField(AppState().tr('Birth Year', 'سنة الميلاد'), AppState().tr('e.g., 1945', 'مثال: 1945'), controller: _birthYearController),
               const SizedBox(height: 24),
-              const Text(
-                'EMERGENCY CONTACTS',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1E3A8A)),
+              Text(
+                AppState().tr('EMERGENCY CONTACTS', 'جهات اتصال الطوارئ'),
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1E3A8A)),
               ),
               const SizedBox(height: 12),
               ..._contactControllers.asMap().entries.map((entry) {
@@ -212,7 +212,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                       const Icon(Icons.add_box, color: Color(0xFF1B64F2)),
                       const SizedBox(width: 8),
                       Text(
-                        'Add More Contact Number',
+                        AppState().tr('Add More Contact Number', 'إضافة رقم اتصال إضافي'),
                         style: TextStyle(
                           color: Colors.grey.shade500,
                           fontWeight: FontWeight.w600,
@@ -250,18 +250,18 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                     ),
                     borderRadius: BorderRadius.circular(27),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Continue to Medical Info',
-                        style: TextStyle(
+                        AppState().tr('Continue to Medical Info', 'متابعة للمعلومات الطبية'),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Icon(Icons.arrow_forward, color: Colors.white, size: 20),
                     ],
                   ),
@@ -300,8 +300,8 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildNavItem(icon: LucideIcons.home, label: 'Home'),
-                    _buildNavItem(icon: LucideIcons.map, label: 'Map'),
+                    _buildNavItem(icon: LucideIcons.home, label: AppState().tr('Home', 'الرئيسية')),
+                    _buildNavItem(icon: LucideIcons.map, label: AppState().tr('Map', 'الخريطة')),
                     GestureDetector(
                       onTap: () {},
                       child: Container(
@@ -314,8 +314,8 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                         child: const Icon(Icons.add, color: Colors.white, size: 28),
                       ),
                     ),
-                    _buildNavItem(icon: LucideIcons.lock, label: 'Vault'),
-                    _buildNavItem(icon: LucideIcons.settings, label: 'Settings'),
+                    _buildNavItem(icon: LucideIcons.lock, label: AppState().tr('Vault', 'الخزنة')),
+                    _buildNavItem(icon: LucideIcons.settings, label: AppState().tr('Settings', 'الإعدادات')),
                   ],
                 ),
               ),
@@ -357,7 +357,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          index == 0 ? 'Primary Guardian' : 'Additional Contact $index',
+          index == 0 ? AppState().tr('Primary Guardian', 'الوصي الأساسي') : AppState().tr('Additional Contact $index', 'جهة اتصال إضافية $index'),
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
@@ -371,7 +371,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               child: TextField(
                 controller: _contactControllers[index],
                 decoration: InputDecoration(
-                  hintText: 'e.g., 01119988299',
+                  hintText: AppState().tr('e.g., 01119988299', 'مثال: 01119988299'),
                   hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   enabledBorder: OutlineInputBorder(

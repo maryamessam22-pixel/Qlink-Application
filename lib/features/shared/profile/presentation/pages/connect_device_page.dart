@@ -149,7 +149,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           ),
           const SizedBox(width: 4),
           Text(
-            'Back',
+            AppState().tr('Back', 'رجوع'),
             style: TextStyle(
               fontSize: 16,
               color: Colors.grey.shade500,
@@ -162,9 +162,9 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   }
 
   Widget _buildTitle() {
-    return const Text(
-      'Connect Device',
-      style: TextStyle(
+    return Text(
+      AppState().tr('Connect Device', 'توصيل جهاز'),
+      style: const TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.w800,
         color: Color(0xFF1E3A8A),
@@ -210,7 +210,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
 
   Widget _buildStepLabel() {
     return Text(
-      'Step 3 of 3: Hardware Link',
+      AppState().tr('Step 3 of 3: Hardware Link', 'الخطوة 3 من 3: ربط الأجهزة'),
       style: TextStyle(
         fontSize: 16,
         color: Colors.grey.shade600,
@@ -231,7 +231,10 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
         ),
       ),
       child: Text(
-        'Find the activation card inside your Qlink bracelet box. Enter the credentials to link this hardware to the patient profile.',
+        AppState().tr(
+          'Find the activation card inside your Qlink bracelet box. Enter the credentials to link this hardware to the patient profile.',
+          'ابحث عن بطاقة التفعيل داخل صندوق سوار كيولينك الخاص بك. أدخل البيانات لربط هذا الجهاز بملف المريض.'
+        ),
         style: TextStyle(
           fontSize: 14,
           color: Colors.grey.shade700,
@@ -245,9 +248,9 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Device Type',
-          style: TextStyle(
+        Text(
+          AppState().tr('Device Type', 'نوع الجهاز'),
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E3A8A),
@@ -269,7 +272,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
             child: DropdownButton<String>(
               value: _selectedDeviceType,
               hint: Text(
-                'Choose Device Type',
+                AppState().tr('Choose Device Type', 'اختر نوع الجهاز'),
                 style: TextStyle(
                   color: Colors.grey.shade500,
                   fontSize: 14,
@@ -308,9 +311,9 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Enter Code (Inside the bracelet box)',
-          style: TextStyle(
+        Text(
+          AppState().tr('Enter Code (Inside the bracelet box)', 'أدخل الرمز (يوجد داخل صندوق السوار)'),
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1E3A8A),
@@ -361,13 +364,13 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
         onTap: () {
           if (_selectedDeviceType == null) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Please select a device type')),
+              SnackBar(content: Text(AppState().tr('Please select a device type', 'الرجاء اختيار نوع الجهاز'))),
             );
             return;
           }
           if (_codeController.text.isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Please enter the bracelet code')),
+              SnackBar(content: Text(AppState().tr('Please enter the bracelet code', 'الرجاء إدخال رمز السوار'))),
             );
             return;
           }
@@ -398,8 +401,8 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
             context,
             MaterialPageRoute(
               builder: (context) => SyncingPage(
-                title: 'Syncing to Hardware',
-                subtitle: 'Encrypting data into bracelet\'s hardware ID',
+                title: AppState().tr('Syncing to Hardware', 'تتم المزامنة مع الجهاز'),
+                subtitle: AppState().tr('Encrypting data into bracelet\'s hardware ID', 'تشفير البيانات في معرف جهاز السوار'),
                 onComplete: () {
                   Navigator.popUntil(context, (route) => route.isFirst);
                 },
@@ -426,12 +429,12 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Connect the Bracelet',
-                style: TextStyle(
+                AppState().tr('Connect the Bracelet', 'توصيل السوار'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -465,8 +468,8 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           context,
           MaterialPageRoute(
             builder: (context) => SyncingPage(
-              title: 'Finalizing Profile',
-              subtitle: 'Saving medical information and creating QR ID',
+              title: AppState().tr('Finalizing Profile', 'تجهيز الملف النهائي'),
+              subtitle: AppState().tr('Saving medical information and creating QR ID', 'حفظ المعلومات الطبية وإنشاء رمز الاستجابة السريعة (QR)'),
               onComplete: () {
                 Navigator.popUntil(context, (route) => route.isFirst);
               },
@@ -485,12 +488,12 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
             width: 1.5,
           ),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Skip this step for now',
-              style: TextStyle(
+              AppState().tr('Skip this step for now', 'تخطي هذه الخطوة الآن'),
+              style: const TextStyle(
                 color: Color(0xFFEF4444),
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -536,11 +539,11 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
                 children: [
                   _buildNavItem(
                     icon: LucideIcons.home,
-                    label: 'Home',
+                    label: AppState().tr('Home', 'الرئيسية'),
                   ),
                   _buildNavItem(
                     icon: LucideIcons.map,
-                    label: 'Map',
+                    label: AppState().tr('Map', 'الخريطة'),
                   ),
                   GestureDetector(
                     onTap: () {},
@@ -560,11 +563,11 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
                   ),
                   _buildNavItem(
                     icon: LucideIcons.lock,
-                    label: 'Vault',
+                    label: AppState().tr('Vault', 'الخزنة'),
                   ),
                   _buildNavItem(
                     icon: LucideIcons.settings,
-                    label: 'Settings',
+                    label: AppState().tr('Settings', 'الإعدادات'),
                   ),
                 ],
               ),
