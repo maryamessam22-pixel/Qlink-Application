@@ -6,6 +6,7 @@ class VisibilitySettings {
   bool showMedicalNotes;
   bool showEmergencyContacts;
   bool showBirthYear;
+  bool showRelationship;
 
   VisibilitySettings({
     this.showBloodType = true,
@@ -13,6 +14,7 @@ class VisibilitySettings {
     this.showMedicalNotes = true,
     this.showEmergencyContacts = true,
     this.showBirthYear = true,
+    this.showRelationship = true,
   });
 }
 

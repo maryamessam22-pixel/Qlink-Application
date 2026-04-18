@@ -23,6 +23,7 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
   late bool _showMedicalNotes;
   late bool _showEmergencyContacts;
   late bool _showBirthYear;
+  late bool _showRelationship;
 
   @override
   void initState() {
@@ -32,6 +33,7 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
     _showMedicalNotes = widget.profile.visibility.showMedicalNotes;
     _showEmergencyContacts = widget.profile.visibility.showEmergencyContacts;
     _showBirthYear = widget.profile.visibility.showBirthYear;
+    _showRelationship = widget.profile.visibility.showRelationship;
   }
 
   void _saveSettings() {
@@ -40,6 +42,7 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
     widget.profile.visibility.showMedicalNotes = _showMedicalNotes;
     widget.profile.visibility.showEmergencyContacts = _showEmergencyContacts;
     widget.profile.visibility.showBirthYear = _showBirthYear;
+    widget.profile.visibility.showRelationship = _showRelationship;
     
     AppState().updateProfile(widget.profileIndex, widget.profile);
     ScaffoldMessenger.of(context).showSnackBar(
@@ -140,6 +143,17 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
                       color: Colors.blue,
                       onChanged: (val) => setState(() {
                         _showBirthYear = val;
+                        _saveSettings();
+                      }),
+                    ),
+                    _buildVisibilityItem(
+                      icon: Icons.family_restroom_outlined,
+                      title: 'Relationship',
+                      subtitle: widget.profile.relationship.isNotEmpty ? widget.profile.relationship : 'Not set',
+                      value: _showRelationship,
+                      color: Colors.purple,
+                      onChanged: (val) => setState(() {
+                        _showRelationship = val;
                         _saveSettings();
                       }),
                     ),

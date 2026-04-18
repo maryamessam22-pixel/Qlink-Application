@@ -5,6 +5,7 @@ import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/emergency_info_page.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/connect_device_page.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/privacy_control_page.dart';
+import 'package:q_link/features/shared/vault/presentation/pages/vault_detail_page.dart';
 
 class ProfileManagementPage extends StatelessWidget {
   final int profileIndex;
@@ -120,10 +121,40 @@ class ProfileManagementPage extends StatelessWidget {
                     ),
                     _buildFeatureCard(
                       icon: LucideIcons.shield,
-                      title: 'Private Vault',
+                      title: 'Vault',
                       subtitle: 'App-only • Secured with lock\nAccess sensitive reports',
                       isLocked: true,
-                      onTap: () {},
+                      onTap: () {
+                        // Safe conversion of primitive list to Maps
+                        List<Map<String, String>> mappedContacts = profile.emergencyContacts.map((contact) {
+                          return {'name': 'Contact', 'phone': contact};
+                        }).toList();
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => VaultDetailPage(
+                              name: profile.name,
+                              imagePath: profile.imagePath,
+                              monitoredSince: 'Since connected',
+                              statusLabel: profile.hasDevice ? 'Active' : 'No Device',
+                              statusColor: profile.hasDevice ? const Color(0xFFE8F5E9) : const Color(0xFFFDE8E8),
+                              bloodType: profile.bloodType,
+                              condition: profile.condition,
+                              allergies: profile.allergies,
+                              emergencyContacts: mappedContacts,
+                              documents: const [
+                                {
+                                  'title': 'Medical Document',
+                                  'date': 'Just now',
+                                  'size': '1.2 MB',
+                                  'format': 'PDF'
+                                }
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     _buildFeatureCard(
                       icon: LucideIcons.qrCode,

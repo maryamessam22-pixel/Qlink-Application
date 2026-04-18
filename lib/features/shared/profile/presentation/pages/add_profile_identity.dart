@@ -412,7 +412,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
     );
   }
 
-  Widget _buildLabelAndTextField(String label, String hintText, {TextEditingController? controller}) {
+  Widget _buildLabelAndTextField(String label, String hintText, {TextEditingController? controller, TextInputAction textInputAction = TextInputAction.next}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -427,6 +427,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
         const SizedBox(height: 8),
         TextField(
           controller: controller,
+          textInputAction: textInputAction,
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
