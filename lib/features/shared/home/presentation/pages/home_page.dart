@@ -613,29 +613,38 @@ class HomePage extends StatelessWidget {
                 width: double.infinity,
                 fit: BoxFit.cover,
               ),
-              Container(
-                height: 150,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.1),
-                ),
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              AnimatedBuilder(
+                animation: AppState(),
+                builder: (context, _) {
+                  final appState = AppState();
+                  return Container(
+                    height: 150,
+                    width: double.infinity,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1B64F2),
-                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.black.withValues(alpha: 0.1),
                     ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.person_pin_circle, color: Colors.white, size: 16),
-                        SizedBox(width: 4),
-                        Text('1 active pin near you', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                      ],
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1B64F2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.person_pin_circle, color: Colors.white, size: 16),
+                            const SizedBox(width: 4),
+                            Text(
+                              appState.tr('1 active pin near you', 'دبوس نشط واحد بالقرب منك'), 
+                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ],
           ),
