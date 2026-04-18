@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
+import 'package:q_link/features/shared/profile/presentation/pages/add_medical_info.dart';
 
 class AddProfileIdentityPage extends StatefulWidget {
   const AddProfileIdentityPage({super.key});
@@ -168,7 +169,14 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               ),
               const SizedBox(height: 32),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddMedicalInfoPage(),
+                    ),
+                  );
+                },
                 child: Container(
                   width: double.infinity,
                   height: 54,
