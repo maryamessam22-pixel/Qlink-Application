@@ -238,104 +238,65 @@ class HomePage extends StatelessWidget {
                 },
               ),
 
-              // Recent Activity Section
-              AnimatedBuilder(
-                animation: AppState(),
-                builder: (context, _) {
-                  final appState = AppState();
-                  final hasDevice = appState.deviceCount > 0;
-                  
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Recent Activity',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E3A8A),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: Text(
-                              hasDevice ? 'View All' : 'See all',
-                              style: TextStyle(
-                                color: hasDevice ? const Color(0xFF1B64F2) : Colors.grey,
-                                fontWeight: FontWeight.bold
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      if (!hasDevice)
-                        _buildEmptyActivity()
-                      else
-                        _buildRealActivity(),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-
               // Create Profile Card (Show only if no profiles exist)
               AnimatedBuilder(
                 animation: AppState(),
                 builder: (context, _) {
                   if (AppState().profiles.isNotEmpty) return const SizedBox.shrink();
-                  return Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0E9F6E), Color(0xFF046C4E)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Create a Profile', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Create a medical ID for a loved one to activate their emergency QR protection immediately.',
-                          style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.9), height: 1.4),
-                        ),
-                        const SizedBox(height: 20),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const AddProfileIdentityPage()),
-                            );
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add_box, color: Color(0xFF0E9F6E), size: 20),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Add First Profile',
-                                  style: TextStyle(color: Color(0xFF0E9F6E), fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
+                  return Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0E9F6E), Color(0xFF046C4E)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                      ],
-                    ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Create a Profile', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Create a medical ID for a loved one to activate their emergency QR protection immediately.',
+                              style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.9), height: 1.4),
+                            ),
+                            const SizedBox(height: 20),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const AddProfileIdentityPage()),
+                                );
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.add_box, color: Color(0xFF0E9F6E), size: 20),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Add First Profile',
+                                      style: TextStyle(color: Color(0xFF0E9F6E), fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                   );
                 },
               ),
@@ -378,7 +339,7 @@ class HomePage extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.add_circle_outline, color: Color(0xFF273469), size: 20),
+                            const Icon(Icons.add, color: Color(0xFF273469), size: 24),
                             const SizedBox(width: 8),
                             Text(
                               AppState().deviceCount > 0 ? 'Add Bracelet' : 'Add First Bracelet',
@@ -390,6 +351,50 @@ class HomePage extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(height: 24),
+
+              // Recent Activity Section
+              AnimatedBuilder(
+                animation: AppState(),
+                builder: (context, _) {
+                  final appState = AppState();
+                  final hasDevice = appState.deviceCount > 0;
+                  
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Recent Activity',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E3A8A),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {},
+                            child: Text(
+                              hasDevice ? 'View All' : 'See all',
+                              style: TextStyle(
+                                color: hasDevice ? const Color(0xFF1B64F2) : Colors.grey,
+                                fontWeight: FontWeight.bold
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      if (!hasDevice)
+                        _buildEmptyActivity()
+                      else
+                        _buildRealActivity(),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 40),
               
