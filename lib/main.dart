@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
 import 'features/shared/splash/presentation/pages/choose_role_page.dart';
@@ -18,6 +19,12 @@ class MyApp extends StatelessWidget {
       builder: (context, _) {
         final isArabic = AppState().isArabic;
         final languageCode = isArabic ? 'ar' : 'en';
+        
+        final baseTheme = AppTheme.getTheme(languageCode);
+        final textTheme = isArabic 
+            ? GoogleFonts.notoKufiArabicTextTheme(baseTheme.textTheme)
+            : GoogleFonts.robotoTextTheme(baseTheme.textTheme);
+
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: AppConstants.appName,
@@ -25,11 +32,7 @@ class MyApp extends StatelessWidget {
             return Directionality(
               textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
               child: Theme(
-                data: AppTheme.getTheme(languageCode).copyWith(
-                  textTheme: AppTheme.getTheme(languageCode).textTheme.apply(
-                    fontFamily: isArabic ? 'Noto Kufi Arabic' : 'Roboto',
-                  ),
-                ),
+                data: baseTheme.copyWith(textTheme: textTheme),
                 child: child!,
               ),
             );
