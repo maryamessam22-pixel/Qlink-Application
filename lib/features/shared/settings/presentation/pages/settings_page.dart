@@ -13,8 +13,18 @@ class SettingsPage extends StatelessWidget {
       builder: (context, _) {
         final appState = AppState();
         return Scaffold(
-          backgroundColor: const Color(0xFFF7F9FC),
-          body: SafeArea(
+          backgroundColor: Colors.transparent,
+          body: Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/home_bg.png'),
+                fit: BoxFit.cover,
+                opacity: 0.05, // Subtle background to keep text readable
+              ),
+            ),
+            child: SafeArea(
             child: Column(
               children: [
                 Expanded(
