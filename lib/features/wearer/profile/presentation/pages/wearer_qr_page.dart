@@ -3,9 +3,10 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/features/wearer/settings/presentation/pages/wearer_settings_page.dart';
+import 'package:q_link/features/wearer/profile/presentation/pages/wearer_public_preview_qr_page.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_header.dart';
-import 'package:q_link/features/shared/profile/presentation/pages/public_preview_qr_page.dart';
 
 class WearerQrPage extends StatefulWidget {
   const WearerQrPage({super.key});
