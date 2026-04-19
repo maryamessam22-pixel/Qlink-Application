@@ -495,26 +495,53 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
         ),
         const SizedBox(height: 40),
         
-        // Final Preview Image/Card
+        // Final Preview Map
         Container(
           height: 180,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            image: const DecorationImage(image: AssetImage('assets/images/map_success_preview.png'), fit: BoxFit.cover),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10)],
           ),
-          child: Center(
-            child: CircleAvatar(
-              radius: 40,
-              backgroundColor: const Color(0xFF1B64F2).withValues(alpha:0.1),
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF1B64F2), width: 2),
-                ),
-              ),
+          clipBehavior: Clip.hardEdge,
+          child: FlutterMap(
+            options: const MapOptions(
+              initialCenter: LatLng(30.0444, 31.2357),
+              initialZoom: 14.5,
+              interactionOptions: InteractionOptions(flags: InteractiveFlag.none), // Disable movement on success screen
             ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.qlink.app',
+              ),
+              CircleLayer(
+                circles: [
+                  CircleMarker(
+                    point: const LatLng(30.0444, 31.2357),
+                    radius: _radius,
+                    useRadiusInMeter: true,
+                    color: const Color(0xFF1B64F2).withValues(alpha: 0.15),
+                    borderColor: const Color(0xFF1B64F2),
+                    borderStrokeWidth: 2,
+                  ),
+                ],
+              ),
+              MarkerLayer(
+                markers: [
+                  if (_selectedMember != null)
+                    Marker(
+                      point: const LatLng(30.0444, 31.2357),
+                      width: 60,
+                      height: 60,
+                      child: _buildProfileMarker(
+                        name: _selectedMember!.name,
+                        imagePath: _selectedMember!.imagePath,
+                        hasStatusDot: true,
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ),
         ),
         
