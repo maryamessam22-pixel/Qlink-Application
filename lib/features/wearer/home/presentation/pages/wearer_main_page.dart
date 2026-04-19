@@ -3,193 +3,557 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/localization/app_localization.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_setup_intro_page.dart';
+import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
+import 'package:q_link/core/widgets/language_toggle.dart';
 
 class WearerMainPage extends StatefulWidget {
-  const WearerMainPage({super.key});
+  final bool isConnected;
+  const WearerMainPage({super.key, this.isConnected = false});
 
   @override
   State<WearerMainPage> createState() => _WearerMainPageState();
 }
 
 class _WearerMainPageState extends State<WearerMainPage> {
+  late bool isConnected;
+  int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    isConnected = widget.isConnected;
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = AppState();
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const Spacer(flex: 2),
-            
-            // Top QR Icon
-            Center(
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF1B64F2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(LucideIcons.qrCode, color: Colors.white, size: 48),
-              ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // Title
-            Text(
-              appState.tr('Create Your Profile', 'أنشئ ملفك الشخصي'),
-              style: const TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF273469),
-              ),
-            ),
-            
-            const SizedBox(height: 12),
-            
-            // Description
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Text(
-                appState.tr(
-                  'Create your profile and Pair your Qlink bracelet to activate safety features and medical monitoring.',
-                  'أنشئ ملفك الشخصي وقم بإقران سوار Qlink الخاص بك لتنشيط ميزات الأمان والمراقبة الطبية.'
-                ),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.grey.shade600,
-                  height: 1.5,
-                ),
-              ),
-            ),
-            
-            const SizedBox(height: 48),
-
-            // Action Card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const WearerSetupIntroPage()),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Row(
+    return AnimatedBuilder(
+      animation: appState,
+      builder: (context, _) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF7F9FC),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEEF2FF),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(LucideIcons.user, color: Color(0xFF1B64F2), size: 24),
+                      VideoLogoWidget(),
+                      const SizedBox(width: 8),
+                      const CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Colors.transparent,
+                        backgroundImage: AssetImage('assets/images/mypic.png'),
                       ),
+                      const Spacer(),
+                      const LanguageToggle(),
                       const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              appState.tr('Create your profile', 'أنشئ ملفك الشخصي'),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF273469),
+                      Stack(
+                        children: [
+                          const Icon(Icons.notifications_none, color: Color(0xFF1E3A8A), size: 28),
+                          Positioned(
+                            right: 2,
+                            top: 2,
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              appState.tr('Add your info', 'أضف معلوماتك'),
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade500,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Greeting
+                  Text(
+                    appState.tr('Hello, Mohamed Saber', 'مرحباً، محمد صابر'),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF273469),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    appState.tr('Your Safety Circle Command Center', 'مركز قيادة دائرة سلامتك'),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // System Status Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF4F46E5).withValues(alpha: 0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          appState.tr('System Status', 'حالة النظام'),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          appState.tr('You are Safe', 'أنت في أمان'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: isConnected ? const Color(0xFF4ADE80) : Colors.grey.shade400,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
+                              const SizedBox(width: 8),
+                              Text(
+                                isConnected 
+                                  ? appState.tr('Monitoring Active', 'المراقبة نشطة')
+                                  : appState.tr('Offline', 'غير متصل'),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Device Status Section
+                  if (!isConnected)
+                    _buildNoDeviceCard(appState)
+                  else
+                    _buildConnectedDevicesGrid(appState),
+
+                  const SizedBox(height: 24),
+
+                  // Emergency Buttons
+                  GestureDetector(
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEF4444),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFEF4444).withValues(alpha:0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            appState.tr('SOS Emergency', 'طوارئ SOS'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
                             ),
-                          ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            appState.tr('Press and hold for 3 seconds', 'اضغط مع الاستمرار لمدة 3 ثوانٍ'),
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF22C55E),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: TextButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(LucideIcons.phone, color: Colors.white),
+                      label: Text(
+                        appState.tr('Call Emergency Contact', 'اتصل بجهة اتصال الطوارئ'),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                      Icon(LucideIcons.chevronRight, color: Colors.grey.shade300, size: 20),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Recent Activity
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        appState.tr('Recent Activity', 'النشاط الأخير'),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF273469),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: Text(
+                          appState.tr('View All', 'عرض الكل'),
+                          style: const TextStyle(
+                            color: Color(0xFF1B64F2),
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+                  _buildActivityItem(
+                    icon: LucideIcons.checkCircle2,
+                    iconColor: const Color(0xFF1B64F2),
+                    title: appState.tr('System Checkup', 'فحص النظام'),
+                    subtitle: 'Today, 09:00 AM',
+                    status: 'Success',
+                    appState: appState,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildActivityItem(
+                    icon: LucideIcons.refreshCcw,
+                    iconColor: const Color(0xFF6B7280),
+                    title: appState.tr('App Sync', 'مزامنة التطبيق'),
+                    subtitle: 'Yesterday, 11:45 PM',
+                    status: 'Auto',
+                    appState: appState,
+                  ),
+                  const SizedBox(height: 100),
+                ],
+              ),
+            ),
+          ),
+          bottomNavigationBar: _buildBottomNav(appState),
+        );
+      },
+    );
+  }
+
+  Widget _buildNoDeviceCard(AppState appState) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEF2FF),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(LucideIcons.watch, color: Color(0xFF1B64F2), size: 24),
+              ),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    appState.tr('No Device Connected', 'لا يوجد جهاز متصل'),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF273469),
+                    ),
+                  ),
+                  Text(
+                    appState.tr('Wearable Link', 'رابط الجهاز'),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey.shade400,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          GestureDetector(
+            onTap: () {
+               Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const WearerSetupIntroPage()),
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              height: 54,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0066CC), Color(0xFF273469)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(27),
+              ),
+              child: Center(
+                child: Text(
+                  appState.tr('+ Add Device', '+ إضافة جهاز'),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
             ),
-            
-            const Spacer(flex: 3),
-            
-            // Device Status
-            Column(
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConnectedDevicesGrid(AppState appState) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildSmallStatusCard(
+            icon: LucideIcons.watch,
+            iconColor: const Color(0xFF1B64F2),
+            label: appState.tr('Bracelet', 'السوار'),
+            value: appState.tr('Connected', 'متصل'),
+            appState: appState,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildSmallStatusCard(
+            icon: LucideIcons.battery,
+            iconColor: const Color(0xFF22C55E),
+            label: appState.tr('Battery', 'البطارية'),
+            value: '85%',
+            appState: appState,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSmallStatusCard({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String value,
+    required AppState appState,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: iconColor, size: 24),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade500,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF273469),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required String status,
+    required AppState appState,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  appState.tr('DEVICE STATUS', 'حالة الجهاز').toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.grey.shade400,
-                    letterSpacing: 1.2,
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF273469),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade400,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      appState.tr('Searching for nearby Qlink devices...', 'البحث عن أجهزة Qlink القريبة...'),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade500,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade400,
+                  ),
                 ),
               ],
             ),
-            
-            const SizedBox(height: 32),
-            
-            // Help Link
-            TextButton(
-              onPressed: () {},
-              child: Text(
-                appState.tr('Need help setting up?', 'هل تحتاج إلى مساعدة في الإعداد؟'),
-                style: const TextStyle(
-                  color: Color(0xFF1B64F2),
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15,
-                ),
-              ),
+          ),
+          Text(
+            status,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade400,
+              fontWeight: FontWeight.w500,
             ),
-            
-            const SizedBox(height: 40),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNav(AppState appState) {
+    return Container(
+      margin: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildNavItem(LucideIcons.home, appState.tr('Home', 'الرئيسية'), 0),
+          _buildNavItem(LucideIcons.heartPulse, appState.tr('Health', 'الصحة'), 1),
+          _buildNavItem(LucideIcons.layoutGrid, appState.tr('QR Code', 'كود QR'), 2),
+          _buildNavItem(LucideIcons.settings, appState.tr('Settings', 'الإعدادات'), 3),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, String label, int index) {
+    bool isActive = _selectedIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedIndex = index),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: isActive ? const Color(0xFF1B64F2) : Colors.grey.shade400,
+            size: 24,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: isActive ? const Color(0xFF1B64F2) : Colors.grey.shade400,
+              fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

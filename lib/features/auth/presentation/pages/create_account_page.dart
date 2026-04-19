@@ -99,7 +99,42 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     color: Colors.white.withValues(alpha: 0.6),
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 30),
+
+                // Profile Image Selection
+                Center(
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.2),
+                          border: Border.all(color: Colors.white, width: 2),
+                          image: const DecorationImage(
+                            image: AssetImage('assets/images/mypic.png'),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF28365B),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 30),
 
                 _buildTextField(hintText: appState.tr('Full Name', 'الاسم الكامل')),
                 const SizedBox(height: 16),
