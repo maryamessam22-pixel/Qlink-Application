@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
+import 'package:q_link/features/shared/profile/presentation/pages/public_preview_qr_page.dart';
 
 class PrivacyControlPage extends StatefulWidget {
   final int profileIndex;
@@ -167,7 +168,16 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
 
                     const SizedBox(height: 32),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PublicPreviewQrPage(
+                              profile: widget.profile,
+                            ),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF273469),
                         padding: const EdgeInsets.symmetric(vertical: 18),

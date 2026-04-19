@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
+import 'package:q_link/features/shared/profile/presentation/pages/locate_bracelet_page.dart';
 
 class EmergencyInfoPage extends StatefulWidget {
   final int profileIndex;
@@ -399,7 +400,16 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => LocateBraceletPage(
+                                        profile: widget.profile,
+                                      ),
+                                    ),
+                                  );
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF273469),
                                   padding: const EdgeInsets.symmetric(vertical: 16),
