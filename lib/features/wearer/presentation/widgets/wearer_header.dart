@@ -16,7 +16,7 @@ class WearerHeader extends StatelessWidget {
         const CircleAvatar(
           radius: 16,
           backgroundColor: Colors.transparent,
-          backgroundImage: AssetImage('assets/images/mypic.png'),
+          backgroundImage: AssetImage('assets/images/Mohamed Saber.png'),
         ),
         const Spacer(),
         const LanguageToggle(),

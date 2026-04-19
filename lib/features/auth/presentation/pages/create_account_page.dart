@@ -3,6 +3,7 @@ import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:q_link/features/guardian/home/main_page.dart';
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
+import 'package:q_link/features/wearer/profile/presentation/pages/wearer_initial_setup_page.dart';
 
 class CreateAccountPage extends StatefulWidget {
   final String role;
@@ -171,7 +172,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                       MaterialPageRoute(
                         builder: (_) => widget.role == 'Guardian' 
                             ? const MainPage() 
-                            : const WearerMainPage(),
+                            : const WearerInitialSetupPage(),
                       ),
                       (Route<dynamic> route) => false,
                     );
