@@ -10,21 +10,13 @@ class QrScanHistoryPage extends StatefulWidget {
 }
 
 class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
-  final List<Map<String, String>> _history = [
-    {
-      'title': "Emergency Scan (Karam's Bracelete)",
-      'scanner': '+20 123 456 7890',
-      'location': 'Cairo, Egypt',
-      'time': '2 hours ago',
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
+        final history = appState.scanHistory;
 
         return Scaffold(
           backgroundColor: const Color(0xFFF7F9FC),
@@ -64,13 +56,13 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
                   const Divider(color: Color(0xFFF3F4F6), thickness: 1),
 
                   Expanded(
-                    child: _history.isEmpty 
+                    child: history.isEmpty 
                     ? Center(child: Text(appState.tr('No scan history found', 'لم يتم العثور على سجل مسح')))
                     : ListView.builder(
                         padding: const EdgeInsets.all(24),
-                        itemCount: _history.length,
+                        itemCount: history.length,
                         itemBuilder: (context, index) {
-                          final item = _history[index];
+                          final item = history[index];
                           return Container(
                             margin: const EdgeInsets.only(bottom: 16),
                             padding: const EdgeInsets.all(20),
@@ -101,7 +93,7 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        item['title']!,
+                                        item.title,
                                         style: const TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
@@ -115,7 +107,7 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
                                           children: [
                                             TextSpan(text: appState.tr('Scanned by ', 'تم المسح بواسطة ')),
                                             TextSpan(
-                                              text: item['scanner'],
+                                              text: item.scanner,
                                               style: const TextStyle(color: Color(0xFF0E9F6E), fontWeight: FontWeight.bold),
                                             ),
                                           ],
@@ -123,7 +115,7 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '${item['location']} • ${item['time']}',
+                                        '${item.location} • ${item.time}',
                                         style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
                                       ),
                                     ],
@@ -143,7 +135,7 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          setState(() => _history.clear());
+                          appState.clearScanHistory();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(appState.tr('History cleared', 'تم مسح السجل'))),
                           );

@@ -81,10 +81,45 @@ class UserProfile {
   });
 }
 
+class ScanHistoryItem {
+  final String title;
+  final String scanner;
+  final String location;
+  final String time;
+
+  ScanHistoryItem({
+    required this.title,
+    required this.scanner,
+    required this.location,
+    required this.time,
+  });
+}
+
 class AppState extends ChangeNotifier {
   static final AppState _instance = AppState._internal();
   factory AppState() => _instance;
   AppState._internal();
+
+  final List<ScanHistoryItem> _scanHistory = [
+    ScanHistoryItem(
+      title: "Emergency Scan (Karam's Bracelete)",
+      scanner: '+20 123 456 7890',
+      location: 'Cairo, Egypt',
+      time: '2 hours ago',
+    ),
+  ];
+
+  List<ScanHistoryItem> get scanHistory => _scanHistory;
+
+  void addScanHistory(ScanHistoryItem item) {
+    _scanHistory.insert(0, item);
+    notifyListeners();
+  }
+
+  void clearScanHistory() {
+    _scanHistory.clear();
+    notifyListeners();
+  }
 
   // Current logged in user profile
   UserProfile _currentUser = UserProfile(

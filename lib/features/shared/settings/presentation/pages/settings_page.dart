@@ -8,6 +8,8 @@ import 'package:q_link/features/shared/settings/presentation/pages/change_passwo
 import 'package:q_link/features/shared/settings/presentation/pages/email_preferences_page.dart';
 import 'package:q_link/features/shared/settings/presentation/pages/switch_role_page.dart';
 import 'package:q_link/features/shared/settings/presentation/pages/qr_scan_history_page.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/privacy_policy_page.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/help_center_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -182,12 +184,6 @@ class _SettingsPageState extends State<SettingsPage> {
                                 );
                               },
                             ),
-                            _buildDivider(),
-                            _buildListTile(
-                              icon: LucideIcons.download,
-                              title: appState.tr('Data Export', 'تصدير البيانات'),
-                              onTap: () {},
-                            ),
                           ]),
 
                           // Privacy Policy Section
@@ -196,7 +192,12 @@ class _SettingsPageState extends State<SettingsPage> {
                             _buildListTile(
                               icon: LucideIcons.shield,
                               title: appState.tr('Privacy Policy', 'سياسة الخصوصية'),
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const PrivacyPolicyPage()),
+                                );
+                              },
                             ),
                           ]),
 
@@ -206,7 +207,12 @@ class _SettingsPageState extends State<SettingsPage> {
                             _buildListTile(
                               icon: LucideIcons.helpCircle,
                               title: appState.tr('Help Center', 'مركز المساعدة'),
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const HelpCenterPage()),
+                                );
+                              },
                             ),
                             _buildDivider(),
                             _buildListTile(

@@ -299,6 +299,8 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
   }
 
   void _showAccessSimulationDialog(AppState appState) {
+    final TextEditingController phoneController = TextEditingController(text: '+20 ');
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -343,13 +345,14 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
             Text(
               appState.tr(
                 'Please enter your phone number for secure access to patient data.',
-                'يرجى إدخال رقم هاتفك للوصول الآمن لبيانات المريض.'
+                'يرجى إدخل رقم هاتفك للوصول الآمن لبيانات المريض.'
               ),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600, height: 1.5),
             ),
             const SizedBox(height: 32),
             TextField(
+              controller: phoneController,
               keyboardType: TextInputType.phone,
               textAlign: appState.isArabic ? TextAlign.right : TextAlign.left,
               decoration: InputDecoration(
@@ -367,6 +370,16 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: () {
+                final phoneNumber = phoneController.text.trim();
+                
+                // Add to history state
+                appState.addScanHistory(ScanHistoryItem(
+                  title: "Emergency Scan (${widget.profile.name}'s Bracelete)",
+                  scanner: phoneNumber.isNotEmpty ? phoneNumber : '+20 123 456 7890',
+                  location: 'Cairo, Egypt',
+                  time: 'Just now',
+                ));
+
                 Navigator.pop(context); // Close bottom sheet
                 Navigator.push(
                   context,
