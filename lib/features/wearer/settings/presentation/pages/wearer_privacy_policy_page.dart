@@ -3,9 +3,8 @@ import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/localization/app_localization.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.dart';
 
-class PrivacyPolicyPage extends StatelessWidget {
-  final bool isWearer;
-  const PrivacyPolicyPage({super.key, this.isWearer = true});
+class WearerPrivacyPolicyPage extends StatelessWidget {
+  const WearerPrivacyPolicyPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +14,22 @@ class PrivacyPolicyPage extends StatelessWidget {
       builder: (context, _) {
         return Scaffold(
           backgroundColor: Colors.white,
-          appBar: _buildAppBar(context, appState),
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF273469)),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: Text(
+              appState.tr('Privacy Policy', 'سياسة الخصوصية'),
+              style: const TextStyle(
+                color: Color(0xFF273469),
+                fontWeight: FontWeight.w900,
+                fontSize: 22,
+              ),
+            ),
+          ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -40,30 +54,9 @@ class PrivacyPolicyPage extends StatelessWidget {
               ],
             ),
           ),
-          bottomNavigationBar: isWearer 
-            ? WearerBottomNav(currentIndex: 3, onTap: (_) => Navigator.pop(context))
-            : null,
+          bottomNavigationBar: WearerBottomNav(currentIndex: 3, onTap: (_) => Navigator.pop(context)),
         );
       },
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar(BuildContext context, AppState appState) {
-    return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Color(0xFF273469)),
-        onPressed: () => Navigator.pop(context),
-      ),
-      title: Text(
-        appState.tr('Privacy Policy', 'سياسة الخصوصية'),
-        style: const TextStyle(
-          color: Color(0xFF273469),
-          fontWeight: FontWeight.w900,
-          fontSize: 22,
-        ),
-      ),
     );
   }
 

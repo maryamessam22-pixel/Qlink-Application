@@ -7,10 +7,10 @@ import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.da
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
 import 'package:q_link/features/wearer/health/presentation/pages/wearer_health_page.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_qr_page.dart';
-import 'package:q_link/features/shared/settings/presentation/pages/edit_profile_page.dart';
-import 'package:q_link/features/shared/settings/presentation/pages/privacy_policy_page.dart';
-import 'package:q_link/features/shared/settings/presentation/pages/help_center_page.dart';
-import 'package:q_link/features/shared/settings/presentation/pages/qr_scan_history_page.dart';
+import 'package:q_link/features/wearer/settings/presentation/pages/wearer_edit_profile_page.dart';
+import 'package:q_link/features/wearer/settings/presentation/pages/wearer_privacy_policy_page.dart';
+import 'package:q_link/features/wearer/settings/presentation/pages/wearer_help_center_page.dart';
+import 'package:q_link/features/wearer/settings/presentation/pages/wearer_qr_scan_history_page.dart';
 
 class WearerSettingsPage extends StatefulWidget {
   const WearerSettingsPage({super.key});
@@ -67,7 +67,7 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const EditProfilePage(isWearer: true)),
+                        MaterialPageRoute(builder: (_) => const WearerEditProfilePage()),
                       );
                     },
                   ),
@@ -98,7 +98,7 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const QrScanHistoryPage(isWearer: true)),
+                        MaterialPageRoute(builder: (_) => const WearerQrScanHistoryPage()),
                       );
                     },
                   ),
@@ -113,7 +113,7 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const PrivacyPolicyPage(isWearer: true)),
+                        MaterialPageRoute(builder: (_) => const WearerPrivacyPolicyPage()),
                       );
                     },
                   ),
@@ -136,7 +136,7 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const HelpCenterPage(isWearer: true)),
+                              MaterialPageRoute(builder: (_) => const WearerHelpCenterPage()),
                             );
                           },
                         ),

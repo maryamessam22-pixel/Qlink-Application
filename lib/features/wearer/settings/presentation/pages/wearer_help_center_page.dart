@@ -3,9 +3,8 @@ import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/localization/app_localization.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.dart';
 
-class HelpCenterPage extends StatelessWidget {
-  final bool isWearer;
-  const HelpCenterPage({super.key, this.isWearer = true});
+class WearerHelpCenterPage extends StatelessWidget {
+  const WearerHelpCenterPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +14,22 @@ class HelpCenterPage extends StatelessWidget {
       builder: (context, _) {
         return Scaffold(
           backgroundColor: const Color(0xFFF7F9FC),
-          appBar: _buildAppBar(context, appState),
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF273469)),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: Text(
+              appState.tr('Help Center', 'مركز المساعدة'),
+              style: const TextStyle(
+                color: Color(0xFF273469),
+                fontWeight: FontWeight.w900,
+                fontSize: 22,
+              ),
+            ),
+          ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -71,30 +85,9 @@ class HelpCenterPage extends StatelessWidget {
               ],
             ),
           ),
-          bottomNavigationBar: isWearer 
-            ? WearerBottomNav(currentIndex: 3, onTap: (_) => Navigator.pop(context))
-            : null,
+          bottomNavigationBar: WearerBottomNav(currentIndex: 3, onTap: (_) => Navigator.pop(context)),
         );
       },
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar(BuildContext context, AppState appState) {
-    return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Color(0xFF273469)),
-        onPressed: () => Navigator.pop(context),
-      ),
-      title: Text(
-        appState.tr('Help Center', 'مركز المساعدة'),
-        style: const TextStyle(
-          color: Color(0xFF273469),
-          fontWeight: FontWeight.w900,
-          fontSize: 22,
-        ),
-      ),
     );
   }
 }

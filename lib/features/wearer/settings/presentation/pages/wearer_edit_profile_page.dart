@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/localization/app_localization.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.dart';
 
-class EditProfilePage extends StatefulWidget {
-  final bool isWearer;
-  const EditProfilePage({super.key, this.isWearer = true});
+class WearerEditProfilePage extends StatefulWidget {
+  const WearerEditProfilePage({super.key});
 
   @override
-  State<EditProfilePage> createState() => _EditProfilePageState();
+  State<WearerEditProfilePage> createState() => _WearerEditProfilePageState();
 }
 
-class _EditProfilePageState extends State<EditProfilePage> {
+class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
   final _nameController = TextEditingController(text: 'Mariam Essam');
   final _emailController = TextEditingController(text: 'mohamedsaber@gmail.com');
   final _phoneController = TextEditingController(text: '+20 123 456 7890');
@@ -58,7 +56,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.grey.shade100, width: 4),
                           image: const DecorationImage(
-                            image: AssetImage('assets/images/mypic.png'),
+                            image: AssetImage('assets/images/Mohamed Saber.png'),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -124,7 +122,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 
                 const SizedBox(height: 24),
                 
-                // Enhanced Field: Phone Number
                 _buildFieldLabel(appState.tr('Phone Number', 'رقم الهاتف')),
                 _buildTextField(controller: _phoneController, hint: '+20 123 456 7890'),
                 
@@ -162,14 +159,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ],
             ),
           ),
-          bottomNavigationBar: widget.isWearer 
-            ? WearerBottomNav(
-                currentIndex: 3,
-                onTap: (index) {
-                  Navigator.pop(context); // Go back to settings
-                },
-              )
-            : null, // Handle Guardian nav if needed later
+          bottomNavigationBar: WearerBottomNav(
+            currentIndex: 3,
+            onTap: (index) {
+              Navigator.pop(context); // Go back to settings
+            },
+          ),
         );
       },
     );
