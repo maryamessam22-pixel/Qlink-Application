@@ -113,8 +113,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                           shape: BoxShape.circle,
                           color: Colors.white.withValues(alpha: 0.2),
                           border: Border.all(color: Colors.white, width: 2),
-                          image: const DecorationImage(
-                            image: AssetImage('assets/images/mypic.png'),
+                          image: DecorationImage(
+                            image: AssetImage(widget.role == 'Wearer' 
+                                ? 'assets/images/Mohamed Saber.png' 
+                                : 'assets/images/mypic.png'),
                             fit: BoxFit.cover,
                           ),
                         ),
