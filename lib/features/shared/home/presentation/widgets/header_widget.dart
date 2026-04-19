@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/settings_page.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class HeaderWidget extends StatelessWidget {
   const HeaderWidget({super.key});
@@ -26,22 +28,15 @@ class HeaderWidget extends StatelessWidget {
               const Spacer(),
               LanguageToggle(),
               const SizedBox(width: 16),
-              Stack(
-                children: [
-                  const Icon(Icons.notifications_none, color: Color(0xFF1E3A8A), size: 28),
-                  Positioned(
-                    right: 2,
-                    top: 2,
-                    child: Container(
-                      width: 10,
-                      height: 10,
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 16),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SettingsPage()),
+                  );
+                },
+                child: const Icon(LucideIcons.settings, color: Color(0xFF1E3A8A), size: 26),
               ),
             ],
           ),
