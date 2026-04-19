@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
+import 'package:q_link/core/widgets/language_toggle.dart';
 
 class LocateBraceletPage extends StatefulWidget {
   final ProfileData profile;
@@ -62,7 +63,7 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
             children: [
               // Top Section with Radar
               Expanded(
-                flex: 4,
+                flex: 5,
                 child: Container(
                   width: double.infinity,
                   decoration: const BoxDecoration(
@@ -89,10 +90,12 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                                 appState.tr('Locate Bracelet', 'تحديد موقع السوار'),
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 20,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
+                              const Spacer(),
+                              const LanguageToggle(color: Colors.white),
                             ],
                           ),
                         ),
@@ -138,7 +141,7 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                               child: Icon(_isRinging ? Icons.notifications_active : Icons.location_on, color: Colors.white, size: 32),
                             ),
                             Positioned(
-                              bottom: -40,
+                              bottom: 10, // Changed from -40 to 10 to prevent overflow
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                                 decoration: BoxDecoration(
@@ -171,7 +174,7 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
 
               // Bottom Sheet Card
               Expanded(
-                flex: 5,
+                flex: 6,
                 child: Container(
                   width: double.infinity,
                   decoration: const BoxDecoration(
