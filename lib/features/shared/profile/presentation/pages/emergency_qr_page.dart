@@ -56,7 +56,7 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
                       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                       height: 60,
                       decoration: BoxDecoration(
-                        color: _activeTab == 1 ? Colors.white.withValues(alpha:0.1) : const Color(0xFF0E9F6E),
+                        color: _activeTab == 1 ? Colors.white.withValues(alpha:0.1) : const Color(0xFF1B64F2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -104,7 +104,7 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
         onTap: () => setState(() => _activeTab = index),
         child: Container(
           decoration: BoxDecoration(
-            color: isSelected ? (_activeTab == 1 ? const Color(0xFF0E9F6E) : Colors.transparent) : Colors.transparent,
+            color: isSelected ? (_activeTab == 1 ? const Color(0xFF1B64F2) : Colors.transparent) : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Column(
@@ -163,8 +163,8 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
               data: 'qlink-profile-${widget.profile.name}',
               version: QrVersions.auto,
               size: 200.0,
-              eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF0E9F6E)),
-              dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF0E9F6E)),
+              eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF1B64F2)),
+              dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF1B64F2)),
             ),
           ),
         ),
@@ -180,7 +180,7 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
               icon: const Icon(LucideIcons.share2, size: 18),
               label: Text(appState.tr('Share QR Code', 'مشاركة رمز QR'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0E9F6E),
+                backgroundColor: const Color(0xFF1B64F2),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -218,7 +218,7 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
             width: 260,
             height: 260,
             decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFF3F83F8), width: 3),
+              border: Border.all(color: const Color(0xFF1B64F2), width: 3),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Stack(
@@ -233,12 +233,12 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
                     decoration: BoxDecoration(
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF3F83F8).withValues(alpha:0.8),
+                          color: const Color(0xFF1B64F2).withValues(alpha:0.8),
                           blurRadius: 10,
                           spreadRadius: 2,
                         ),
                       ],
-                      color: const Color(0xFF3F83F8),
+                      color: const Color(0xFF1B64F2),
                     ),
                   ),
                 ),
