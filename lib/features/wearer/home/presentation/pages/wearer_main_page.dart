@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/localization/app_localization.dart';
-import 'package:q_link/features/wearer/profile/presentation/pages/wearer_identity_page.dart';
+import 'package:q_link/features/wearer/profile/presentation/pages/wearer_setup_intro_page.dart';
 
 class WearerMainPage extends StatefulWidget {
   const WearerMainPage({super.key});
@@ -75,7 +75,7 @@ class _WearerMainPageState extends State<WearerMainPage> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const WearerIdentityPage()),
+                    MaterialPageRoute(builder: (_) => const WearerSetupIntroPage()),
                   );
                 },
                 child: Container(
