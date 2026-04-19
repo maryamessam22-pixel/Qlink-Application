@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
 import 'package:q_link/features/shared/map/presentation/pages/geofence_setup_page.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/widgets/language_toggle.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -231,15 +232,8 @@ class _MapPageState extends State<MapPage> {
           backgroundImage: AssetImage('assets/images/mypic.png'),
         ),
         const Spacer(),
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(
-            Icons.language,
-            color: Color(0xFF1E3A8A),
-            size: 28,
-          ),
-        ),
-        const SizedBox(width: 8),
+        const LanguageToggle(),
+        const SizedBox(width: 16),
         Stack(
           children: [
             const Icon(
@@ -300,10 +294,9 @@ class _MapPageState extends State<MapPage> {
               ),
               onSubmitted: (value) {
                 if (value.isNotEmpty) {
-                  // Simulate finding a place by moving the map slightly
-                  _mapController.move(const LatLng(30.0600, 31.2500), 14.0);
+                  _performSearch(value);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(appState.tr('Finding location...', 'جارٍ البحث عن الموقع...'))),
+                    SnackBar(content: Text(appState.tr('Centering on ${value}...', 'يتم التركيز على ${value}...'))),
                   );
                 }
               },
@@ -470,5 +463,17 @@ class _MapPageState extends State<MapPage> {
         ),
       ),
     );
+  }
+
+  void _performSearch(String query) {
+    if (query.isEmpty) return;
+    String q = query.toLowerCase();
+    
+    // Simulate finding family members
+    if (q.contains('moh') || q.contains('صابر')) {
+      _mapController.move(const LatLng(30.0444, 31.2357), 16.0);
+    } else if (q.contains('kar') || q.contains('كارما')) {
+      _mapController.move(const LatLng(30.0480, 31.2390), 16.0);
+    }
   }
 }

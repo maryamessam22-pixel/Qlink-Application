@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/home/presentation/widgets/bottom_nav_widget.dart';
 
 class GeofenceSetupPage extends StatefulWidget {
@@ -79,6 +80,9 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
               color: Color(0xFF273469),
             ),
           ),
+          const Spacer(),
+          const LanguageToggle(),
+          const SizedBox(width: 8),
         ],
       ),
     );
