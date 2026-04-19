@@ -139,23 +139,7 @@ class WearerSetupIntroPage extends StatelessWidget {
                         ),
                       ),
                       
-                      const SizedBox(height: 20),
-                      
-                      // Watch Tutorial
-                      TextButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(LucideIcons.playCircle, color: Color(0xFF1B64F2), size: 18),
-                        label: Text(
-                          appState.tr('Watch Tutorial', 'مشاهدة الفيديو التعليمي'),
-                          style: const TextStyle(
-                            color: Color(0xFF1B64F2),
-                            fontWeight: FontWeight.w800,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 60),
                     ],
                   ),
                 ),

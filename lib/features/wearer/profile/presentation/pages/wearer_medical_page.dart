@@ -231,10 +231,17 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                   
                   const SizedBox(height: 48),
                   
+import 'package:q_link/features/wearer/profile/presentation/pages/wearer_hardware_link_page.dart';
+
+// ... inside _WearerMedicalPageState builder ...
+
                   // Continue Button
                   GestureDetector(
                     onTap: () {
-                      // Navigate to Step 3
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const WearerHardwareLinkPage()),
+                      );
                     },
                     child: Container(
                       width: double.infinity,
