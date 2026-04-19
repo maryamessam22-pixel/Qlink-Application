@@ -7,6 +7,7 @@ import 'package:q_link/features/shared/settings/presentation/pages/edit_profile_
 import 'package:q_link/features/shared/settings/presentation/pages/change_password_page.dart';
 import 'package:q_link/features/shared/settings/presentation/pages/email_preferences_page.dart';
 import 'package:q_link/features/shared/settings/presentation/pages/switch_role_page.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/qr_scan_history_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -174,7 +175,12 @@ class _SettingsPageState extends State<SettingsPage> {
                             _buildListTile(
                               icon: LucideIcons.qrCode,
                               title: appState.tr('QR Scan History', 'سجل مسح QR'),
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const QrScanHistoryPage()),
+                                );
+                              },
                             ),
                             _buildDivider(),
                             _buildListTile(
