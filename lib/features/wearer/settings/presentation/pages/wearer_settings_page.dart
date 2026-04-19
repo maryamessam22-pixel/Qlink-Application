@@ -7,6 +7,7 @@ import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.da
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
 import 'package:q_link/features/wearer/health/presentation/pages/wearer_health_page.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_qr_page.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/edit_profile_page.dart';
 
 class WearerSettingsPage extends StatefulWidget {
   const WearerSettingsPage({super.key});
@@ -60,7 +61,12 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                   _buildSettingsItem(
                     icon: LucideIcons.user,
                     title: appState.tr('Edit Profile', 'تعديل الملف الشخصي'),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const EditProfilePage(isWearer: true)),
+                      );
+                    },
                   ),
                   
                   const SizedBox(height: 24),
