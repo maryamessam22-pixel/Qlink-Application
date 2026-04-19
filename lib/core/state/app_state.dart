@@ -70,12 +70,14 @@ class UserProfile {
   String email;
   String password;
   String imagePath;
+  String role; // 'Guardian' or 'Wearer'
 
   UserProfile({
     required this.name,
     required this.email,
     required this.password,
     required this.imagePath,
+    this.role = 'Guardian',
   });
 }
 
@@ -94,11 +96,12 @@ class AppState extends ChangeNotifier {
 
   UserProfile get currentUser => _currentUser;
 
-  void updateCurrentUser({String? name, String? email, String? password, String? imagePath}) {
+  void updateCurrentUser({String? name, String? email, String? password, String? imagePath, String? role}) {
     if (name != null) _currentUser.name = name;
     if (email != null) _currentUser.email = email;
     if (password != null) _currentUser.password = password;
     if (imagePath != null) _currentUser.imagePath = imagePath;
+    if (role != null) _currentUser.role = role;
     notifyListeners();
   }
 

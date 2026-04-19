@@ -132,7 +132,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            appState.tr('Current Role: Guardian', 'الدور الحالي: وصي'),
+                            '${appState.tr('Current Role', 'الدور الحالي')}: ${appState.tr(user.role, user.role == 'Guardian' ? 'وصي' : 'مرتدي')}',
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF273469)),
                           ),
                           const SizedBox(height: 8),
@@ -143,7 +143,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              appState.tr('Guardian Account', 'حساب الوصي'),
+                              appState.tr('${user.role} Account', 'حساب ${user.role == 'Guardian' ? 'الوصي' : 'المرتدي'}'),
                               style: const TextStyle(color: Color(0xFF1B64F2), fontWeight: FontWeight.bold, fontSize: 12),
                             ),
                           ),

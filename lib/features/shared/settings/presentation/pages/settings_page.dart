@@ -6,6 +6,7 @@ import 'package:q_link/features/shared/home/presentation/widgets/header_widget.d
 import 'package:q_link/features/shared/settings/presentation/pages/edit_profile_page.dart';
 import 'package:q_link/features/shared/settings/presentation/pages/change_password_page.dart';
 import 'package:q_link/features/shared/settings/presentation/pages/email_preferences_page.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/switch_role_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -103,13 +104,12 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ]),
 
-                          // Role Section
                           _buildSectionLabel(appState.tr('Role', 'الدور')),
                           _buildCardWrapper([
                             _buildListTile(
                               icon: LucideIcons.shieldCheck,
-                              title: appState.tr('Current Role: Guardian', 'الدور الحالي: وصي'),
-                              subtitle: appState.tr('Guardian Account', 'حساب الوصي'),
+                              title: '${appState.tr('Current Role', 'الدور الحالي')}: ${appState.tr(appState.currentUser.role, appState.currentUser.role == 'Guardian' ? 'وصي' : 'مرتدي')}',
+                              subtitle: appState.tr('${appState.currentUser.role} Account', 'حساب ${appState.currentUser.role == 'Guardian' ? 'الوصي' : 'المرتدي'}'),
                               isBadge: true,
                               onTap: () {},
                             ),
@@ -117,7 +117,12 @@ class _SettingsPageState extends State<SettingsPage> {
                             _buildListTile(
                               icon: LucideIcons.layers,
                               title: appState.tr('Switch Role', 'تبديل الدور'),
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const SwitchRolePage()),
+                                );
+                              },
                             ),
                           ]),
 
