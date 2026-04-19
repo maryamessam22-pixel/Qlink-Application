@@ -12,12 +12,19 @@ class LogoutLoadingPage extends StatefulWidget {
   State<LogoutLoadingPage> createState() => _LogoutLoadingPageState();
 }
 
-class _LogoutLoadingPageState extends State<LogoutLoadingPage> {
+class _LogoutLoadingPageState extends State<LogoutLoadingPage> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
   @override
   void initState() {
     super.initState();
-    // Simulate logout process
-    Timer(const Duration(seconds: 2), () {
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    )..repeat(reverse: true);
+
+    // Simulate logout process - extended to 3s to allow user to see the animation
+    Timer(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const ChooseRolePage()),
@@ -28,49 +35,65 @@ class _LogoutLoadingPageState extends State<LogoutLoadingPage> {
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final appState = AppState();
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Premium Blurred Background logic
-          Positioned(
-            top: -50,
-            left: -100,
-            child: Container(
-              width: 450,
-              height: 450,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF1E64F2).withValues(alpha: 0.3),
-              ),
-            ),
+          // Animated Premium Blurred Background
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              return Stack(
+                children: [
+                  Positioned(
+                    top: -50 + (20 * _controller.value),
+                    left: -100 + (10 * _controller.value),
+                    child: Container(
+                      width: 450,
+                      height: 450,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF1E64F2).withValues(alpha: 0.3),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: -100 + (30 * _controller.value),
+                    right: -100 - (20 * _controller.value),
+                    child: Container(
+                      width: 500,
+                      height: 500,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFD7546D).withValues(alpha: 0.25),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 200 - (40 * _controller.value),
+                    right: -50 + (30 * _controller.value),
+                    child: Container(
+                      width: 300,
+                      height: 300,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF1B64F2).withValues(alpha: 0.2),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
-          Positioned(
-            bottom: -100,
-            right: -100,
-            child: Container(
-              width: 500,
-              height: 500,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFFD7546D).withValues(alpha: 0.25),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 200,
-            right: -50,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF1B64F2).withValues(alpha: 0.2),
-              ),
-            ),
-          ),
+          
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 90, sigmaY: 90),
