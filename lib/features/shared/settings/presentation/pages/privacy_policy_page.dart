@@ -19,7 +19,7 @@ class PrivacyPolicyPage extends StatelessWidget {
               image: DecorationImage(
                 image: AssetImage('assets/images/bg.png'),
                 fit: BoxFit.cover,
-                opacity: 0.05,
+                opacity: 0.1,
               ),
             ),
             child: SafeArea(
