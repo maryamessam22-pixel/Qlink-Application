@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
@@ -12,6 +13,7 @@ import 'package:q_link/features/guardian/profile/public_preview_qr_page.dart';
 import 'package:q_link/features/guardian/profile/locate_bracelet_page.dart';
 import 'package:q_link/features/guardian/profile/connected_device_page.dart';
 import 'package:q_link/core/models/patient_profile.dart';
+import 'package:q_link/features/guardian/profile/add_profile_identity.dart';
 
 class ProfileManagementPage extends StatelessWidget {
   final int profileIndex;
@@ -77,33 +79,40 @@ class ProfileManagementPage extends StatelessWidget {
                           child: Column(
                             children: [
                               Container(
-                                width: 100,
-                                height: 100,
+                                width: 110,
+                                height: 110,
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF273469),
-                                  borderRadius: BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(22),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF1E3A8A).withValues(alpha: 0.2),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
                                 ),
-                                alignment: Alignment.center,
-                                child: profile.imagePath.contains('mypic')
-                                    ? Text(
-                                        profile.name.isNotEmpty
-                                            ? profile.name[0].toUpperCase()
-                                            : '?',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 40,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                    : ClipRRect(
-                                        borderRadius: BorderRadius.circular(20),
-                                        child: Image.asset(
-                                          profile.imagePath,
-                                          fit: BoxFit.cover,
-                                          width: 100,
-                                          height: 100,
-                                        ),
-                                      ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(22),
+                                  child: profile.imagePath.startsWith('http')
+                                      ? Image.network(profile.imagePath, fit: BoxFit.cover)
+                                      : (profile.imagePath.startsWith('assets')
+                                          ? Image.asset(profile.imagePath, fit: BoxFit.cover)
+                                          : (profile.imagePath.isNotEmpty && !profile.imagePath.contains('mypic')
+                                              ? Image.file(File(profile.imagePath), fit: BoxFit.cover)
+                                              : Container(
+                                                  alignment: Alignment.center,
+                                                  color: const Color(0xFF273469),
+                                                  child: Text(
+                                                    profile.name.isNotEmpty ? profile.name[0].toUpperCase() : '?',
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 40,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ))),
+                                ),
                               ),
                               const SizedBox(height: 16),
                               Text(
@@ -119,6 +128,27 @@ class ProfileManagementPage extends StatelessWidget {
                                 style: const TextStyle(
                                   fontSize: 14,
                                   color: Color(0xFF1B64F2),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AddProfileIdentityPage(
+                                        editIndex: profileIndex,
+                                        existingProfile: profile,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.edit_outlined, size: 18),
+                                label: Text(appState.tr('Edit Profile', 'تعديل الملف')),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF1E3A8A),
+                                  side: const BorderSide(color: Color(0xFFE5E7EB)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                 ),
                               ),
                             ],
@@ -169,7 +199,6 @@ class ProfileManagementPage extends StatelessWidget {
                                 ),
                               ),
                             ).then((_) {
-                              // Force rebuild of parent when returning
                               if (context.mounted)
                                 (context as Element).markNeedsBuild();
                             });
@@ -184,7 +213,6 @@ class ProfileManagementPage extends StatelessWidget {
                           ),
                           isLocked: true,
                           onTap: () {
-                            // Safe conversion of primitive list to Maps
                             List<Map<String, String>> mappedContacts = profile
                                 .emergencyContacts
                                 .map((contact) {
@@ -200,11 +228,11 @@ class ProfileManagementPage extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (context) => VaultDetailPage(
                                   profile: PatientProfile(
-                                    id: '',
+                                    id: profile.id ?? '',
                                     guardianId: '',
                                     profileName: profile.name,
                                     relationshipToGuardian: profile.relationship,
-                                    birthYear: 0,
+                                    birthYear: int.tryParse(profile.birthYear) ?? 0,
                                     age: 0,
                                     emergencyContacts: {
                                       'primary': {
@@ -218,7 +246,7 @@ class ProfileManagementPage extends StatelessWidget {
                                     medicalNotesEn: profile.condition,
                                     medicalNotesAr: '',
                                     status: profile.hasDevice,
-                                    avatarUrl: profile.imagePath, // Use the local image path
+                                    avatarUrl: profile.imagePath,
                                     seoSlug: '',
                                     metaTitleEn: '',
                                     metaDescriptionEn: '',
@@ -271,7 +299,6 @@ class ProfileManagementPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
 
-                        // Device Section
                         _buildActionItem(
                           icon: Icons.add_circle_outline,
                           title: appState.tr('Add Device', 'إضافة جهاز'),
@@ -475,8 +502,8 @@ class ProfileManagementPage extends StatelessWidget {
           TextButton(
             onPressed: () {
               AppState().removeProfile(profileIndex);
-              Navigator.pop(context); // close dialog
-              Navigator.pop(context); // go back to home
+              Navigator.pop(context);
+              Navigator.pop(context);
             },
             child: Text(
               AppState().tr('Delete', 'حذف'),
@@ -484,110 +511,6 @@ class ProfileManagementPage extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNav(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        height: 70,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(35),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.blue.withValues(alpha: 0.15),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(35),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.4),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.5),
-                  width: 1.5,
-                ),
-                borderRadius: BorderRadius.circular(35),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildNavItem(
-                    context,
-                    icon: LucideIcons.home,
-                    label: AppState().tr('Home', 'الرئيسية'),
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: LucideIcons.map,
-                    label: AppState().tr('Map', 'الخريطة'),
-                  ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF1B64F2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: LucideIcons.lock,
-                    label: AppState().tr('Vault', 'الخزنة'),
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: LucideIcons.settings,
-                    label: AppState().tr('Settings', 'الإعدادات'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.popUntil(context, (route) => route.isFirst);
-      },
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 60,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.grey.shade500, size: 26),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
-            ),
-          ],
-        ),
       ),
     );
   }

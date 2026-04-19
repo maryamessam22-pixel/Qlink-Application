@@ -34,4 +34,13 @@ class SupabaseService {
       rethrow;
     }
   }
+
+  Future<void> updatePatientProfile(String id, PatientProfile profile) async {
+    try {
+      await client.from('patient_profiles').update(profile.toMap()).eq('id', id);
+    } catch (e) {
+      print('Error updating patient profile: $e');
+      rethrow;
+    }
+  }
 }

@@ -16,6 +16,7 @@ class ConnectDevicePage extends StatefulWidget {
   final String? birthYear;
   final List<String>? emergencyContacts;
   final String? bloodType;
+  final String? avatarUrl;
   final String? allergies;
   final String? condition;
 
@@ -27,6 +28,7 @@ class ConnectDevicePage extends StatefulWidget {
     this.birthYear,
     this.emergencyContacts,
     this.bloodType,
+    this.avatarUrl,
     this.allergies,
     this.condition,
   });
@@ -409,7 +411,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
               medicalNotesEn: widget.condition ?? '',
               medicalNotesAr: '',
               status: true,
-              avatarUrl: 'assets/images/mypic.png',
+              avatarUrl: widget.avatarUrl ?? 'assets/images/mypic.png',
               seoSlug: (widget.name ?? 'new-profile').toLowerCase().replaceAll(' ', '-'),
               metaTitleEn: '',
               metaDescriptionEn: '',
@@ -513,7 +515,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
             medicalNotesEn: widget.condition ?? '',
             medicalNotesAr: '',
             status: false,
-            avatarUrl: 'assets/images/mypic.png',
+            avatarUrl: widget.avatarUrl ?? 'assets/images/mypic.png',
             seoSlug: (widget.name ?? 'new-profile').toLowerCase().replaceAll(' ', '-'),
             metaTitleEn: '',
             metaDescriptionEn: '',

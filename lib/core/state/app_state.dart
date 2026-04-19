@@ -19,6 +19,7 @@ class VisibilitySettings {
 }
 
 class ProfileData {
+  String? id;
   String name;
   String imagePath;
   String relationship;
@@ -31,6 +32,7 @@ class ProfileData {
   final List<DeviceData> devices;
 
   ProfileData({
+    this.id,
     required this.name,
     required this.imagePath,
     required this.relationship,

@@ -400,8 +400,8 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                             const SizedBox(height: 16),
                             SizedBox(
                               width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: () {
+                              child: GestureDetector(
+                                onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -411,12 +411,33 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                                     ),
                                   );
                                 },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF273469),
+                                child: Container(
                                   padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [Color(0xFF0066CC), Color(0xFF273469)],
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(30),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF0066CC).withValues(alpha: 0.15),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    AppState().tr('Locate Bracelet', 'تحديد موقع السوار'),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
                                 ),
-                                child: Text(AppState().tr('Locate Bracelet', 'تحديد موقع السوار'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                               ),
                             ),
                           ],
@@ -434,7 +455,6 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                     const SizedBox(height: 16),
                     _buildLargeButton(
                       AppState().tr('View QR Code', 'عرض رمز QR'), 
-                      const Color(0xFF273469), 
                       Icons.qr_code_scanner,
                       onPressed: () {
                         Navigator.push(
@@ -444,7 +464,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                       },
                     ),
                     const SizedBox(height: 12),
-                    _buildLargeButton(AppState().tr('Enter Medical Vault', 'دخول الخزنة الطبية'), const Color(0xFF1B64F2), LucideIcons.lock),
+                    _buildLargeButton(AppState().tr('Enter Medical Vault', 'دخول الخزنة الطبية'), LucideIcons.lock),
                     
                     const SizedBox(height: 100),
                   ],
@@ -570,13 +590,48 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
               Text(AppState().tr('No emergency contacts added', 'لم يتم إضافة جهات اتصال طوارئ'), style: const TextStyle(color: Colors.grey, fontSize: 13))
             else
               ...widget.profile.emergencyContacts.asMap().entries.map((e) {
+                String contactName = e.value;
+                String? avatarPath;
+                if (contactName.toLowerCase().contains('mariam')) {
+                  avatarPath = 'assets/images/mypic.png';
+                } else if (contactName.toLowerCase().contains('saber')) {
+                  avatarPath = 'assets/images/Ahmed Saber.png';
+                } else if (contactName.toLowerCase().contains('mazen')) {
+                  avatarPath = 'assets/images/Ahmed Mazen.png';
+                }
+
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Row(
                     children: [
-                      Text(e.key == 0 ? AppState().tr('Primary Guardian', 'الوصي الأساسي') : '${AppState().tr('Contact', 'جهة اتصال')} ${e.key + 1}', style: const TextStyle(color: Colors.grey, fontSize: 13)),
-                      Text(e.value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1F2937))),
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F4F6),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: avatarPath != null
+                            ? Image.asset(avatarPath, fit: BoxFit.cover)
+                            : Icon(Icons.person, color: Colors.grey.shade400, size: 24),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              e.key == 0 ? AppState().tr('Primary Guardian', 'الوصي الأساسي') : '${AppState().tr('Contact', 'جهة اتصال')} ${e.key + 1}',
+                              style: const TextStyle(color: Colors.grey, fontSize: 12),
+                            ),
+                            Text(
+                              contactName,
+                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1F2937)),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -587,16 +642,43 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
     );
   }
 
-  Widget _buildLargeButton(String label, Color color, IconData icon, {VoidCallback? onPressed}) {
-    return ElevatedButton.icon(
-      onPressed: onPressed ?? () {},
-      icon: Icon(icon, color: Colors.white, size: 20),
-      label: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 0,
+  Widget _buildLargeButton(String label, IconData icon, {VoidCallback? onPressed}) {
+    return GestureDetector(
+      onTap: onPressed ?? () {},
+      child: Container(
+        width: double.infinity,
+        height: 60,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF0066CC), Color(0xFF273469)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0066CC).withValues(alpha: 0.2),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 22),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

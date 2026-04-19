@@ -211,7 +211,6 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
               ),
             ),
           ),
-          bottomNavigationBar: const WearerBottomNav(),
         );
       },
     );

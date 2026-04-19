@@ -1,6 +1,8 @@
 import 'dart:ui';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:q_link/features/guardian/home/home_page.dart';
 import 'package:q_link/features/guardian/profile/add_medical_info.dart';
 import 'package:q_link/core/state/app_state.dart';
@@ -26,6 +28,18 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
   final TextEditingController _relationshipController = TextEditingController();
   final TextEditingController _birthYearController = TextEditingController();
   final List<TextEditingController> _contactControllers = [];
+  String? _imagePath;
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    
+    if (image != null) {
+      setState(() {
+        _imagePath = image.path;
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -34,6 +48,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
       _nameController.text = widget.existingProfile!.name;
       _relationshipController.text = widget.existingProfile!.relationship;
       _birthYearController.text = widget.existingProfile!.birthYear;
+      _imagePath = widget.existingProfile!.imagePath;
       for (var contact in widget.existingProfile!.emergencyContacts) {
         _contactControllers.add(TextEditingController(text: contact));
       }
@@ -173,6 +188,68 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                   const SizedBox(height: 24),
                   const Divider(color: Color(0xFFE5E7EB), thickness: 1),
                   const SizedBox(height: 24),
+
+                  // Profile Picture Section
+                  Center(
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFF1E3A8A), width: 2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: ClipOval(
+                            child: _imagePath != null
+                                ? (_imagePath!.startsWith('http')
+                                    ? Image.network(_imagePath!, fit: BoxFit.cover)
+                                    : (_imagePath!.startsWith('assets') 
+                                      ? Image.asset(_imagePath!, fit: BoxFit.cover)
+                                      : Image.file(File(_imagePath!), fit: BoxFit.cover)))
+                                : Container(
+                                    color: const Color(0xFFE6F0FE),
+                                    child: const Icon(Icons.person, size: 60, color: Color(0xFF1B64F2)),
+                                  ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: _pickImage,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF1B64F2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Text(
+                      AppState().tr('Add Profile Picture', 'إضافة صورة الملف الشخصي'),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                   
                   _buildLabelAndTextField(AppState().tr('Patient\'s Full Name', 'الاسم الكامل للمريض'), AppState().tr('e.g., Mohamed Saber', 'مثال: محمد صابر'), controller: _nameController),
                   const SizedBox(height: 16),
@@ -238,6 +315,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                             relationship: _relationshipController.text,
                             birthYear: _birthYearController.text,
                             emergencyContacts: _contactControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+                            avatarUrl: _imagePath,
                             editIndex: widget.editIndex,
                             existingProfile: widget.existingProfile,
                           ),

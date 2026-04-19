@@ -237,7 +237,6 @@ class _WearerHealthPageState extends State<WearerHealthPage> {
               ),
             ),
           ),
-          bottomNavigationBar: const WearerBottomNav(),
         );
       },
     );

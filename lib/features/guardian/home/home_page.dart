@@ -520,6 +520,7 @@ class HomePage extends StatelessWidget {
                         builder: (context) => ProfileManagementPage(
                           profileIndex: index,
                           profile: ProfileData(
+                            id: profile.id,
                             name: profile.profileName,
                             imagePath: profile.avatarUrl,
                             relationship: profile.relationshipToGuardian,

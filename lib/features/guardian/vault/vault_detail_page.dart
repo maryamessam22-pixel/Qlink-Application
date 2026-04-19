@@ -4,7 +4,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
-
 import 'package:q_link/core/models/patient_profile.dart';
 
 class VaultDetailPage extends StatelessWidget {
@@ -104,6 +103,7 @@ class VaultDetailPage extends StatelessWidget {
     final appState = AppState();
     final statusColor = profile.status ? const Color(0xFF22C55E) : const Color(0xFFEF4444);
     final statusLabel = profile.status ? appState.tr('SECURE', 'آمن') : appState.tr('ALERT', 'تنبيه');
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -193,7 +193,7 @@ class VaultDetailPage extends StatelessWidget {
           icon: Icons.bloodtype_outlined,
           iconColor: const Color(0xFFEF4444),
           label: appState.tr('Blood Type', 'فصيلة الدم'),
-          value: profile.bloodType,
+          value: profile.bloodType ?? 'N/A',
           valueColor: const Color(0xFFEF4444),
         ),
         const Divider(height: 1, color: Color(0xFFF3F4F6)),
@@ -201,7 +201,7 @@ class VaultDetailPage extends StatelessWidget {
           icon: Icons.favorite_outline,
           iconColor: const Color(0xFF6366F1),
           label: appState.tr('Condition', 'الحالة الطبية'),
-          value: condition,
+          value: condition.isEmpty ? 'None' : condition,
           valueColor: const Color(0xFF1B64F2),
         ),
         const Divider(height: 1, color: Color(0xFFF3F4F6)),
@@ -209,13 +209,14 @@ class VaultDetailPage extends StatelessWidget {
           icon: Icons.error_outline,
           iconColor: const Color(0xFFF59E0B),
           label: appState.tr('Allergies', 'الحساسية'),
-          value: allergies,
+          value: allergies.isEmpty ? 'None' : allergies,
           valueColor: const Color(0xFFEF4444),
         ),
       ],
     );
   }
 
+  // --- Hna b2a el ta3deel elly sal7 el Overflow Error ---
   Widget _buildMedicalRow({
     required IconData icon,
     required Color iconColor,
@@ -226,6 +227,7 @@ class VaultDetailPage extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start, // 3shan lw el klam nzl satren, yfdal el icon fo2
         children: [
           Container(
             width: 36,
@@ -237,29 +239,39 @@ class VaultDetailPage extends StatelessWidget {
             child: Icon(icon, color: iconColor, size: 18),
           ),
           const SizedBox(width: 14),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.grey.shade700,
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.grey.shade700,
+              ),
             ),
           ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 4,
-            ),
-            decoration: BoxDecoration(
-              color: valueColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: valueColor,
+          const SizedBox(width: 16),
+          Expanded( // El Expanded da hwa el btal elly mn3 el overflow!
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd, // by-zbot el mkan ymen aw shmal 7asab el lo8a
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: valueColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  value,
+                  textAlign: TextAlign.end,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: valueColor,
+                    height: 1.4, // Msafa ben el stoor lw el klam kbeer
+                  ),
+                ),
               ),
             ),
           ),
@@ -272,6 +284,34 @@ class VaultDetailPage extends StatelessWidget {
     final appState = AppState();
     final primary = profile.emergencyContacts['primary'] ?? {};
     final secondary = profile.emergencyContacts['secondary'] ?? {};
+    final List<Widget> buildResults = [];
+
+    if (primary.isNotEmpty) {
+      String primaryName = primary['name'] ?? '';
+      String primaryImage = 'assets/images/mypic.png';
+      if (primaryName.toLowerCase().contains('mariam')) primaryImage = 'assets/images/mypic.png';
+      if (primaryName.toLowerCase().contains('saber')) primaryImage = 'assets/images/Ahmed Saber.png';
+      if (primaryName.toLowerCase().contains('mazen')) primaryImage = 'assets/images/Ahmed Mazen.png';
+      
+      buildResults.add(_buildContactRow(
+        name: primaryName,
+        role: appState.tr(primary['relation'] ?? '', primary['relation'] ?? ''),
+        imagePath: primaryImage,
+      ));
+    }
+    if (secondary.isNotEmpty) {
+      String secondaryName = secondary['name'] ?? '';
+      String secondaryImage = 'assets/images/mypic.png';
+      if (secondaryName.toLowerCase().contains('mariam')) secondaryImage = 'assets/images/mypic.png';
+      if (secondaryName.toLowerCase().contains('saber')) secondaryImage = 'assets/images/Ahmed Saber.png';
+      if (secondaryName.toLowerCase().contains('mazen')) secondaryImage = 'assets/images/Ahmed Mazen.png';
+      
+      buildResults.add(_buildContactRow(
+        name: secondaryName,
+        role: appState.tr(secondary['relation'] ?? '', secondary['relation'] ?? ''),
+        imagePath: secondaryImage,
+      ));
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -285,18 +325,7 @@ class VaultDetailPage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
-        if (primary.isNotEmpty)
-          _buildContactRow(
-            name: primary['name'] ?? '',
-            role: appState.tr(primary['relation'] ?? '', primary['relation'] ?? ''),
-            imagePath: 'assets/images/mypic.png',
-          ),
-        if (secondary.isNotEmpty)
-          _buildContactRow(
-            name: secondary['name'] ?? '',
-            role: appState.tr(secondary['relation'] ?? '', secondary['relation'] ?? ''),
-            imagePath: 'assets/images/mypic.png',
-          ),
+        ...buildResults,
       ],
     );
   }
@@ -358,6 +387,8 @@ class VaultDetailPage extends StatelessWidget {
 
   Widget _buildDocuments() {
     final appState = AppState();
+    if (documents.isEmpty) return const SizedBox.shrink();
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -498,113 +529,6 @@ class VaultDetailPage extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNavBar(BuildContext context) {
-    final appState = AppState();
-    return SafeArea(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        height: 70,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(35),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.blue.withValues(alpha: 0.15),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(35),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.4),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.5),
-                  width: 1.5,
-                ),
-                borderRadius: BorderRadius.circular(35),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildNavItem(context, icon: LucideIcons.home, label: appState.tr('Home', 'الرئيسية')),
-                  _buildNavItem(context, icon: LucideIcons.map, label: appState.tr('Map', 'الخريطة')),
-                  GestureDetector(
-                    onTap: () {},
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF1B64F2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
-                  ),
-                  _buildNavItem(context,
-                      icon: LucideIcons.lock,
-                      label: appState.tr('Vault', 'الخزنة'),
-                      isSelected: true),
-                  _buildNavItem(context,
-                      icon: LucideIcons.settings, label: appState.tr('Settings', 'الإعدادات')),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    bool isSelected = false,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pop(context);
-      },
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 60,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: isSelected
-                  ? const Color(0xFF1B64F2)
-                  : Colors.grey.shade500,
-              size: 26,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                color: isSelected
-                    ? const Color(0xFF1B64F2)
-                    : Colors.grey.shade500,
-                fontWeight:
-                    isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

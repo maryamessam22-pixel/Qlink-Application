@@ -7,12 +7,15 @@ import 'package:q_link/features/guardian/profile/connect_device_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:q_link/core/models/patient_profile.dart';
+import 'package:q_link/services/supabase_service.dart';
 
 class AddMedicalInfoPage extends StatefulWidget {
   final String name;
   final String relationship;
   final String birthYear;
   final List<String> emergencyContacts;
+  final String? avatarUrl;
   final int? editIndex;
   final ProfileData? existingProfile;
 
@@ -22,6 +25,7 @@ class AddMedicalInfoPage extends StatefulWidget {
     required this.relationship,
     this.birthYear = '',
     this.emergencyContacts = const [],
+    this.avatarUrl,
     this.editIndex,
     this.existingProfile,
   });
@@ -501,6 +505,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
               'relationship_to_guardian': widget.relationship,
               'birth_year': int.tryParse(widget.birthYear),
               'blood_type': _selectedBloodType,
+              'avatar_url': widget.avatarUrl ?? 'assets/images/mypic.png',
               'status': false,
             });
           } catch (e) {
@@ -508,6 +513,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           }
         } else {
           final updatedProfile = ProfileData(
+            id: widget.existingProfile?.id,
             name: widget.name,
             relationship: widget.relationship,
             birthYear: widget.birthYear,
@@ -516,9 +522,49 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
             allergies: _allergiesController.text,
             condition: _medicalNotesController.text,
             devices: widget.existingProfile?.devices,
-            imagePath: widget.existingProfile?.imagePath ?? 'assets/images/mypic.png',
+            imagePath: widget.avatarUrl ?? widget.existingProfile?.imagePath ?? 'assets/images/mypic.png',
             visibility: widget.existingProfile?.visibility,
           );
+
+          // Update Supabase if ID exists
+          if (updatedProfile.id != null) {
+            SupabaseService().updatePatientProfile(
+              updatedProfile.id!,
+              PatientProfile(
+                id: updatedProfile.id!,
+                guardianId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+                profileName: updatedProfile.name,
+                relationshipToGuardian: updatedProfile.relationship,
+                birthYear: int.tryParse(updatedProfile.birthYear) ?? 2000,
+                age: DateTime.now().year - (int.tryParse(updatedProfile.birthYear) ?? 2000),
+                emergencyContacts: {
+                  'primary': {
+                    'name': 'Primary Contact',
+                    'phone': updatedProfile.emergencyContacts.isNotEmpty ? updatedProfile.emergencyContacts[0] : '',
+                    'relation': 'Guardian'
+                  }
+                },
+                bloodType: updatedProfile.bloodType,
+                safetyNotesEn: '',
+                allergiesEn: updatedProfile.allergies,
+                medicalNotesEn: updatedProfile.condition,
+                medicalNotesAr: '',
+                status: updatedProfile.hasDevice,
+                avatarUrl: updatedProfile.imagePath,
+                seoSlug: updatedProfile.name.toLowerCase().replaceAll(' ', '-'),
+                metaTitleEn: '',
+                metaDescriptionEn: '',
+                featuredImageAltEn: '',
+                safetyNotesAr: '',
+                allergiesAr: '',
+                metaTitleAr: '',
+                metaDescriptionAr: '',
+                featuredImageAltAr: '',
+                createdAt: DateTime.now(),
+              ),
+            );
+          }
+
           AppState().updateProfile(widget.editIndex!, updatedProfile);
           Navigator.popUntil(context, (route) => route.isFirst);
           return;
@@ -534,6 +580,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
                 birthYear: widget.birthYear,
                 emergencyContacts: widget.emergencyContacts,
                 bloodType: _selectedBloodType ?? '',
+                avatarUrl: widget.avatarUrl,
                 allergies: _allergiesController.text,
                 condition: _medicalNotesController.text,
               ),

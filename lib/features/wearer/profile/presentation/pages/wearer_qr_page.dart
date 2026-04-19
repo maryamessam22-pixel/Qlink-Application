@@ -63,7 +63,6 @@ class _WearerQrPageState extends State<WearerQrPage> {
               ],
             ),
           ),
-          bottomNavigationBar: const WearerBottomNav(),
         );
       },
     );
