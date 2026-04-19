@@ -10,6 +10,7 @@ import 'package:q_link/features/shared/settings/presentation/pages/switch_role_p
 import 'package:q_link/features/shared/settings/presentation/pages/qr_scan_history_page.dart';
 import 'package:q_link/features/shared/settings/presentation/pages/privacy_policy_page.dart';
 import 'package:q_link/features/shared/settings/presentation/pages/help_center_page.dart';
+import 'package:q_link/features/shared/splash/presentation/pages/logout_loading_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -228,7 +229,12 @@ class _SettingsPageState extends State<SettingsPage> {
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton.icon(
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const LogoutLoadingPage()),
+                                );
+                              },
                               icon: const Icon(LucideIcons.logOut, color: Colors.red, size: 18),
                               label: Text(
                                 appState.tr('Logout', 'تسجيل الخروج'),
