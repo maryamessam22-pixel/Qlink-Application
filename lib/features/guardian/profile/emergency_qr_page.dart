@@ -200,8 +200,8 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
