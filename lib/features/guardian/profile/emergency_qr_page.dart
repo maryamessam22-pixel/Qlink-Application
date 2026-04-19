@@ -51,13 +51,44 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
               SafeArea(
                 child: Column(
                   children: [
+                    // Top Bar Header with Back Button
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            behavior: HitTestBehavior.opaque,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.arrow_back,
+                                  color: _activeTab == 1 ? Colors.white : const Color(0xFF1E3A8A),
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  appState.tr('Back', 'رجوع'),
+                                  style: TextStyle(
+                                    color: _activeTab == 1 ? Colors.white : const Color(0xFF1E3A8A),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                     // Top Bar Toggle
                     Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      height: 60,
+                      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                      height: 64,
                       decoration: BoxDecoration(
                         color: _activeTab == 1 ? Colors.white.withValues(alpha:0.1) : const Color(0xFF1B64F2),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
                         children: [
@@ -71,23 +102,6 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
                       child: _activeTab == 0 ? _buildMyCodeView(appState) : _buildScannerView(appState),
                     ),
                   ],
-                ),
-              ),
-
-              // Back Button
-              Positioned(
-                top: 60,
-                left: 20,
-                child: IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: _activeTab == 1 ? Colors.white.withValues(alpha:0.2) : Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.arrow_back, color: _activeTab == 1 ? Colors.white : const Color(0xFF1E3A8A)),
-                  ),
                 ),
               ),
             ],
@@ -121,26 +135,31 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
   }
 
   Widget _buildMyCodeView(AppState appState) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          appState.tr('Emergency Profile QR', 'رمز QR للملف الشخصي للطوارئ'),
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1F2937)),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          appState.tr('Anyone can scan this to see your emergency info.', 'يمكن لأي شخص مسح هذا لمعرفة معلومات الطوارئ الخاصة بك.'),
-          style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 40),
-        
-        // QR Container
-        GestureDetector(
-          onTap: () => _showAccessSimulationDialog(appState),
-          child: Container(
-            padding: const EdgeInsets.all(24),
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: 60),
+          Text(
+            appState.tr('Emergency Profile QR', 'رمز QR للملف الشخصي للطوارئ'),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1F2937)),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              appState.tr('Anyone can scan this to see your emergency info.', 'يمكن لأي شخص مسح هذا لمعرفة معلومات الطوارئ الخاصة بك.'),
+              style: TextStyle(fontSize: 15, color: Colors.grey.shade500, height: 1.5),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 60),
+          
+          // QR Container
+          GestureDetector(
+            onTap: () => _showAccessSimulationDialog(appState),
+            child: Container(
+              padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
@@ -152,17 +171,17 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
                 ),
               ],
             ),
-            child: QrImageView(
-              data: 'qlink-profile-${widget.profile.name}',
-              version: QrVersions.auto,
-              size: 200.0,
-              eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF1B64F2)),
-              dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF1B64F2)),
+              child: QrImageView(
+                data: 'qlink-profile-${widget.profile.name}',
+                version: QrVersions.auto,
+                size: 220.0,
+                eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF1B64F2)),
+                dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF1B64F2)),
+              ),
             ),
           ),
-        ),
-        
-        const SizedBox(height: 60),
+          
+          const SizedBox(height: 80),
         
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
