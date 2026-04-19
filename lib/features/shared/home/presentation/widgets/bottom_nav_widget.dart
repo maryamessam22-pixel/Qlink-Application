@@ -38,20 +38,52 @@ class BottomNavWidget extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.4),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.5),
+                      width: 1.5,
+                    ),
                     borderRadius: BorderRadius.circular(35),
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildNavItem(context, icon: LucideIcons.home, label: appState.tr('Home', 'الرئيسية'), target: const HomePage()),
-                      _buildNavItem(context, icon: LucideIcons.map, label: appState.tr('Map', 'الخريطة'), target: const MapPage()),
+                      _buildNavItem(
+                        context,
+                        icon: LucideIcons.home,
+                        label: appState.tr('Home', 'الرئيسية'),
+                        target: const HomePage(),
+                      ),
+                      _buildNavItem(
+                        context,
+                        icon: LucideIcons.map,
+                        label: appState.tr('Map', 'الخريطة'),
+                        target: const MapPage(),
+                      ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const AddProfileIdentity()),
+                          Navigator.of(context).pushAndRemoveUntil(
+                            PageRouteBuilder(
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      const AddProfileIdentity(),
+                              transitionsBuilder:
+                                  (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                    child,
+                                  ) {
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: child,
+                                    );
+                                  },
+                              settings: const RouteSettings(
+                                name: 'AddProfileIdentity',
+                              ),
+                            ),
+                            (route) => false, // Remove all routes
                           );
                         },
                         child: Container(
@@ -61,11 +93,25 @@ class BottomNavWidget extends StatelessWidget {
                             color: Color(0xFF1B64F2),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.add, color: Colors.white, size: 28),
+                          child: const Icon(
+                            Icons.add,
+                            color: Colors.white,
+                            size: 28,
+                          ),
                         ),
                       ),
-                      _buildNavItem(context, icon: LucideIcons.lock, label: appState.tr('Vault', 'الخزنة'), target: const VaultPage()),
-                      _buildNavItem(context, icon: LucideIcons.settings, label: appState.tr('Settings', 'الإعدادات'), target: const SettingsPage()),
+                      _buildNavItem(
+                        context,
+                        icon: LucideIcons.lock,
+                        label: appState.tr('Vault', 'الخزنة'),
+                        target: const VaultPage(),
+                      ),
+                      _buildNavItem(
+                        context,
+                        icon: LucideIcons.settings,
+                        label: appState.tr('Settings', 'الإعدادات'),
+                        target: const SettingsPage(),
+                      ),
                     ],
                   ),
                 ),
@@ -77,26 +123,35 @@ class BottomNavWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(BuildContext context, {required IconData icon, required String label, required Widget target}) {
+  Widget _buildNavItem(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required Widget target,
+  }) {
     // Determine if this is the active route
     final ModalRoute? currentRoute = ModalRoute.of(context);
-    final bool isActive = currentRoute?.settings.name == target.runtimeType.toString() || 
-                        (label == 'Home' && currentRoute?.isFirst == true);
+    final bool isActive =
+        currentRoute?.settings.name == target.runtimeType.toString() ||
+        (label == 'Home' && currentRoute?.isFirst == true);
 
     return GestureDetector(
       onTap: () {
         // If we're already on this page, don't do anything
         if (isActive) return;
 
-        Navigator.pushReplacement(
-          context,
+        // Navigate to target and clear all routes above it
+        // This works from any nested screen
+        Navigator.of(context).pushAndRemoveUntil(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) => target,
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
             settings: RouteSettings(name: target.runtimeType.toString()),
           ),
+          (route) => false, // Remove all previous routes
         );
       },
       behavior: HitTestBehavior.opaque,
@@ -106,18 +161,20 @@ class BottomNavWidget extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              icon, 
-              color: isActive ? const Color(0xFF1B64F2) : Colors.grey.shade500, 
-              size: 26
+              icon,
+              color: isActive ? const Color(0xFF1B64F2) : Colors.grey.shade500,
+              size: 26,
             ),
             const SizedBox(height: 4),
             Text(
-              label, 
+              label,
               style: TextStyle(
-                fontSize: 10, 
-                color: isActive ? const Color(0xFF1B64F2) : Colors.grey.shade500,
+                fontSize: 10,
+                color: isActive
+                    ? const Color(0xFF1B64F2)
+                    : Colors.grey.shade500,
                 fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              )
+              ),
             ),
           ],
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:q_link/features/shared/home/presentation/widgets/video_logo_widget.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
@@ -10,10 +11,16 @@ class MapPage extends StatefulWidget {
   @override
   State<MapPage> createState() => _MapPageState();
 }
-
 class _MapPageState extends State<MapPage> {
-  // كنترولر الخريطة عشان نتحكم في الزووم
   final MapController _mapController = MapController();
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -223,12 +230,15 @@ class _MapPageState extends State<MapPage> {
           backgroundImage: AssetImage('assets/images/mypic.png'),
         ),
         const Spacer(),
-        const Icon(
-          Icons.language,
-          color: Color(0xFF1E3A8A),
-          size: 28,
+        IconButton(
+          onPressed: () {},
+          icon: const Icon(
+            Icons.language,
+            color: Color(0xFF1E3A8A),
+            size: 28,
+          ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 8),
         Stack(
           children: [
             const Icon(
@@ -275,26 +285,47 @@ class _MapPageState extends State<MapPage> {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              appState.tr('Search saved places...', 'ابحث عن الأماكن المحفوظة...'),
-              style: TextStyle(
-                color: Colors.grey.shade400,
-                fontSize: 14,
+            child: TextField(
+              controller: _searchController,
+              textAlign: appState.isArabic ? TextAlign.right : TextAlign.left,
+              decoration: InputDecoration(
+                hintText: appState.tr('Search saved places...', 'ابحث عن الأماكن المحفوظة...'),
+                hintStyle: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 14,
+                ),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
+              onSubmitted: (value) {
+                if (value.isNotEmpty) {
+                  // Simulate finding a place by moving the map slightly
+                  _mapController.move(const LatLng(30.0600, 31.2500), 14.0);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(appState.tr('Finding location...', 'جارٍ البحث عن الموقع...'))),
+                  );
+                }
+              },
             ),
           ),
-          Container(
-            width: 36,
-            height: 36,
-            margin: const EdgeInsets.only(right: 6, left: 6),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.my_location,
-              color: Colors.grey.shade600,
-              size: 18,
+          GestureDetector(
+            onTap: () {
+              // Recenter map on user location (simulated Cairo center)
+              _mapController.move(const LatLng(30.0444, 31.2357), 13.0);
+            },
+            child: Container(
+              width: 36,
+              height: 36,
+              margin: const EdgeInsets.only(right: 6, left: 6),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.my_location,
+                color: Colors.grey.shade600,
+                size: 18,
+              ),
             ),
           ),
         ],

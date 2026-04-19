@@ -26,7 +26,6 @@ class PrivacyPolicyPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // App Bar
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
@@ -47,7 +46,6 @@ class PrivacyPolicyPage extends StatelessWidget {
                     ),
                   ),
                   const Divider(color: Color(0xFFF3F4F6), thickness: 1),
-
                   Expanded(
                     child: ListView(
                       padding: const EdgeInsets.all(24),
@@ -55,17 +53,22 @@ class PrivacyPolicyPage extends StatelessWidget {
                         _buildSection(
                           appState.tr('Data Collection', 'جمع البيانات'),
                           appState.tr(
-                            'QR Guard collects only essential medical and emergency contact information necessary for emergency response.',
-                            'يجمع QR Guard فقط المعلومات الطبية وجهات اتصال الطوارئ الضرورية للاستجابة لحالات الطوارئ.'
-                          ),
+                              'QR Guard collects only essential medical and emergency contact information necessary for emergency response.',
+                              'يجمع QR Guard فقط المعلومات الطبية وجهات اتصال الطوارئ الضرورية للاستجابة لحالات الطوارئ.'),
                         ),
                         const SizedBox(height: 32),
                         _buildSection(
                           appState.tr('Security', 'الأمان'),
                           appState.tr(
-                            'All data is encrypted using industry-standard 256-bit encryption.',
-                            'يتم تشفير جميع البيانات باستخدام تشفير 256 بت القياسي في الصناعة.'
-                          ),
+                              'All data is encrypted using industry-standard 256-bit encryption.',
+                              'يتم تشفير جميع البيانات باستخدام تشفير 256 بت القياسي في الصناعة.'),
+                        ),
+                        const SizedBox(height: 32),
+                        _buildSection(
+                          appState.tr('Data Sharing', 'مشاركة البيانات'),
+                          appState.tr(
+                              'We do not sell your personal data. It is only shared with authorized medical personnel during an active emergency scan.',
+                              'نحن لا نبيع بياناتك الشخصية. تتم مشاركتها فقط مع الطاقم الطبي المعتمد أثناء حالة الطوارئ الفعلية عند مسح الرمز.'),
                         ),
                       ],
                     ),
