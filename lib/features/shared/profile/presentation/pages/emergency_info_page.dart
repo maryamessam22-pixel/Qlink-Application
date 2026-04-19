@@ -4,6 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/locate_bracelet_page.dart';
+import 'package:q_link/features/shared/profile/presentation/pages/emergency_qr_page.dart';
 
 class EmergencyInfoPage extends StatefulWidget {
   final int profileIndex;
@@ -431,7 +432,17 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                     // Document Access
                     Text(AppState().tr('Document Access', 'الوصول إلى المستندات'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
                     const SizedBox(height: 16),
-                    _buildLargeButton(AppState().tr('View QR Code', 'عرض رمز QR'), const Color(0xFF273469), Icons.qr_code_scanner),
+                    _buildLargeButton(
+                      AppState().tr('View QR Code', 'عرض رمز QR'), 
+                      const Color(0xFF273469), 
+                      Icons.qr_code_scanner,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => EmergencyQrPage(profile: widget.profile)),
+                        );
+                      },
+                    ),
                     const SizedBox(height: 12),
                     _buildLargeButton(AppState().tr('Enter Medical Vault', 'دخول الخزنة الطبية'), const Color(0xFF1B64F2), LucideIcons.lock),
                     
@@ -576,9 +587,9 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
     );
   }
 
-  Widget _buildLargeButton(String label, Color color, IconData icon) {
+  Widget _buildLargeButton(String label, Color color, IconData icon, {VoidCallback? onPressed}) {
     return ElevatedButton.icon(
-      onPressed: () {},
+      onPressed: onPressed ?? () {},
       icon: Icon(icon, color: Colors.white, size: 20),
       label: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
       style: ElevatedButton.styleFrom(
