@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/change_password_page.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/email_preferences_page.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -11,8 +13,6 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _nameController = TextEditingController(text: 'Mariam Essam');
-  final TextEditingController _passwordController = TextEditingController(text: '********');
-  final TextEditingController _emailController = TextEditingController(text: 'maryamessam22@gmail.com');
 
   @override
   Widget build(BuildContext context) {
@@ -127,15 +127,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             controller: _nameController,
                           ),
                           const SizedBox(height: 20),
-                          _buildTextField(
+                          _buildNavigationField(
                             label: appState.tr('Password', 'كلمة المرور'),
-                            controller: _passwordController,
-                            obscureText: true,
+                            value: '********',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const ChangePasswordPage()),
+                              );
+                            },
                           ),
                           const SizedBox(height: 20),
-                          _buildTextField(
+                          _buildNavigationField(
                             label: appState.tr('Email Address', 'البريد الإلكتروني'),
-                            controller: _emailController,
+                            value: 'maryamessam22@gmail.com',
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const EmailPreferencesPage()),
+                              );
+                            },
                           ),
                           const SizedBox(height: 48),
 
@@ -143,7 +154,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(appState.tr('Changes saved successfully', 'تم حفظ التغييرات بنجاح'))),
+                                );
+                              },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1B64F2),
                                 foregroundColor: Colors.white,
@@ -173,7 +188,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
-    bool obscureText = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,7 +199,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
         const SizedBox(height: 12),
         TextField(
           controller: controller,
-          obscureText: obscureText,
           decoration: InputDecoration(
             filled: true,
             fillColor: const Color(0xFFF9FAFB),
@@ -204,6 +217,39 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
           ),
           style: const TextStyle(color: Color(0xFF4B5563), fontSize: 13),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNavigationField({
+    required String label,
+    required String value,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF273469)),
+        ),
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: Text(
+              value,
+              style: const TextStyle(color: Color(0xFF4B5563), fontSize: 13),
+            ),
+          ),
         ),
       ],
     );
