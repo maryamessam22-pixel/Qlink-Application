@@ -108,7 +108,7 @@ class _LogoutLoadingPageState extends State<LogoutLoadingPage> with SingleTicker
                 // Logo and Branding
                 Image.asset(
                   'assets/images/qlink_logo.png',
-                  height: 100,
+                  height: 65,
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) => Text(
                     appState.qlink,

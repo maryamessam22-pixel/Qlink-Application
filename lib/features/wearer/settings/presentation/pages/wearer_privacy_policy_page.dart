@@ -54,7 +54,7 @@ class WearerPrivacyPolicyPage extends StatelessWidget {
               ],
             ),
           ),
-          bottomNavigationBar: WearerBottomNav(currentIndex: 3, onTap: (_) => Navigator.pop(context)),
+          bottomNavigationBar: const WearerBottomNav(),
         );
       },
     );

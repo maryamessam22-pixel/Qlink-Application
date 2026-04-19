@@ -7,6 +7,7 @@ import 'package:q_link/features/guardian/map/map_page.dart';
 import 'package:q_link/features/guardian/vault/vault_page.dart';
 import 'package:q_link/features/guardian/settings/settings_page.dart';
 import 'package:q_link/features/guardian/profile/add_profile_identity.dart';
+import 'package:q_link/features/guardian/home/main_page.dart';
 
 class BottomNavWidget extends StatelessWidget {
   const BottomNavWidget({super.key});
@@ -52,13 +53,13 @@ class BottomNavWidget extends StatelessWidget {
                         context,
                         icon: LucideIcons.home,
                         label: appState.tr('Home', 'الرئيسية'),
-                        target: const HomePage(),
+                        target: 0,
                       ),
                       _buildNavItem(
                         context,
                         icon: LucideIcons.map,
                         label: appState.tr('Map', 'الخريطة'),
-                        target: const MapPage(),
+                        target: 1,
                       ),
                       GestureDetector(
                         onTap: () {
@@ -67,18 +68,13 @@ class BottomNavWidget extends StatelessWidget {
                               pageBuilder:
                                   (context, animation, secondaryAnimation) =>
                                       AddProfileIdentityPage(),
-                              transitionsBuilder:
-                                  (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                    child,
-                                  ) {
-                                    return FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    );
-                                  },
+                              transitionsBuilder: (context, animation,
+                                  secondaryAnimation, child) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: child,
+                                );
+                              },
                               settings: const RouteSettings(
                                 name: 'AddProfileIdentity',
                               ),
@@ -104,13 +100,13 @@ class BottomNavWidget extends StatelessWidget {
                         context,
                         icon: LucideIcons.lock,
                         label: appState.tr('Vault', 'الخزنة'),
-                        target: const VaultPage(),
+                        target: 3,
                       ),
                       _buildNavItem(
                         context,
                         icon: LucideIcons.settings,
                         label: appState.tr('Settings', 'الإعدادات'),
-                        target: const SettingsPage(),
+                        target: 4, // Settings
                       ),
                     ],
                   ),
@@ -127,32 +123,29 @@ class BottomNavWidget extends StatelessWidget {
     BuildContext context, {
     required IconData icon,
     required String label,
-    required Widget target,
+    required int target, // Index now
   }) {
-    // Determine if this is the active route
-    final ModalRoute? currentRoute = ModalRoute.of(context);
-    final bool isActive =
-        currentRoute?.settings.name == target.runtimeType.toString() ||
-        (label == 'Home' && currentRoute?.isFirst == true);
+    final appState = AppState();
+    final bool isActive = appState.currentGuardianIndex == target;
 
     return GestureDetector(
       onTap: () {
-        // If we're already on this page, don't do anything
-        if (isActive) return;
+        appState.setGuardianIndex(target);
 
-        // Navigate to target and clear all routes above it
-        // This works from any nested screen
-        Navigator.of(context).pushAndRemoveUntil(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => target,
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-            settings: RouteSettings(name: target.runtimeType.toString()),
-          ),
-          (route) => false, // Remove all previous routes
-        );
+        // If not on MainPage, go there
+        if (ModalRoute.of(context)?.settings.name != 'MainPage') {
+          Navigator.of(context).pushAndRemoveUntil(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const MainPage(),
+              transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              settings: const RouteSettings(name: 'MainPage'),
+            ),
+            (route) => false,
+          );
+        }
       },
       behavior: HitTestBehavior.opaque,
       child: SizedBox(

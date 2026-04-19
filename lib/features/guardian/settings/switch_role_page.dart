@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/features/guardian/home/main_page.dart';
+import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
 
 class SwitchRolePage extends StatefulWidget {
   const SwitchRolePage({super.key});
@@ -189,7 +191,23 @@ class _SwitchRolePageState extends State<SwitchRolePage> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text(appState.tr('Role switched successfully', 'تم تبديل الدور بنجاح'))),
                                 );
-                                Navigator.pop(context);
+                                
+                                // Reset the indices
+                                if (_tempRole == 'Guardian') {
+                                  appState.setGuardianIndex(0);
+                                } else {
+                                  appState.setWearerIndex(0);
+                                }
+
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                    builder: (context) => _tempRole == 'Guardian' 
+                                        ? const MainPage() 
+                                        : const WearerMainPage(),
+                                    settings: RouteSettings(name: _tempRole == 'Guardian' ? 'MainPage' : 'WearerMainPage'),
+                                  ),
+                                  (route) => false,
+                                );
                               },
                               icon: const Icon(LucideIcons.repeat, size: 18),
                               label: Text(

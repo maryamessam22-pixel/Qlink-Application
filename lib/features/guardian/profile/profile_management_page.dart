@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
+import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
 import 'package:q_link/features/guardian/profile/emergency_info_page.dart';
 import 'package:q_link/features/guardian/profile/connect_device_page.dart';
 import 'package:q_link/features/guardian/profile/privacy_control_page.dart';
@@ -338,7 +339,7 @@ class ProfileManagementPage extends StatelessWidget {
               ],
             ),
           ),
-          bottomNavigationBar: _buildBottomNav(context),
+          bottomNavigationBar: const BottomNavWidget(),
         );
       },
     );

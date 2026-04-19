@@ -8,131 +8,33 @@ import 'package:q_link/features/guardian/vault/vault_page.dart';
 import 'package:q_link/features/guardian/profile/add_profile_identity.dart';
 import 'package:q_link/features/guardian/settings/settings_page.dart';
 
-class MainPage extends StatefulWidget {
+import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
+
+class MainPage extends StatelessWidget {
   const MainPage({super.key});
 
-  @override
-  State<MainPage> createState() => _MainPageState();
-}
-
-class _MainPageState extends State<MainPage> {
-  int _currentIndex = 0;
-
-  final List<Widget> _pages = [
-    const HomePage(),
-    const MapPage(),
-    const Center(child: Text('Actions')),
-    const VaultPage(),
-    const SettingsPage(),
+  static const List<Widget> _pages = [
+    HomePage(),
+    MapPage(),
+    Center(child: Text('Actions')),
+    VaultPage(),
+    SettingsPage(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true, // Important for floating nav bar
-      body: _pages[_currentIndex],
-      bottomNavigationBar: AnimatedBuilder(
-        animation: AppState(),
-        builder: (context, _) {
-          final appState = AppState();
-          return SafeArea(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              height: 70,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(35),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.blue.withValues(alpha: 0.15),
-                    blurRadius: 30,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(35),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.4),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
-                      borderRadius: BorderRadius.circular(35),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildNavItem(icon: LucideIcons.home, label: appState.tr('Home', 'الرئيسية'), index: 0),
-                        _buildNavItem(icon: LucideIcons.map, label: appState.tr('Map', 'الخريطة'), index: 1),
-
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const AddProfileIdentityPage()),
-                            );
-                          },
-                          child: Container(
-                            width: 50,
-                            height: 50,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF1B64F2),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.add, color: Colors.white, size: 28),
-                          ),
-                        ),
-
-                        _buildNavItem(icon: LucideIcons.lock, label: appState.tr('Vault', 'الخزانة'), index: 3),
-                        _buildNavItem(icon: LucideIcons.settings, label: appState.tr('Settings', 'الإعدادات'), index: 4),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required int index,
-  }) {
-    final isSelected = _currentIndex == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() => _currentIndex = index);
+    return AnimatedBuilder(
+      animation: AppState(),
+      builder: (context, _) {
+        final appState = AppState();
+        final currentIndex = appState.currentGuardianIndex;
+        
+        return Scaffold(
+          extendBody: true, // Important for floating nav bar
+          body: _pages[currentIndex],
+          bottomNavigationBar: const BottomNavWidget(),
+        );
       },
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-        width: 60,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? const Color(0xFF1B64F2) : Colors.grey.shade500,
-              size: 26,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                color: isSelected ? const Color(0xFF1B64F2) : Colors.grey.shade500,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

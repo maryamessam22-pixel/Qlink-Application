@@ -244,12 +244,7 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
               ],
             ),
           ),
-          bottomNavigationBar: WearerBottomNav(
-            currentIndex: 3,
-            onTap: (index) {
-              Navigator.pop(context); // Go back to settings
-            },
-          ),
+          bottomNavigationBar: const WearerBottomNav(),
         );
       },
     );

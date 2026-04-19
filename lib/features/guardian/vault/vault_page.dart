@@ -22,7 +22,6 @@ class _VaultPageState extends State<VaultPage> {
         final appState = AppState();
         return Scaffold(
           backgroundColor: const Color(0xFFF7F9FC),
-          bottomNavigationBar: BottomNavWidget(),
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
@@ -60,8 +59,8 @@ class _VaultPageState extends State<VaultPage> {
                             condition: appState.tr('Hypertension', 'ضغط الدم'),
                             allergies: appState.tr('Aspirin', 'أسبرين'),
                             emergencyContacts: [
-                              {'name': appState.tr('Ahmed Essam', 'أحمد عصام'), 'role': appState.tr('Grandson', 'حفيد'), 'image': 'assets/images/mypic.png'},
-                              {'name': appState.tr('Ahmed Mazen', 'أحمد مازن'), 'role': appState.tr('Son', 'ابن'), 'image': 'assets/images/Wire Frames + Mobile App/Ahmed Mazen.png'},
+                              {'name': appState.tr('Mariam Essam', 'مريم عصام'), 'role': appState.tr('Guardian', 'وصي'), 'image': 'assets/images/mypic.png'},
+                              {'name': appState.tr('Ahmed Saber', 'أحمد صابر'), 'role': appState.tr('Brother', 'أخ'), 'image': 'assets/images/Ahmed Saber.png'},
                             ],
                             documents: [
                               {'title': appState.tr('Medical Report 2024', 'تقرير طبي 2024'), 'subtitle': 'PDF • 3.1 MB', 'type': 'PDF'},
@@ -96,8 +95,8 @@ class _VaultPageState extends State<VaultPage> {
                             condition: appState.tr('Diabetes Type 1', 'سكر من النوع الأول'),
                             allergies: appState.tr('Penicillin', 'بنسلين'),
                             emergencyContacts: [
-                              {'name': appState.tr('Ahmed Essam', 'أحمد عصام'), 'role': appState.tr('Husband', 'زوج'), 'image': 'assets/images/mypic.png'},
-                              {'name': appState.tr('Ahmed Mazen', 'أحمد مازن'), 'role': appState.tr('Father', 'أب'), 'image': 'assets/images/Wire Frames + Mobile App/Ahmed Mazen.png'},
+                              {'name': appState.tr('Mariam Essam', 'مريم عصام'), 'role': appState.tr('Mom', 'أم'), 'image': 'assets/images/mypic.png'},
+                              {'name': appState.tr('Ahmed Mazen', 'أحمد مازن'), 'role': appState.tr('Dad', 'أب'), 'image': 'assets/images/Ahmed Mazen.png'},
                             ],
                             documents: [
                               {'title': appState.tr('Medical Report 2020', 'تقرير طبي 2020'), 'subtitle': 'PDF • 2.4 MB', 'type': 'PDF'},

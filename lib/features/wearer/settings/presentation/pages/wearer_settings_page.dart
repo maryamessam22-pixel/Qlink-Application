@@ -211,27 +211,7 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
               ),
             ),
           ),
-          bottomNavigationBar: WearerBottomNav(
-            currentIndex: 3,
-            onTap: (index) {
-              if (index == 0) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const WearerMainPage(isConnected: true)),
-                );
-              } else if (index == 1) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const WearerHealthPage()),
-                );
-              } else if (index == 2) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const WearerQrPage()),
-                );
-              }
-            },
-          ),
+          bottomNavigationBar: const WearerBottomNav(),
         );
       },
     );

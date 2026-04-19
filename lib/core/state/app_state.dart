@@ -140,6 +140,24 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- Navigation State ---
+  int _currentGuardianIndex = 0;
+  int get currentGuardianIndex => _currentGuardianIndex;
+
+  void setGuardianIndex(int index) {
+    _currentGuardianIndex = index;
+    notifyListeners();
+  }
+
+  int _currentWearerIndex = 0;
+  int get currentWearerIndex => _currentWearerIndex;
+
+  void setWearerIndex(int index) {
+    _currentWearerIndex = index;
+    notifyListeners();
+  }
+  // -------------------------
+
   final List<ProfileData> _profiles = [];
 
   List<ProfileData> get profiles => List.unmodifiable(_profiles);

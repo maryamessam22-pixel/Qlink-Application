@@ -63,12 +63,7 @@ class _WearerQrPageState extends State<WearerQrPage> {
               ],
             ),
           ),
-          bottomNavigationBar: WearerBottomNav(
-            currentIndex: 2,
-            onTap: (index) {
-              // Navigation handled by bottom nav widget or parent
-            },
-          ),
+          bottomNavigationBar: const WearerBottomNav(),
         );
       },
     );
