@@ -15,6 +15,7 @@ class LocateBraceletPage extends StatefulWidget {
 
 class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
+  bool _isRinging = false;
 
   @override
   void initState() {
@@ -31,14 +32,11 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
     super.dispose();
   }
 
-  bool _isRinging = false;
-
   void _triggerRing() {
     setState(() {
       _isRinging = true;
     });
     
-    // Simulate ringing for 3 seconds
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         setState(() {
@@ -61,7 +59,6 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
           backgroundColor: const Color(0xFF131A2A),
           body: Column(
             children: [
-              // Top Section with Radar
               Expanded(
                 flex: 5,
                 child: Container(
@@ -76,7 +73,6 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                   child: SafeArea(
                     child: Column(
                       children: [
-                        // Header
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           child: Row(
@@ -100,79 +96,80 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                           ),
                         ),
                         
-                        const SizedBox(height: 20),
-
-                        // Radar Animation
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            ...List.generate(3, (index) {
-                              return AnimatedBuilder(
-                                animation: _animationController,
-                                builder: (context, child) {
-                                  double progress = (_animationController.value + index / 3) % 1;
-                                  return Container(
-                                    width: 260 * progress,
-                                    height: 260 * progress,
+                        Expanded(
+                          child: Center(
+                            child: Stack(
+                              alignment: Alignment.center,
+                              clipBehavior: Clip.none,
+                              children: [
+                                ...List.generate(3, (index) {
+                                  return AnimatedBuilder(
+                                    animation: _animationController,
+                                    builder: (context, child) {
+                                      double progress = (_animationController.value + index / 3) % 1;
+                                      return Container(
+                                        width: 260 * progress,
+                                        height: 260 * progress,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: _isRinging 
+                                                ? Colors.green.withValues(alpha: (1 - progress) * 0.5) 
+                                                : Colors.white.withValues(alpha: (1 - progress) * 0.3),
+                                            width: _isRinging ? 3 : 2,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                }),
+                                Container(
+                                  width: 80,
+                                  height: 80,
+                                  decoration: BoxDecoration(
+                                    color: _isRinging ? Colors.green : const Color(0xFF1B64F2),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: (_isRinging ? Colors.green : const Color(0xFF1B64F2)).withValues(alpha: 0.4),
+                                        blurRadius: 20,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Icon(_isRinging ? Icons.notifications_active : Icons.location_on, color: Colors.white, size: 32),
+                                ),
+                                Positioned(
+                                  bottom: -15, 
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                                     decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: _isRinging ? Colors.green.withValues(alpha: (1 - progress) * 0.5) : Colors.white.withValues(alpha: (1 - progress) * 0.3),
-                                        width: _isRinging ? 3 : 2,
+                                      color: Colors.white.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                                    ),
+                                    child: Text(
+                                      _isRinging 
+                                          ? appState.tr('RINGING...', 'جاري الرنين...')
+                                          : appState.tr('SCANNING...', 'جاري المسح...'),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 1.2,
                                       ),
                                     ),
-                                  );
-                                },
-                              );
-                            }),
-                            Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: _isRinging ? Colors.green : const Color(0xFF1B64F2),
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: (_isRinging ? Colors.green : const Color(0xFF1B64F2)).withValues(alpha: 0.4),
-                                    blurRadius: 20,
-                                  ),
-                                ],
-                              ),
-                              child: Icon(_isRinging ? Icons.notifications_active : Icons.location_on, color: Colors.white, size: 32),
-                            ),
-                            Positioned(
-                              bottom: 10, // Changed from -40 to 10 to prevent overflow
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                                ),
-                                child: Text(
-                                  _isRinging 
-                                    ? appState.tr('RINGING...', 'جاري الرنين...')
-                                    : appState.tr('SCANNING...', 'جاري المسح...'),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 1.2,
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-
-                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
                 ),
               ),
 
-              // Bottom Sheet Card
               Expanded(
                 flex: 6,
                 child: Container(
@@ -188,7 +185,6 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                     padding: const EdgeInsets.all(32),
                     child: Column(
                       children: [
-                        // Drag Indicator
                         Container(
                           width: 40,
                           height: 5,
@@ -199,7 +195,6 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                         ),
                         const SizedBox(height: 24),
 
-                        // Profile Info
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -273,14 +268,14 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                         const SizedBox(height: 32),
                         Text(
                           device?.isConnected == true
-                            ? appState.tr(
-                                'Bracelet is nearby. You can trigger a sound to help the wearer locate it.',
-                                'السوار قريب. يمكنك تفعيل صوت لمساعدة مرتدي السوار في العثور عليه.',
-                              )
-                            : appState.tr(
-                                'Bracelet is out of range or turned off.',
-                                'السوار خارج النطاق أو مغلق.',
-                              ),
+                              ? appState.tr(
+                                  'Bracelet is nearby. You can trigger a sound to help the wearer locate it.',
+                                  'السوار قريب. يمكنك تفعيل صوت لمساعدة مرتدي السوار في العثور عليه.',
+                                )
+                              : appState.tr(
+                                  'Bracelet is out of range or turned off.',
+                                  'السوار خارج النطاق أو مغلق.',
+                                ),
                           style: TextStyle(
                             color: Colors.grey.shade600,
                             fontSize: 15,
@@ -290,7 +285,6 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
 
                         const SizedBox(height: 32),
 
-                        // Signal Strength Card
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
@@ -326,7 +320,6 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
 
                         const SizedBox(height: 32),
 
-                        // Ring Button
                         ElevatedButton.icon(
                           onPressed: (device?.isConnected == true && !_isRinging) ? _triggerRing : null,
                           icon: Icon(_isRinging ? Icons.volume_up : Icons.notifications_active_outlined, color: Colors.white),
