@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:q_link/features/auth/splash/choose_role_page.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/localization/app_localization.dart';
 
 class LogoutLoadingPage extends StatefulWidget {
   const LogoutLoadingPage({super.key});
