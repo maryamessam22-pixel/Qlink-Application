@@ -6,6 +6,7 @@ import 'package:q_link/features/guardian/home/home_page.dart';
 import 'package:q_link/features/guardian/profile/connect_device_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AddMedicalInfoPage extends StatefulWidget {
   final String name;
@@ -63,103 +64,103 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
       animation: AppState(),
       builder: (context, _) {
         return Scaffold(
-      backgroundColor: Colors.white,
-      extendBody: true,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
-                  vertical: 16.0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildAppBar(),
-                    const SizedBox(height: 24),
-                    _buildBackButton(),
-                    const SizedBox(height: 20),
-                    _buildTitle(),
-                    const SizedBox(height: 16),
-                    _buildProgressBar(),
-                    const SizedBox(height: 8),
-                    _buildStepLabel(),
-                    const SizedBox(height: 24),
-                    const Divider(
-                      color: Color(0xFFE5E7EB),
-                      thickness: 1,
+          backgroundColor: Colors.white,
+          extendBody: true,
+          body: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 16.0,
                     ),
-                    const SizedBox(height: 24),
-                    _buildSafetyNotesField(),
-                    const SizedBox(height: 24),
-                    _buildAllergiesField(),
-                    const SizedBox(height: 24),
-                    _buildBloodTypeSelector(),
-                    const SizedBox(height: 24),
-                    _buildMedicalNotesField(),
-                    const SizedBox(height: 32),
-                    _buildContinueButton(),
-                    const SizedBox(height: 120),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          height: 70,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(35),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.blue.withValues(alpha:0.15),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(35),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha:0.4),
-                  border: Border.all(color: Colors.white.withValues(alpha:0.5), width: 1.5),
-                  borderRadius: BorderRadius.circular(35),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildNavItem(icon: LucideIcons.home, label: AppState().tr('Home', 'الرئيسية')),
-                    _buildNavItem(icon: LucideIcons.map, label: AppState().tr('Map', 'الخريطة')),
-                    GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF1B64F2),
-                          shape: BoxShape.circle,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildAppBar(),
+                        const SizedBox(height: 24),
+                        _buildBackButton(),
+                        const SizedBox(height: 20),
+                        _buildTitle(),
+                        const SizedBox(height: 16),
+                        _buildProgressBar(),
+                        const SizedBox(height: 8),
+                        _buildStepLabel(),
+                        const SizedBox(height: 24),
+                        const Divider(
+                          color: Color(0xFFE5E7EB),
+                          thickness: 1,
                         ),
-                        child: const Icon(Icons.add, color: Colors.white, size: 28),
-                      ),
+                        const SizedBox(height: 24),
+                        _buildSafetyNotesField(),
+                        const SizedBox(height: 24),
+                        _buildAllergiesField(),
+                        const SizedBox(height: 24),
+                        _buildBloodTypeSelector(),
+                        const SizedBox(height: 24),
+                        _buildMedicalNotesField(),
+                        const SizedBox(height: 32),
+                        _buildContinueButton(),
+                        const SizedBox(height: 120),
+                      ],
                     ),
-                    _buildNavItem(icon: LucideIcons.lock, label: AppState().tr('Vault', 'الخزنة')),
-                    _buildNavItem(icon: LucideIcons.settings, label: AppState().tr('Settings', 'الإعدادات')),
-                  ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          bottomNavigationBar: SafeArea(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              height: 70,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(35),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue.withValues(alpha: 0.15),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(35),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.4),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
+                      borderRadius: BorderRadius.circular(35),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildNavItem(icon: LucideIcons.home, label: AppState().tr('Home', 'الرئيسية')),
+                        _buildNavItem(icon: LucideIcons.map, label: AppState().tr('Map', 'الخريطة')),
+                        GestureDetector(
+                          onTap: () {},
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF1B64F2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.add, color: Colors.white, size: 28),
+                          ),
+                        ),
+                        _buildNavItem(icon: LucideIcons.lock, label: AppState().tr('Vault', 'الخزنة')),
+                        _buildNavItem(icon: LucideIcons.settings, label: AppState().tr('Settings', 'الإعدادات')),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
         );
       },
     );
@@ -492,8 +493,20 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
 
   Widget _buildContinueButton() {
     return GestureDetector(
-      onTap: () {
-        if (widget.editIndex != null) {
+      onTap: () async {
+        if (widget.editIndex == null) {
+          try {
+            await Supabase.instance.client.from('patient_profiles').insert({
+              'profile_name': widget.name,
+              'relationship_to_guardian': widget.relationship,
+              'birth_year': int.tryParse(widget.birthYear),
+              'blood_type': _selectedBloodType,
+              'status': false,
+            });
+          } catch (e) {
+            print("Error saving to Supabase: $e");
+          }
+        } else {
           final updatedProfile = ProfileData(
             name: widget.name,
             relationship: widget.relationship,
@@ -511,20 +524,22 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           return;
         }
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ConnectDevicePage(
-              name: widget.name,
-              relationship: widget.relationship,
-              birthYear: widget.birthYear,
-              emergencyContacts: widget.emergencyContacts,
-              bloodType: _selectedBloodType ?? '',
-              allergies: _allergiesController.text,
-              condition: _medicalNotesController.text,
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ConnectDevicePage(
+                name: widget.name,
+                relationship: widget.relationship,
+                birthYear: widget.birthYear,
+                emergencyContacts: widget.emergencyContacts,
+                bloodType: _selectedBloodType ?? '',
+                allergies: _allergiesController.text,
+                condition: _medicalNotesController.text,
+              ),
             ),
-          ),
-        );
+          );
+        }
       },
       child: Container(
         width: double.infinity,
@@ -548,8 +563,8 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            SizedBox(width: 8),
-            Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
           ],
         ),
       ),

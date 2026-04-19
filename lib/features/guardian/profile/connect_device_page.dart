@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:q_link/core/models/patient_profile.dart';
+import 'package:q_link/services/supabase_service.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/features/guardian/home/home_page.dart';
 import 'package:q_link/core/state/app_state.dart';
@@ -387,6 +389,42 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           if (widget.targetProfileIndex != null) {
             AppState().addDeviceToProfile(widget.targetProfileIndex!, device);
           } else {
+            final newProfile = PatientProfile(
+              id: UniqueKey().toString(), // Dummy ID, Supabase will generate a real one if configured, or use UUID
+              guardianId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // Your guardian ID from the SQL
+              profileName: widget.name ?? 'New Profile',
+              relationshipToGuardian: widget.relationship ?? 'Member',
+              birthYear: int.tryParse(widget.birthYear ?? '2000') ?? 2000,
+              age: DateTime.now().year - (int.tryParse(widget.birthYear ?? '2000') ?? 2000),
+              emergencyContacts: {
+                'primary': {
+                  'name': 'Primary Contact',
+                  'phone': (widget.emergencyContacts != null && widget.emergencyContacts!.isNotEmpty) ? widget.emergencyContacts![0] : '',
+                  'relation': 'Guardian'
+                }
+              },
+              bloodType: widget.bloodType ?? '',
+              safetyNotesEn: '',
+              allergiesEn: widget.allergies ?? '',
+              medicalNotesEn: widget.condition ?? '',
+              medicalNotesAr: '',
+              status: true,
+              avatarUrl: 'assets/images/mypic.png',
+              seoSlug: (widget.name ?? 'new-profile').toLowerCase().replaceAll(' ', '-'),
+              metaTitleEn: '',
+              metaDescriptionEn: '',
+              featuredImageAltEn: '',
+              safetyNotesAr: '',
+              allergiesAr: '',
+              metaTitleAr: '',
+              metaDescriptionAr: '',
+              featuredImageAltAr: '',
+              createdAt: DateTime.now(),
+            );
+
+            SupabaseService().createPatientProfile(newProfile);
+            
+            // Also keep local fallback if needed
             AppState().addProfile(ProfileData(
               name: widget.name ?? 'New Profile',
               imagePath: 'assets/images/mypic.png',
@@ -455,6 +493,41 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
       onTap: () {
         // Add profile before skipping hardware link if needed
         if (widget.targetProfileIndex == null) {
+          final newProfile = PatientProfile(
+            id: UniqueKey().toString(),
+            guardianId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+            profileName: widget.name ?? 'New Profile',
+            relationshipToGuardian: widget.relationship ?? 'Member',
+            birthYear: int.tryParse(widget.birthYear ?? '2000') ?? 2000,
+            age: DateTime.now().year - (int.tryParse(widget.birthYear ?? '2000') ?? 2000),
+            emergencyContacts: {
+              'primary': {
+                'name': 'Primary Contact',
+                'phone': (widget.emergencyContacts != null && widget.emergencyContacts!.isNotEmpty) ? widget.emergencyContacts![0] : '',
+                'relation': 'Guardian'
+              }
+            },
+            bloodType: widget.bloodType ?? '',
+            safetyNotesEn: '',
+            allergiesEn: widget.allergies ?? '',
+            medicalNotesEn: widget.condition ?? '',
+            medicalNotesAr: '',
+            status: false,
+            avatarUrl: 'assets/images/mypic.png',
+            seoSlug: (widget.name ?? 'new-profile').toLowerCase().replaceAll(' ', '-'),
+            metaTitleEn: '',
+            metaDescriptionEn: '',
+            featuredImageAltEn: '',
+            safetyNotesAr: '',
+            allergiesAr: '',
+            metaTitleAr: '',
+            metaDescriptionAr: '',
+            featuredImageAltAr: '',
+            createdAt: DateTime.now(),
+          );
+
+          SupabaseService().createPatientProfile(newProfile);
+
           AppState().addProfile(ProfileData(
             name: widget.name ?? 'New Profile',
             relationship: widget.relationship ?? 'Member',

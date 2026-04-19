@@ -25,4 +25,13 @@ class SupabaseService {
       return [];
     }
   }
+
+  Future<void> createPatientProfile(PatientProfile profile) async {
+    try {
+      await client.from('patient_profiles').insert(profile.toMap());
+    } catch (e) {
+      print('Error creating patient profile: $e');
+      rethrow;
+    }
+  }
 }
