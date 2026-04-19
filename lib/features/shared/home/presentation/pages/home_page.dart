@@ -6,6 +6,7 @@ import 'package:q_link/features/shared/profile/presentation/pages/connect_device
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/profile_management_page.dart';
 import 'package:q_link/features/shared/home/presentation/widgets/video_logo_widget.dart';
+import 'package:q_link/features/shared/home/presentation/widgets/header_widget.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
