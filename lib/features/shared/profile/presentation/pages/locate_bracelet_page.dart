@@ -100,7 +100,7 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                           ),
                         ),
                         
-                        const Spacer(),
+                        const SizedBox(height: 20),
 
                         // Radar Animation
                         Stack(
@@ -112,8 +112,8 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                                 builder: (context, child) {
                                   double progress = (_animationController.value + index / 3) % 1;
                                   return Container(
-                                    width: 300 * progress,
-                                    height: 300 * progress,
+                                    width: 260 * progress,
+                                    height: 260 * progress,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(
@@ -165,7 +165,7 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                           ],
                         ),
 
-                        const Spacer(flex: 2),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
