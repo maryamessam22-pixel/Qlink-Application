@@ -3,8 +3,9 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/localization/app_localization.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_setup_intro_page.dart';
-import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
-import 'package:q_link/core/widgets/language_toggle.dart';
+import 'package:q_link/features/wearer/presentation/widgets/wearer_header.dart';
+import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.dart';
+import 'package:q_link/features/wearer/health/presentation/pages/wearer_health_page.dart';
 
 class WearerMainPage extends StatefulWidget {
   final bool isConnected;
@@ -16,7 +17,6 @@ class WearerMainPage extends StatefulWidget {
 
 class _WearerMainPageState extends State<WearerMainPage> {
   late bool isConnected;
-  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -38,38 +38,7 @@ class _WearerMainPageState extends State<WearerMainPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
-                  Row(
-                    children: [
-                      VideoLogoWidget(),
-                      const SizedBox(width: 8),
-                      const CircleAvatar(
-                        radius: 16,
-                        backgroundColor: Colors.transparent,
-                        backgroundImage: AssetImage('assets/images/mypic.png'),
-                      ),
-                      const Spacer(),
-                      const LanguageToggle(),
-                      const SizedBox(width: 16),
-                      Stack(
-                        children: [
-                          const Icon(Icons.notifications_none, color: Color(0xFF1E3A8A), size: 28),
-                          Positioned(
-                            right: 2,
-                            top: 2,
-                            child: Container(
-                              width: 10,
-                              height: 10,
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                  const WearerHeader(),
                   const SizedBox(height: 24),
 
                   // Greeting
@@ -285,7 +254,17 @@ class _WearerMainPageState extends State<WearerMainPage> {
               ),
             ),
           ),
-          bottomNavigationBar: _buildBottomNav(appState),
+          bottomNavigationBar: WearerBottomNav(
+            currentIndex: 0,
+            onTap: (index) {
+              if (index == 1) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const WearerHealthPage()),
+                );
+              }
+            },
+          ),
         );
       },
     );
@@ -498,59 +477,6 @@ class _WearerMainPageState extends State<WearerMainPage> {
               fontSize: 12,
               color: Colors.grey.shade400,
               fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNav(AppState appState) {
-    return Container(
-      margin: const EdgeInsets.all(24),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildNavItem(LucideIcons.home, appState.tr('Home', 'الرئيسية'), 0),
-          _buildNavItem(LucideIcons.heartPulse, appState.tr('Health', 'الصحة'), 1),
-          _buildNavItem(LucideIcons.layoutGrid, appState.tr('QR Code', 'كود QR'), 2),
-          _buildNavItem(LucideIcons.settings, appState.tr('Settings', 'الإعدادات'), 3),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, int index) {
-    bool isActive = _selectedIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: isActive ? const Color(0xFF1B64F2) : Colors.grey.shade400,
-            size: 24,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: isActive ? const Color(0xFF1B64F2) : Colors.grey.shade400,
-              fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
             ),
           ),
         ],
