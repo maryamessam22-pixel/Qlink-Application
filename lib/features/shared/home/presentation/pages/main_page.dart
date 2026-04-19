@@ -6,6 +6,7 @@ import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
 import 'package:q_link/features/shared/map/presentation/pages/map_page.dart';
 import 'package:q_link/features/shared/vault/presentation/pages/vault_page.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/add_profile_identity.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/settings_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -22,7 +23,7 @@ class _MainPageState extends State<MainPage> {
     const MapPage(),
     const Center(child: Text('Actions')),
     const VaultPage(),
-    const Center(child: Text('Settings View')),
+    const SettingsPage(),
   ];
 
   @override

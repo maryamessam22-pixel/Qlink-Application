@@ -28,15 +28,22 @@ class HeaderWidget extends StatelessWidget {
               const Spacer(),
               LanguageToggle(),
               const SizedBox(width: 16),
-              const SizedBox(width: 16),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SettingsPage()),
-                  );
-                },
-                child: const Icon(LucideIcons.settings, color: Color(0xFF1E3A8A), size: 26),
+              Stack(
+                children: [
+                  const Icon(Icons.notifications_none, color: Color(0xFF1E3A8A), size: 28),
+                  Positioned(
+                    right: 2,
+                    top: 2,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
