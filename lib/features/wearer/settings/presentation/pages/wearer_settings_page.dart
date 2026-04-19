@@ -8,6 +8,9 @@ import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.
 import 'package:q_link/features/wearer/health/presentation/pages/wearer_health_page.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_qr_page.dart';
 import 'package:q_link/features/shared/settings/presentation/pages/edit_profile_page.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/privacy_policy_page.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/help_center_page.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/qr_scan_history_page.dart';
 
 class WearerSettingsPage extends StatefulWidget {
   const WearerSettingsPage({super.key});
@@ -89,6 +92,16 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                     title: appState.tr('Find My Bracelet', 'العثور على سواري'),
                     onTap: () {},
                   ),
+                  _buildSettingsItem(
+                    icon: LucideIcons.history,
+                    title: appState.tr('QR Scan History', 'سجل مسح QR'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const QrScanHistoryPage(isWearer: true)),
+                      );
+                    },
+                  ),
                   
                   const SizedBox(height: 24),
                   
@@ -97,7 +110,12 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                   _buildSettingsItem(
                     icon: LucideIcons.shieldCheck,
                     title: appState.tr('Privacy Policy', 'سياسة الخصوصية'),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PrivacyPolicyPage(isWearer: true)),
+                      );
+                    },
                   ),
                   
                   const SizedBox(height: 24),
@@ -115,7 +133,12 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                           icon: LucideIcons.helpCircle,
                           title: appState.tr('Help Center', 'مركز المساعدة'),
                           noMargin: true,
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const HelpCenterPage(isWearer: true)),
+                            );
+                          },
                         ),
                         Divider(height: 1, color: Colors.grey.shade100, indent: 60),
                         Padding(
