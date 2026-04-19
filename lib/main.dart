@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
-import 'features/shared/splash/presentation/pages/choose_role_page.dart';
+import 'features/auth/splash/choose_role_page.dart';
 import 'core/state/app_state.dart';
 
 void main() {
