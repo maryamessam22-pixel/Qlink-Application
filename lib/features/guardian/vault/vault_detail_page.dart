@@ -5,29 +5,15 @@ import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
 
+import 'package:q_link/core/models/patient_profile.dart';
+
 class VaultDetailPage extends StatelessWidget {
-  final String name;
-  final String imagePath;
-  final String monitoredSince;
-  final String statusLabel;
-  final Color statusColor;
-  final String bloodType;
-  final String condition;
-  final String allergies;
-  final List<Map<String, String>> emergencyContacts;
+  final PatientProfile profile;
   final List<Map<String, String>> documents;
 
   const VaultDetailPage({
     super.key,
-    required this.name,
-    required this.imagePath,
-    required this.monitoredSince,
-    required this.statusLabel,
-    required this.statusColor,
-    required this.bloodType,
-    required this.condition,
-    required this.allergies,
-    required this.emergencyContacts,
+    required this.profile,
     required this.documents,
   });
 
@@ -116,6 +102,8 @@ class VaultDetailPage extends StatelessWidget {
 
   Widget _buildProfileHeader() {
     final appState = AppState();
+    final statusColor = profile.status ? const Color(0xFF22C55E) : const Color(0xFFEF4444);
+    final statusLabel = profile.status ? appState.tr('SECURE', 'آمن') : appState.tr('ALERT', 'تنبيه');
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -129,7 +117,11 @@ class VaultDetailPage extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 32,
-            backgroundImage: AssetImage(imagePath),
+            backgroundImage: profile.avatarUrl.isEmpty
+                ? const AssetImage('assets/images/mypic.png')
+                : (profile.avatarUrl.startsWith('http')
+                    ? NetworkImage(profile.avatarUrl)
+                    : AssetImage(profile.avatarUrl)) as ImageProvider,
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -137,7 +129,7 @@ class VaultDetailPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  name,
+                  profile.profileName,
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
@@ -146,7 +138,7 @@ class VaultDetailPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  appState.tr('Monitored User Since $monitoredSince', 'مستخدم مراقب منذ $monitoredSince'),
+                  appState.tr('Monitored Since ${profile.createdAt.year}', 'مستخدم مراقب منذ ${profile.createdAt.year}'),
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey.shade500,
@@ -182,6 +174,9 @@ class VaultDetailPage extends StatelessWidget {
 
   Widget _buildMedicalSummary() {
     final appState = AppState();
+    final condition = appState.isArabic ? (profile.medicalNotesAr.isNotEmpty ? profile.medicalNotesAr : profile.medicalNotesEn) : profile.medicalNotesEn;
+    final allergies = appState.isArabic ? (profile.allergiesAr.isNotEmpty ? profile.allergiesAr : profile.allergiesEn) : profile.allergiesEn;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -198,7 +193,7 @@ class VaultDetailPage extends StatelessWidget {
           icon: Icons.bloodtype_outlined,
           iconColor: const Color(0xFFEF4444),
           label: appState.tr('Blood Type', 'فصيلة الدم'),
-          value: bloodType,
+          value: profile.bloodType,
           valueColor: const Color(0xFFEF4444),
         ),
         const Divider(height: 1, color: Color(0xFFF3F4F6)),
@@ -275,6 +270,9 @@ class VaultDetailPage extends StatelessWidget {
 
   Widget _buildEmergencyContacts() {
     final appState = AppState();
+    final primary = profile.emergencyContacts['primary'] ?? {};
+    final secondary = profile.emergencyContacts['secondary'] ?? {};
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -287,11 +285,18 @@ class VaultDetailPage extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
-        ...emergencyContacts.map((contact) => _buildContactRow(
-              name: contact['name'] ?? '',
-              role: contact['role'] ?? '',
-              imagePath: contact['image'] ?? 'assets/images/mypic.png',
-            )),
+        if (primary.isNotEmpty)
+          _buildContactRow(
+            name: primary['name'] ?? '',
+            role: appState.tr(primary['relation'] ?? '', primary['relation'] ?? ''),
+            imagePath: 'assets/images/mypic.png',
+          ),
+        if (secondary.isNotEmpty)
+          _buildContactRow(
+            name: secondary['name'] ?? '',
+            role: appState.tr(secondary['relation'] ?? '', secondary['relation'] ?? ''),
+            imagePath: 'assets/images/mypic.png',
+          ),
       ],
     );
   }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:q_link/core/models/patient_profile.dart';
+import 'package:q_link/services/supabase_service.dart';
 import 'package:q_link/features/guardian/home/home_page.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 import 'package:q_link/features/guardian/vault/vault_detail_page.dart';
@@ -28,90 +30,69 @@ class _VaultPageState extends State<VaultPage> {
                 horizontal: 20.0,
                 vertical: 16.0,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildAppBar(),
-                  const SizedBox(height: 20),
-                  _buildSearchBar(),
-                  const SizedBox(height: 24),
-                  _buildMonitoredProfilesHeader(),
-                  const SizedBox(height: 16),
-                  _buildProfileCard(
-                    name: appState.tr('Mohamed Saber', 'محمد صابر'),
-                    role: appState.tr('Monitored User', 'مستخدم مراقب'),
-                    imagePath: 'assets/images/Mohamed Saber.png',
-                    recordCount: 12,
-                    lastUpdate: appState.tr('2h ago', 'منذ ساعتين'),
-                    statusLabel: appState.tr('SECURE', 'آمن'),
-                    statusColor: const Color(0xFF22C55E),
-                    onOpenVault: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => VaultDetailPage(
-                            name: appState.tr('Mohamed Saber', 'محمد صابر'),
-                            imagePath: 'assets/images/Mohamed Saber.png',
-                            monitoredSince: '2024',
-                            statusLabel: appState.tr('SECURE', 'آمن'),
-                            statusColor: const Color(0xFF22C55E),
-                            bloodType: 'A+',
-                            condition: appState.tr('Hypertension', 'ضغط الدم'),
-                            allergies: appState.tr('Aspirin', 'أسبرين'),
-                            emergencyContacts: [
-                              {'name': appState.tr('Mariam Essam', 'مريم عصام'), 'role': appState.tr('Guardian', 'وصي'), 'image': 'assets/images/mypic.png'},
-                              {'name': appState.tr('Ahmed Saber', 'أحمد صابر'), 'role': appState.tr('Brother', 'أخ'), 'image': 'assets/images/Ahmed Saber.png'},
-                            ],
-                            documents: [
-                              {'title': appState.tr('Medical Report 2024', 'تقرير طبي 2024'), 'subtitle': 'PDF • 3.1 MB', 'type': 'PDF'},
-                              {'title': appState.tr('Cardiology Results', 'نتائج القلب'), 'subtitle': 'DOCX • 1.8 MB', 'type': 'DOCX'},
-                              {'title': appState.tr('Insurance Card', 'بطاقة التأمين'), 'subtitle': 'JPG • 920 KB', 'type': 'JPG'},
-                            ],
-                          ),
+              child: FutureBuilder<List<PatientProfile>>(
+                future: SupabaseService().fetchPatientProfiles(),
+                builder: (context, snapshot) {
+                  final profiles = snapshot.data ?? [];
+                  
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildAppBar(),
+                      const SizedBox(height: 20),
+                      _buildSearchBar(),
+                      const SizedBox(height: 24),
+                      _buildMonitoredProfilesHeader(profiles.length),
+                      const SizedBox(height: 16),
+                      
+                      if (snapshot.connectionState == ConnectionState.waiting)
+                        const Center(child: CircularProgressIndicator(color: Color(0xFF1B64F2)))
+                      else if (profiles.isEmpty)
+                        Center(child: Text(appState.tr('No profiles found', 'لا توجد ملفات حالياً')))
+                      else
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: profiles.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 16),
+                          itemBuilder: (context, index) {
+                            final profile = profiles[index];
+                            final statusColor = profile.status ? const Color(0xFF22C55E) : const Color(0xFFEF4444);
+                            final statusLabel = profile.status ? appState.tr('SECURE', 'آمن') : appState.tr('ALERT', 'تنبيه');
+                            
+                            return _buildProfileCard(
+                              name: profile.profileName,
+                              role: appState.tr(profile.relationshipToGuardian, profile.relationshipToGuardian),
+                              imagePath: profile.avatarUrl.isNotEmpty ? profile.avatarUrl : 'assets/images/mypic.png',
+                              isNetworkImage: profile.avatarUrl.isNotEmpty,
+                              recordCount: 5, // Mock for now, could be fetched
+                              lastUpdate: appState.tr('Latest', 'الأحدث'),
+                              statusLabel: statusLabel,
+                              statusColor: statusColor,
+                              onOpenVault: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => VaultDetailPage(
+                                      profile: profile,
+                                      documents: [
+                                        {'title': appState.tr('Medical Report', 'تقرير طبي'), 'subtitle': 'PDF • 3.1 MB', 'type': 'PDF'},
+                                        {'title': appState.tr('Insurance Card', 'بطاقة التأمين'), 'subtitle': 'JPG • 850 KB', 'type': 'JPG'},
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _buildProfileCard(
-                    name: appState.tr('Karma Ahmed', 'كارما أحمد'),
-                    role: appState.tr('Monitored User', 'مستخدم مراقب'),
-                    imagePath: 'assets/images/karma.png',
-                    recordCount: 8,
-                    lastUpdate: appState.tr('Just now', 'الآن'),
-                    statusLabel: appState.tr('UPDATED', 'مُحدث'),
-                    statusColor: const Color(0xFF1B64F2),
-                    onOpenVault: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => VaultDetailPage(
-                            name: appState.tr('Karma Ahmed', 'كارما أحمد'),
-                            imagePath: 'assets/images/karma.png',
-                            monitoredSince: '2025',
-                            statusLabel: appState.tr('SECURE', 'آمن'),
-                            statusColor: const Color(0xFF22C55E),
-                            bloodType: 'O+',
-                            condition: appState.tr('Diabetes Type 1', 'سكر من النوع الأول'),
-                            allergies: appState.tr('Penicillin', 'بنسلين'),
-                            emergencyContacts: [
-                              {'name': appState.tr('Mariam Essam', 'مريم عصام'), 'role': appState.tr('Mom', 'أم'), 'image': 'assets/images/mypic.png'},
-                              {'name': appState.tr('Ahmed Mazen', 'أحمد مازن'), 'role': appState.tr('Dad', 'أب'), 'image': 'assets/images/Ahmed Mazen.png'},
-                            ],
-                            documents: [
-                              {'title': appState.tr('Medical Report 2020', 'تقرير طبي 2020'), 'subtitle': 'PDF • 2.4 MB', 'type': 'PDF'},
-                              {'title': appState.tr('Latest Prescription', 'أحدث روشتة'), 'subtitle': 'DOCX • 1.1 MB', 'type': 'DOCX'},
-                              {'title': appState.tr('Insurance Card', 'بطاقة التأمين'), 'subtitle': 'JPG • 850 KB', 'type': 'JPG'},
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  _buildHealthSecurityTip(),
-                  const SizedBox(height: 120),
-                ],
+                      
+                      const SizedBox(height: 24),
+                      _buildHealthSecurityTip(),
+                      const SizedBox(height: 120),
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -210,7 +191,7 @@ class _VaultPageState extends State<VaultPage> {
     );
   }
 
-  Widget _buildMonitoredProfilesHeader() {
+  Widget _buildMonitoredProfilesHeader(int count) {
     final appState = AppState();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -228,7 +209,7 @@ class _VaultPageState extends State<VaultPage> {
             ),
             const SizedBox(height: 4),
             Text(
-              appState.tr('2 active medical profiles linked', 'يوجد 2 ملفات طبية نشطة مرتبطة'),
+              appState.tr('$count active medical profiles linked', 'يوجد $count ملفات طبية نشطة مرتبطة'),
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.grey.shade500,
@@ -252,6 +233,7 @@ class _VaultPageState extends State<VaultPage> {
     required String name,
     required String role,
     required String imagePath,
+    bool isNetworkImage = false,
     required int recordCount,
     required String lastUpdate,
     required String statusLabel,
@@ -284,7 +266,9 @@ class _VaultPageState extends State<VaultPage> {
             children: [
               CircleAvatar(
                 radius: 28,
-                backgroundImage: AssetImage(imagePath),
+                backgroundImage: isNetworkImage 
+                    ? NetworkImage(imagePath) 
+                    : AssetImage(imagePath) as ImageProvider,
               ),
               const SizedBox(width: 14),
               Expanded(

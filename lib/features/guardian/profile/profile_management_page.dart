@@ -11,6 +11,7 @@ import 'package:q_link/features/guardian/vault/vault_detail_page.dart';
 import 'package:q_link/features/guardian/profile/public_preview_qr_page.dart';
 import 'package:q_link/features/guardian/profile/locate_bracelet_page.dart';
 import 'package:q_link/features/guardian/profile/connected_device_page.dart';
+import 'package:q_link/core/models/patient_profile.dart';
 
 class ProfileManagementPage extends StatelessWidget {
   final int profileIndex;
@@ -198,31 +199,42 @@ class ProfileManagementPage extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => VaultDetailPage(
-                                  name: profile.name,
-                                  imagePath: profile.imagePath,
-                                  monitoredSince: appState.tr(
-                                    'Since connected',
-                                    'منذ الاتصال',
+                                  profile: PatientProfile(
+                                    id: '',
+                                    guardianId: '',
+                                    profileName: profile.name,
+                                    relationshipToGuardian: profile.relationship,
+                                    birthYear: 0,
+                                    age: 0,
+                                    emergencyContacts: {
+                                      'primary': {
+                                        'name': mappedContacts.isNotEmpty ? mappedContacts[0]['name'] : '',
+                                        'relation': profile.relationship,
+                                      }
+                                    },
+                                    bloodType: profile.bloodType,
+                                    safetyNotesEn: '',
+                                    allergiesEn: profile.allergies,
+                                    medicalNotesEn: profile.condition,
+                                    medicalNotesAr: '',
+                                    status: profile.hasDevice,
+                                    avatarUrl: profile.imagePath, // Use the local image path
+                                    seoSlug: '',
+                                    metaTitleEn: '',
+                                    metaDescriptionEn: '',
+                                    featuredImageAltEn: '',
+                                    safetyNotesAr: '',
+                                    allergiesAr: '',
+                                    metaTitleAr: '',
+                                    metaDescriptionAr: '',
+                                    featuredImageAltAr: '',
+                                    createdAt: DateTime.now(),
                                   ),
-                                  statusLabel: profile.hasDevice
-                                      ? appState.tr('Active', 'نشط')
-                                      : appState.tr(
-                                          'No Device',
-                                          'لا يوجد جهاز',
-                                        ),
-                                  statusColor: profile.hasDevice
-                                      ? const Color(0xFFE8F5E9)
-                                      : const Color(0xFFFDE8E8),
-                                  bloodType: profile.bloodType,
-                                  condition: profile.condition,
-                                  allergies: profile.allergies,
-                                  emergencyContacts: mappedContacts,
                                   documents: const [
                                     {
                                       'title': 'Medical Document',
-                                      'date': 'Just now',
-                                      'size': '1.2 MB',
-                                      'format': 'PDF',
+                                      'subtitle': 'PDF • 1.2 MB',
+                                      'type': 'PDF',
                                     },
                                   ],
                                 ),

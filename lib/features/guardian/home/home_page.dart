@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:q_link/core/models/patient_profile.dart';
+import 'package:q_link/services/supabase_service.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:video_player/video_player.dart';
 import 'package:q_link/features/guardian/profile/add_profile_identity.dart';
@@ -35,10 +37,14 @@ class HomePage extends StatelessWidget {
               HeaderWidget(),
 
               // Dynamic Stats and Status
-              AnimatedBuilder(
-                animation: AppState(),
-                builder: (context, _) {
+              FutureBuilder<List<PatientProfile>>(
+                future: SupabaseService().fetchPatientProfiles(),
+                builder: (context, snapshot) {
                   final appState = AppState();
+                  final profiles = snapshot.data ?? [];
+                  final actualProfileCount = profiles.length;
+                  final activeDeviceCount = profiles.where((p) => p.status).length;
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -80,25 +86,25 @@ class HomePage extends StatelessWidget {
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
-                                          color: (appState.deviceCount > 0 
+                                          color: (activeDeviceCount > 0 
                                             ? const Color(0xFF0E9F6E) 
                                             : const Color(0xFFD1D5DB)).withValues(alpha: 0.5),
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                         child: Text(
-                                          appState.tr(appState.deviceCount > 0 ? 'ONLINE' : 'OFFLINE', 
-                                                      appState.deviceCount > 0 ? 'متصل' : 'غير متصل'),
+                                          appState.tr(activeDeviceCount > 0 ? 'ONLINE' : 'OFFLINE', 
+                                                      activeDeviceCount > 0 ? 'متصل' : 'غير متصل'),
                                           style: TextStyle(
                                             fontSize: 10, 
                                             fontWeight: FontWeight.bold, 
-                                            color: appState.deviceCount > 0 ? Colors.white : const Color(0xFF4B5563)
+                                            color: activeDeviceCount > 0 ? Colors.white : const Color(0xFF4B5563)
                                           ),
                                         ),
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 16),
-                                  Text('${appState.deviceCount}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1B64F2))),
+                                  Text('$activeDeviceCount', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1B64F2))),
                                   Text(appState.tr('Active Devices', 'أجهزة نشطة'), style: const TextStyle(fontSize: 13, color: Color(0xFF1B64F2))),
                                 ],
                               ),
@@ -122,7 +128,7 @@ class HomePage extends StatelessWidget {
                                     ],
                                   ),
                                   const SizedBox(height: 16),
-                                  Text('${appState.profileCount}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0E9F6E))),
+                                  Text('$actualProfileCount', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0E9F6E))),
                                   Text(appState.tr('Protected Members', 'الأعضاء المحميون'), style: const TextStyle(fontSize: 13, color: Color(0xFF0E9F6E))),
                                 ],
                               ),
@@ -136,14 +142,14 @@ class HomePage extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: appState.deviceCount > 0 ? const Color(0xFFDEF7EC) : const Color(0xFFEAF8F0),
-                          border: Border.all(color: appState.deviceCount > 0 ? const Color(0xFF84E1BC) : const Color(0xFFB4E6C9)),
+                          color: activeDeviceCount > 0 ? const Color(0xFFDEF7EC) : const Color(0xFFEAF8F0),
+                          border: Border.all(color: activeDeviceCount > 0 ? const Color(0xFF84E1BC) : const Color(0xFFB4E6C9)),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.check_circle, color: appState.deviceCount > 0 ? const Color(0xFF0E9F6E) : const Color(0xFF0E9F6E)),
+                            Icon(Icons.check_circle, color: activeDeviceCount > 0 ? const Color(0xFF0E9F6E) : const Color(0xFF0E9F6E)),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
@@ -152,8 +158,8 @@ class HomePage extends StatelessWidget {
                                   Text(appState.tr('System Status', 'حالة النظام'), style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0E9F6E))),
                                   const SizedBox(height: 4),
                                   Text(
-                                    appState.deviceCount > 0 
-                                      ? appState.tr('System fully active. ${appState.deviceCount} device(s) linked.', 'النظام يعمل بالكامل. ${appState.deviceCount} جهاز متصل.')
+                                    activeDeviceCount > 0 
+                                      ? appState.tr('System fully active. $activeDeviceCount device(s) linked.', 'النظام يعمل بالكامل. $activeDeviceCount جهاز متصل.')
                                       : appState.tr('No devices connected till now. No alerts detected.', 'لا توجد أجهزة متصلة حتى الآن. لم يتم رصد أي تنبيهات.'), 
                                     style: TextStyle(fontSize: 13, color: Colors.grey.shade700)
                                   ),
@@ -170,11 +176,12 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Dynamic Protected Member Section
-              AnimatedBuilder(
-                animation: AppState(),
-                builder: (context, _) {
+              FutureBuilder<List<PatientProfile>>(
+                future: SupabaseService().fetchPatientProfiles(),
+                builder: (context, snapshot) {
                   final appState = AppState();
-                  if (appState.profiles.isEmpty) return const SizedBox.shrink();
+                  final profiles = snapshot.data ?? [];
+                  if (profiles.isEmpty && snapshot.connectionState != ConnectionState.waiting) return const SizedBox.shrink();
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -202,9 +209,12 @@ class HomePage extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      ...appState.profiles.asMap().entries.map((entry) {
-                        return _buildProtectedMemberCard(context, entry.key, entry.value);
-                      }),
+                      if (snapshot.connectionState == ConnectionState.waiting)
+                        const Center(child: CircularProgressIndicator())
+                      else
+                        ...profiles.asMap().entries.map((entry) {
+                          return _buildProtectedMemberCard(context, entry.key, entry.value);
+                        }),
                       const SizedBox(height: 24),
                     ],
                   );
@@ -424,7 +434,8 @@ class HomePage extends StatelessWidget {
   );
 }
 
-  Widget _buildProtectedMemberCard(BuildContext context, int index, ProfileData profile) {
+  Widget _buildProtectedMemberCard(BuildContext context, int index, PatientProfile profile) {
+    final appState = AppState();
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
@@ -451,15 +462,17 @@ class HomePage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
-                child: profile.imagePath.contains('mypic') 
-                  ? Text(
-                      profile.name.isNotEmpty ? profile.name[0].toUpperCase() : '?', 
-                      style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)
-                    )
-                  : ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(profile.imagePath, fit: BoxFit.cover, width: 60, height: 60),
-                    ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: profile.avatarUrl.isEmpty
+                      ? Text(
+                          profile.profileName.isNotEmpty ? profile.profileName[0].toUpperCase() : '?', 
+                          style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)
+                        )
+                      : (profile.avatarUrl.startsWith('http')
+                          ? Image.network(profile.avatarUrl, fit: BoxFit.cover, width: 60, height: 60)
+                          : Image.asset(profile.avatarUrl, fit: BoxFit.cover, width: 60, height: 60)),
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -469,24 +482,25 @@ class HomePage extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          profile.name,
+                          profile.profileName,
                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
                         ),
-                        if (profile.hasDevice) ...[
+                        if (profile.status) ...[
                           const SizedBox(width: 8),
                           const Icon(Icons.circle, color: Color(0xFF0E9F6E), size: 10),
                           const SizedBox(width: 4),
                           Text(
-                            profile.devices.first.deviceType.contains('"') 
-                              ? profile.devices.first.deviceType.split('"')[1]
-                              : profile.devices.first.deviceType, 
+                            appState.tr('Active', 'نشط'),
                             style: const TextStyle(fontSize: 12, color: Colors.grey)
                           ),
                         ],
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(profile.relationship, style: const TextStyle(color: Colors.grey)),
+                    Text(
+                      appState.tr(profile.relationshipToGuardian, profile.relationshipToGuardian), 
+                      style: const TextStyle(color: Colors.grey)
+                    ),
                   ],
                 ),
               ),
@@ -498,12 +512,21 @@ class HomePage extends StatelessWidget {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {
+                    // Navigate to profile management - passing converted data for now
+                    // In a full refactor, ProfileManagementPage would also take PatientProfile
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => ProfileManagementPage(
                           profileIndex: index,
-                          profile: profile,
+                          profile: ProfileData(
+                            name: profile.profileName,
+                            imagePath: profile.avatarUrl,
+                            relationship: profile.relationshipToGuardian,
+                            bloodType: profile.bloodType,
+                            condition: profile.medicalNotesEn,
+                            allergies: profile.allergiesEn,
+                          ),
                         ),
                       ),
                     );
@@ -519,7 +542,7 @@ class HomePage extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: profile.hasDevice 
+                child: profile.status
                   ? OutlinedButton.icon(
                       onPressed: () {},
                       icon: const Icon(Icons.check_circle, color: Colors.purple, size: 18),
@@ -552,7 +575,10 @@ class HomePage extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Text(AppState().tr('Home - Just now', 'المنزل - الآن'), style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+              Text(
+                appState.tr('Last update: Today', 'آخر تحديث: اليوم'), 
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade500)
+              ),
             ],
           ),
         ],
