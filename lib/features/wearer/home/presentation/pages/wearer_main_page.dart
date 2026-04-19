@@ -8,6 +8,7 @@ import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.da
 import 'package:q_link/features/wearer/health/presentation/pages/wearer_health_page.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_qr_page.dart';
 import 'package:q_link/features/wearer/settings/presentation/pages/wearer_settings_page.dart';
+import 'package:q_link/features/wearer/profile/presentation/pages/wearer_hardware_link_page.dart';
 
 class WearerMainPage extends StatefulWidget {
   final bool isConnected;
@@ -331,7 +332,7 @@ class _WearerMainPageState extends State<WearerMainPage> {
             onTap: () {
                Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const WearerSetupIntroPage()),
+                MaterialPageRoute(builder: (_) => const WearerHardwareLinkPage()),
               );
             },
             child: Container(
