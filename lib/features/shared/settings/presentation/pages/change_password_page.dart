@@ -13,6 +13,18 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   bool _obscureNew = true;
   bool _obscureConfirm = true;
 
+  final TextEditingController _currentController = TextEditingController();
+  final TextEditingController _newController = TextEditingController();
+  final TextEditingController _confirmController = TextEditingController();
+
+  @override
+  void dispose() {
+    _currentController.dispose();
+    _newController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -65,6 +77,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                           _buildPasswordField(
                             label: appState.tr('Current Password', 'كلمة المرور الحالية'),
                             hint: appState.tr('Enter current password', 'أدخل كلمة المرور الحالية'),
+                            controller: _currentController,
                             obscure: _obscureCurrent,
                             onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
                           ),
@@ -72,6 +85,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                           _buildPasswordField(
                             label: appState.tr('New Password', 'كلمة المرور الجديدة'),
                             hint: appState.tr('At least 8 characters', '8 أحرف على الأقل'),
+                            controller: _newController,
                             obscure: _obscureNew,
                             onToggle: () => setState(() => _obscureNew = !_obscureNew),
                           ),
@@ -79,6 +93,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                           _buildPasswordField(
                             label: appState.tr('Confirm New Password', 'تأكيد كلمة المرور الجديدة'),
                             hint: appState.tr('Re-enter new password', 'أعد إدخال كلمة المرور الجديدة'),
+                            controller: _confirmController,
                             obscure: _obscureConfirm,
                             onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
                           ),
@@ -88,7 +103,24 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                if (_currentController.text != appState.currentUser.password) {
+                                  _showMsg(appState.tr('Current password is incorrect', 'كلمة المرور الحالية غير صحيحة'));
+                                  return;
+                                }
+                                if (_newController.text.length < 8) {
+                                  _showMsg(appState.tr('New password is too short', 'كلمة المرور الجديدة قصيرة جداً'));
+                                  return;
+                                }
+                                if (_newController.text != _confirmController.text) {
+                                  _showMsg(appState.tr('Passwords do not match', 'كلمات المرور غير متطابقة'));
+                                  return;
+                                }
+
+                                appState.updateCurrentUser(password: _newController.text);
+                                _showMsg(appState.tr('Password updated successfully', 'تم تحديث كلمة المرور بنجاح'));
+                                Navigator.pop(context);
+                              },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1B64F2),
                                 foregroundColor: Colors.white,
@@ -115,9 +147,14 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     );
   }
 
+  void _showMsg(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
   Widget _buildPasswordField({
     required String label,
     required String hint,
+    required TextEditingController controller,
     required bool obscure,
     required VoidCallback onToggle,
   }) {
@@ -130,6 +167,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         ),
         const SizedBox(height: 12),
         TextField(
+          controller: controller,
           obscureText: obscure,
           decoration: InputDecoration(
             hintText: hint,

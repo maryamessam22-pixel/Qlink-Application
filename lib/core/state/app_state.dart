@@ -65,10 +65,42 @@ class DeviceData {
   });
 }
 
+class UserProfile {
+  String name;
+  String email;
+  String password;
+  String imagePath;
+
+  UserProfile({
+    required this.name,
+    required this.email,
+    required this.password,
+    required this.imagePath,
+  });
+}
+
 class AppState extends ChangeNotifier {
   static final AppState _instance = AppState._internal();
   factory AppState() => _instance;
   AppState._internal();
+
+  // Current logged in user profile
+  UserProfile _currentUser = UserProfile(
+    name: 'Mariam Essam',
+    email: 'maryamessam22@gmail.com',
+    password: 'password123',
+    imagePath: 'assets/images/mypic.png',
+  );
+
+  UserProfile get currentUser => _currentUser;
+
+  void updateCurrentUser({String? name, String? email, String? password, String? imagePath}) {
+    if (name != null) _currentUser.name = name;
+    if (email != null) _currentUser.email = email;
+    if (password != null) _currentUser.password = password;
+    if (imagePath != null) _currentUser.imagePath = imagePath;
+    notifyListeners();
+  }
 
   final List<ProfileData> _profiles = [];
 

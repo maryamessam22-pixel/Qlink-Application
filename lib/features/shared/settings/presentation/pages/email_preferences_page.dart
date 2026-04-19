@@ -9,7 +9,19 @@ class EmailPreferencesPage extends StatefulWidget {
 }
 
 class _EmailPreferencesPageState extends State<EmailPreferencesPage> {
-  final TextEditingController _emailController = TextEditingController(text: 'maryamessam22@gmail.com');
+  late TextEditingController _emailController;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController(text: AppState().currentUser.email);
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,18 +91,33 @@ class _EmailPreferencesPageState extends State<EmailPreferencesPage> {
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
                               ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFF1B64F2), width: 1.5),
+                              ),
                             ),
                             style: const TextStyle(color: Color(0xFF4B5563), fontSize: 13),
                           ),
-                          const SizedBox(height: 32),
-
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 80),
 
                           // Save Button
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                if (!_emailController.text.contains('@')) {
+                                   ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(appState.tr('Invalid email address', 'عنوان بريد إلكتروني غير صالح'))),
+                                  );
+                                  return;
+                                }
+
+                                appState.updateCurrentUser(email: _emailController.text);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(appState.tr('Email updated successfully', 'تم تحديث البريد الإلكتروني بنجاح'))),
+                                );
+                                Navigator.pop(context);
+                              },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1B64F2),
                                 foregroundColor: Colors.white,

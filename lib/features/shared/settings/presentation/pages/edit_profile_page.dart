@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/shared/settings/presentation/pages/change_password_page.dart';
 import 'package:q_link/features/shared/settings/presentation/pages/email_preferences_page.dart';
@@ -12,7 +14,31 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  final TextEditingController _nameController = TextEditingController(text: 'Mariam Essam');
+  late TextEditingController _nameController;
+  final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: AppState().currentUser.name);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        AppState().updateCurrentUser(imagePath: image.path);
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +46,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
+        final user = appState.currentUser;
+
         return Scaffold(
           backgroundColor: const Color(0xFFF7F9FC),
           body: Container(
@@ -80,23 +108,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                       ),
                                     ],
                                   ),
-                                  child: const ClipOval(
-                                    child: Image(
-                                      image: AssetImage('assets/images/mypic.png'),
-                                      fit: BoxFit.cover,
-                                    ),
+                                  child: ClipOval(
+                                    child: _buildProfileImage(user.imagePath),
                                   ),
                                 ),
                                 Positioned(
                                   bottom: 0,
                                   right: 0,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFF1B64F2),
-                                      shape: BoxShape.circle,
+                                  child: GestureDetector(
+                                    onTap: _pickImage,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFF1B64F2),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(LucideIcons.camera, color: Colors.white, size: 20),
                                     ),
-                                    child: const Icon(LucideIcons.camera, color: Colors.white, size: 20),
                                   ),
                                 ),
                               ],
@@ -140,7 +168,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           const SizedBox(height: 20),
                           _buildNavigationField(
                             label: appState.tr('Email Address', 'البريد الإلكتروني'),
-                            value: 'maryamessam22@gmail.com',
+                            value: user.email,
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -155,6 +183,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: () {
+                                appState.updateCurrentUser(name: _nameController.text);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text(appState.tr('Changes saved successfully', 'تم حفظ التغييرات بنجاح'))),
                                 );
@@ -183,6 +212,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
         );
       },
     );
+  }
+
+  Widget _buildProfileImage(String path) {
+    if (path.startsWith('assets')) {
+      return Image.asset(path, fit: BoxFit.cover);
+    } else {
+      return Image.file(File(path), fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) {
+        return const Icon(Icons.person, size: 60, color: Color(0xFF1B64F2));
+      });
+    }
   }
 
   Widget _buildTextField({

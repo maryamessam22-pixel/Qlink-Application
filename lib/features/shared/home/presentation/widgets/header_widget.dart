@@ -20,10 +20,15 @@ class HeaderWidget extends StatelessWidget {
             children: [
               const VideoLogoWidget(),
               const SizedBox(width: 8),
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 16,
                 backgroundColor: Colors.transparent,
-                backgroundImage: AssetImage('assets/images/mypic.png'),
+                backgroundImage: appState.currentUser.imagePath.startsWith('assets')
+                    ? AssetImage(appState.currentUser.imagePath)
+                    : null, // Update this if file-based images are used
+                child: !appState.currentUser.imagePath.startsWith('assets') 
+                    ? const Icon(Icons.person, color: Color(0xFF1E3A8A)) 
+                    : null,
               ),
               const Spacer(),
               LanguageToggle(),
