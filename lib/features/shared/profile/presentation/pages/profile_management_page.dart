@@ -8,8 +8,8 @@ import 'package:q_link/features/shared/profile/presentation/pages/connect_device
 import 'package:q_link/features/shared/profile/presentation/pages/privacy_control_page.dart';
 import 'package:q_link/features/shared/vault/presentation/pages/vault_detail_page.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/public_preview_qr_page.dart';
-import 'package:q_link/features/shared/profile/presentation/pages/connected_device_page.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/locate_bracelet_page.dart';
+import 'package:q_link/features/shared/profile/presentation/pages/connected_device_page.dart';
 
 class ProfileManagementPage extends StatelessWidget {
   final int profileIndex;
@@ -259,26 +259,6 @@ class ProfileManagementPage extends StatelessWidget {
                         const SizedBox(height: 16),
 
                         // Device Section
-                        if (profile.hasDevice)
-                          _buildActionItem(
-                            icon: Icons.watch_outlined,
-                            title: appState.tr(
-                              'Connected Device',
-                              'الجهاز المتصل',
-                            ),
-                            subtitle: profile.devices.first.code.toUpperCase(),
-                            color: Colors.green,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const ConnectedDevicePage(),
-                                ),
-                              );
-                            },
-                          ),
-
                         _buildActionItem(
                           icon: Icons.add_circle_outline,
                           title: appState.tr('Add Device', 'إضافة جهاز'),
@@ -295,13 +275,39 @@ class ProfileManagementPage extends StatelessWidget {
                           },
                         ),
 
+                        if (profile.hasDevice)
+                          _buildActionItem(
+                            icon: Icons.watch_outlined,
+                            title: appState.tr('Connected Device', 'الجهاز المتصل'),
+                            color: const Color(0xFF0E9F6E),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ConnectedDevicePage(
+                                    profile: profile,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+
                         _buildActionItem(
                           icon: Icons.my_location_outlined,
                           title: appState.tr(
                             'Find My Bracelet',
                             'البحث عن سواري',
                           ),
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LocateBraceletPage(
+                                  profile: profile,
+                                ),
+                              ),
+                            );
+                          },
                         ),
 
                         const SizedBox(height: 16),

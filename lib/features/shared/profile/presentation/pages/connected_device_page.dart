@@ -67,42 +67,49 @@ class ConnectedDevicePage extends StatelessWidget {
                               ),
                               child: Center(
                                 child: Image.asset(
-                                  'assets/images/pulse.png', // Assuming pulse.png matches the design
+                                  'assets/images/pulse.png',
                                   width: 100,
                                   errorBuilder: (context, error, stackTrace) => const Icon(Icons.watch_outlined, size: 60, color: Color(0xFF273469)),
                                 ),
                               ),
                             ),
-                            Container(
-                              width: 14,
-                              height: 14,
-                              margin: const EdgeInsets.only(right: 15, bottom: 15),
-                              decoration: BoxDecoration(
-                                color: Colors.green,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
+                            if (profile.hasDevice && profile.devices.first.isConnected)
+                              Container(
+                                width: 14,
+                                height: 14,
+                                margin: const EdgeInsets.only(right: 15, bottom: 15),
+                                decoration: BoxDecoration(
+                                  color: Colors.green,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2),
+                                ),
                               ),
-                            ),
                           ],
                         ),
 
                         const SizedBox(height: 20),
                         Text(
-                          'Qlink Pulse',
-                          style: TextStyle(
+                          profile.hasDevice ? profile.devices.first.deviceType : 'Unknown Device',
+                          style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF1E3A8A),
+                            color: Color(0xFF1E3A8A),
                           ),
                         ),
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.check_circle, color: Colors.green, size: 16),
+                            Icon(
+                              profile.hasDevice && profile.devices.first.isConnected ? Icons.check_circle : Icons.error_outline,
+                              color: profile.hasDevice && profile.devices.first.isConnected ? Colors.green : Colors.red,
+                              size: 16,
+                            ),
                             const SizedBox(width: 6),
                             Text(
-                              appState.tr('Connected via Bluetooth', 'متصل عبر البلوتوث'),
+                              profile.hasDevice && profile.devices.first.isConnected
+                                  ? appState.tr('Connected via Bluetooth', 'متصل عبر البلوتوث')
+                                  : appState.tr('Disconnected', 'غير متصل'),
                               style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                             ),
                           ],
@@ -114,24 +121,28 @@ class ConnectedDevicePage extends StatelessWidget {
                         _buildStatusCard(
                           context,
                           icon: Icons.battery_charging_full,
-                          iconColor: Colors.green,
+                          iconColor: profile.hasDevice && profile.devices.first.batteryLevel > 20 ? Colors.green : Colors.red,
                           title: appState.tr('Battery Status', 'حالة البطارية'),
-                          value: '85%',
+                          value: profile.hasDevice ? '${profile.devices.first.batteryLevel}%' : '--%',
                           child: Column(
                             children: [
                               const SizedBox(height: 12),
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(4),
                                 child: LinearProgressIndicator(
-                                  value: 0.85,
+                                  value: profile.hasDevice ? profile.devices.first.batteryLevel / 100.0 : 0.0,
                                   minHeight: 8,
                                   backgroundColor: Colors.grey.shade100,
-                                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    profile.hasDevice && profile.devices.first.batteryLevel > 20 ? Colors.green : Colors.red,
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                appState.tr('Last charged 2 hours ago • ~3 days remaining', 'تم الشحن منذ ساعتين • متبقي حوالي 3 أيام'),
+                                profile.hasDevice 
+                                  ? appState.tr('Real-time battery monitoring active', 'مراقبة البطارية في الوقت الفعلي نشطة')
+                                  : appState.tr('No device data available', 'لا توجد بيانات للجهاز'),
                                 style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
                               ),
                             ],
@@ -149,7 +160,12 @@ class ConnectedDevicePage extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Icon(Icons.signal_cellular_alt, color: Colors.green, size: 20),
+                              Text(
+                                profile.hasDevice ? profile.devices.first.signalStrength : '--',
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF273469)),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.signal_cellular_alt, color: Colors.green, size: 20),
                             ],
                           ),
                         ),
@@ -169,9 +185,9 @@ class ConnectedDevicePage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        _buildInfoRow(appState.tr('Serial Number', 'الرقم التسلسلي'), 'QLINK-PULSE-8A3F2E'),
+                        _buildInfoRow(appState.tr('Serial Number', 'الرقم التسلسلي'), profile.hasDevice ? profile.devices.first.code : 'N/A'),
                         _buildInfoRow(appState.tr('Firmware Version', 'إصدار البرنامج'), 'v2.4.12-rc', isBadge: true),
-                        _buildInfoRow(appState.tr('Hardware ID', 'معرف الأجهزة'), 'B4:F1:A2:99:C3:00'),
+                        _buildInfoRow(appState.tr('Connected At', 'تاريخ الاتصال'), profile.hasDevice ? profile.devices.first.connectedAt.toString().split(' ')[0] : 'N/A'),
 
                         const SizedBox(height: 32),
 

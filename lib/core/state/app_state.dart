@@ -51,11 +51,17 @@ class DeviceData {
   final String deviceType;
   final String code;
   final DateTime connectedAt;
+  final int batteryLevel;
+  final String signalStrength;
+  final bool isConnected;
 
   DeviceData({
     required this.deviceType,
     required this.code,
     required this.connectedAt,
+    this.batteryLevel = 100,
+    this.signalStrength = 'Strong',
+    this.isConnected = true,
   });
 }
 

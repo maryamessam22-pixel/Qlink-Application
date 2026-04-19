@@ -30,14 +30,34 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
     super.dispose();
   }
 
+  bool _isRinging = false;
+
+  void _triggerRing() {
+    setState(() {
+      _isRinging = true;
+    });
+    
+    // Simulate ringing for 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          _isRinging = false;
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hasDevice = widget.profile.hasDevice;
+    final device = hasDevice ? widget.profile.devices.first : null;
+
     return AnimatedBuilder(
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
         return Scaffold(
-          backgroundColor: const Color(0xFF131A2A), // Same as preview background
+          backgroundColor: const Color(0xFF131A2A),
           body: Column(
             children: [
               // Top Section with Radar
@@ -94,8 +114,8 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: Colors.white.withValues(alpha: (1 - progress) * 0.3),
-                                        width: 2,
+                                        color: _isRinging ? Colors.green.withValues(alpha: (1 - progress) * 0.5) : Colors.white.withValues(alpha: (1 - progress) * 0.3),
+                                        width: _isRinging ? 3 : 2,
                                       ),
                                     ),
                                   );
@@ -106,16 +126,16 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                               width: 80,
                               height: 80,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1B64F2),
+                                color: _isRinging ? Colors.green : const Color(0xFF1B64F2),
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF1B64F2).withValues(alpha: 0.4),
+                                    color: (_isRinging ? Colors.green : const Color(0xFF1B64F2)).withValues(alpha: 0.4),
                                     blurRadius: 20,
                                   ),
                                 ],
                               ),
-                              child: const Icon(Icons.location_on, color: Colors.white, size: 32),
+                              child: Icon(_isRinging ? Icons.notifications_active : Icons.location_on, color: Colors.white, size: 32),
                             ),
                             Positioned(
                               bottom: -40,
@@ -127,7 +147,9 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                                   border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                                 ),
                                 child: Text(
-                                  appState.tr('SCANNING...', 'جاري المسح...'),
+                                  _isRinging 
+                                    ? appState.tr('RINGING...', 'جاري الرنين...')
+                                    : appState.tr('SCANNING...', 'جاري المسح...'),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 12,
@@ -196,14 +218,14 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                                       Container(
                                         width: 10,
                                         height: 10,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.green,
+                                        decoration: BoxDecoration(
+                                          color: device?.isConnected == true ? Colors.green : Colors.red,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        appState.tr('Connected', 'متصل'),
+                                        device?.isConnected == true ? appState.tr('Connected', 'متصل') : appState.tr('Disconnected', 'غير متصل'),
                                         style: TextStyle(
                                           color: Colors.grey.shade600,
                                           fontWeight: FontWeight.w500,
@@ -219,16 +241,16 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                               children: [
                                 Row(
                                   children: [
-                                    const Text(
-                                      '79%',
-                                      style: TextStyle(
+                                    Text(
+                                      device != null ? '${device.batteryLevel}%' : '--%',
+                                      style: const TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.w800,
                                         color: Color(0xFF273469),
                                       ),
                                     ),
                                     const SizedBox(width: 8),
-                                    Icon(Icons.battery_std, color: Colors.green.shade400, size: 28),
+                                    Icon(Icons.battery_std, color: device != null && device.batteryLevel > 20 ? Colors.green.shade400 : Colors.red.shade400, size: 28),
                                   ],
                                 ),
                                 Text(
@@ -247,10 +269,15 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
 
                         const SizedBox(height: 32),
                         Text(
-                          appState.tr(
-                            'Bracelet is nearby. You can trigger a sound to help the wearer locate it.',
-                            'السوار قريب. يمكنك تفعيل صوت لمساعدة مرتدي السوار في العثور عليه.',
-                          ),
+                          device?.isConnected == true
+                            ? appState.tr(
+                                'Bracelet is nearby. You can trigger a sound to help the wearer locate it.',
+                                'السوار قريب. يمكنك تفعيل صوت لمساعدة مرتدي السوار في العثور عليه.',
+                              )
+                            : appState.tr(
+                                'Bracelet is out of range or turned off.',
+                                'السوار خارج النطاق أو مغلق.',
+                              ),
                           style: TextStyle(
                             color: Colors.grey.shade600,
                             fontSize: 15,
@@ -278,7 +305,7 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                               ),
                               const Spacer(),
                               Text(
-                                appState.tr('Medium Signal', 'إشارة متوسطة'),
+                                device != null ? appState.tr(device.signalStrength, device.signalStrength) : '--',
                                 style: const TextStyle(
                                   color: Color(0xFF273469),
                                   fontWeight: FontWeight.bold,
@@ -298,10 +325,10 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
 
                         // Ring Button
                         ElevatedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.notifications_active_outlined, color: Colors.white),
+                          onPressed: (device?.isConnected == true && !_isRinging) ? _triggerRing : null,
+                          icon: Icon(_isRinging ? Icons.volume_up : Icons.notifications_active_outlined, color: Colors.white),
                           label: Text(
-                            appState.tr('Ring Bracelet', 'رنين السوار'),
+                            _isRinging ? appState.tr('STOP RINGING', 'إيقاف الرنين') : appState.tr('Ring Bracelet', 'رنين السوار'),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -309,11 +336,12 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                             ),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF1B64F2),
+                            backgroundColor: _isRinging ? Colors.red : const Color(0xFF1B64F2),
                             minimumSize: const Size(double.infinity, 64),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(32),
                             ),
+                            disabledBackgroundColor: Colors.grey.shade300,
                             elevation: 0,
                           ),
                         ),
