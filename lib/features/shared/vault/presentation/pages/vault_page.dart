@@ -4,6 +4,7 @@ import 'package:q_link/features/shared/home/presentation/widgets/video_logo_widg
 import 'package:q_link/features/shared/vault/presentation/pages/vault_detail_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
+import 'package:q_link/features/shared/home/presentation/widgets/bottom_nav_widget.dart';
 
 class VaultPage extends StatefulWidget {
   const VaultPage({super.key});
