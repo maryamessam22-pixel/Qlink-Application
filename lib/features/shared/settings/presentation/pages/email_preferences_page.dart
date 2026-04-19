@@ -10,7 +10,6 @@ class EmailPreferencesPage extends StatefulWidget {
 
 class _EmailPreferencesPageState extends State<EmailPreferencesPage> {
   final TextEditingController _emailController = TextEditingController(text: 'maryamessam22@gmail.com');
-  bool _notificationsEnabled = true;
 
   @override
   Widget build(BuildContext context) {
@@ -85,46 +84,7 @@ class _EmailPreferencesPageState extends State<EmailPreferencesPage> {
                           ),
                           const SizedBox(height: 32),
 
-                          Text(
-                            appState.tr('Notifications', 'الإشعارات'),
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF273469)),
-                          ),
-                          const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFE5E7EB)),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        appState.tr('At least 8 characters', '8 أحرف على الأقل'),
-                                        style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 14),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        appState.tr('Critical bracelet notification', 'إشعار سوار حرج'),
-                                        style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Switch(
-                                  value: _notificationsEnabled,
-                                  onChanged: (v) => setState(() => _notificationsEnabled = v),
-                                  activeColor: Colors.white,
-                                  activeTrackColor: const Color(0xFF3F83F8),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 80),
+                          const SizedBox(height: 32),
 
                           // Save Button
                           SizedBox(
