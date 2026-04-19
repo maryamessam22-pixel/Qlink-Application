@@ -308,7 +308,7 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
                         ),
                         MarkerLayer(
                           markers: [
-                            // Show the selected member at the center (simulated)
+                            // Show ONLY the selected member at the center
                             if (_selectedMember != null)
                               Marker(
                                 point: const LatLng(30.0444, 31.2357),
@@ -320,17 +320,6 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
                                   hasStatusDot: true,
                                 ),
                               ),
-                            
-                            // Show other members at different locations
-                            Marker(
-                              point: const LatLng(30.0480, 31.2390),
-                              width: 80,
-                              height: 80,
-                              child: _buildProfileMarker(
-                                name: 'Karma',
-                                imagePath: 'assets/images/karma.png',
-                              ),
-                            ),
                           ],
                         ),
                       ],

@@ -21,6 +21,7 @@ class _VaultPageState extends State<VaultPage> {
         final appState = AppState();
         return Scaffold(
           backgroundColor: const Color(0xFFF7F9FC),
+          bottomNavigationBar: BottomNavWidget(),
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
