@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
+import 'package:q_link/core/state/app_state.dart'; // مسار الـ AppState عشان الترجمة
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -9,129 +12,151 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
+  // كنترولر الخريطة عشان نتحكم في الزووم
+  final MapController _mapController = MapController();
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
+    return AnimatedBuilder(
+      animation: AppState(),
+      builder: (context, _) {
+        final appState = AppState();
+        final isArabic = appState.isArabic;
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: Stack(
+            children: [
+              _buildRealMap(isArabic), // الخريطة الحقيقية
+              _buildTopSection(isArabic, appState),
+              _buildGeofencingChip(isArabic, appState),
+              _buildNavigationButton(),
+              _buildMapControls(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRealMap(bool isArabic) {
+    return Positioned.fill(
+      top: 180, // نفس المسافة بتاعتك عشان تفضل تحت الـ Top Section
+      child: FlutterMap(
+        mapController: _mapController,
+        options: const MapOptions(
+          initialCenter: LatLng(30.0444, 31.2357), // إحداثيات القاهرة
+          initialZoom: 13.0,
+        ),
         children: [
-          _buildMapBackground(),
-          _buildTopSection(),
-          _buildGeofencingChip(),
-          _buildNavigationButton(),
-          _buildMapControls(),
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'com.qlink.app',
+          ),
+          MarkerLayer(
+            markers: [
+              Marker(
+                point: const LatLng(30.0500, 31.2300),
+                width: 100,
+                height: 100,
+                child: _buildProfileMarker(
+                  name: isArabic ? 'محمد صابر' : 'MOHAMED SABER',
+                  imagePath: 'assets/images/Mohamed Saber.png',
+                  hasStatusDot: false,
+                ),
+              ),
+              Marker(
+                point: const LatLng(30.0350, 31.2450),
+                width: 100,
+                height: 100,
+                child: _buildProfileMarker(
+                  name: isArabic ? 'كارما أحمد' : 'KARMA AHMED',
+                  imagePath: 'assets/images/karma.png',
+                  hasStatusDot: true,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildMapBackground() {
-    return Positioned.fill(
-      top: 180,
-      child: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFFE8EDEB),
-        ),
-        child: Stack(
-          children: [
-            // Simulated map grid lines
-            CustomPaint(
-              size: Size.infinite,
-              painter: _MapGridPainter(),
-            ),
-            // Profile markers on map
-            _buildProfileMarker(
-              left: 80,
-              top: 60,
-              name: 'MOHAMED SABER',
-              imagePath: 'assets/images/Mohamed Saber.png',
-              hasStatusDot: false,
-            ),
-            _buildProfileMarker(
-              left: 200,
-              top: 160,
-              name: 'KARMA AHMED',
-              imagePath: 'assets/images/karma.png',
-              hasStatusDot: true,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
+  // شيلنا الـ Positioned من هنا عشان الـ Marker في الخريطة هو اللي بيحدد المكان
   Widget _buildProfileMarker({
-    required double left,
-    required double top,
     required String name,
     required String imagePath,
     bool hasStatusDot = false,
   }) {
-    return Positioned(
-      left: left,
-      top: top,
-      child: Column(
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFE8D5C4),
-                    width: 3,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha:0.15),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFFE8D5C4),
+                  width: 3,
                 ),
-                child: CircleAvatar(
-                  radius: 23,
-                  backgroundImage: AssetImage(imagePath),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 23,
+                backgroundImage: AssetImage(imagePath),
+              ),
+            ),
+            if (hasStatusDot)
+              Positioned(
+                right: 2,
+                bottom: 2,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF22C55E),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 2,
+                    ),
+                  ),
                 ),
               ),
-              if (hasStatusDot)
-                Positioned(
-                  right: 2,
-                  bottom: 2,
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF22C55E),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+          ],
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(10),
           ),
-          const SizedBox(height: 6),
-          Text(
+          child: Text(
             name,
             style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
               color: Color(0xFF374151),
               letterSpacing: 0.5,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildTopSection() {
+  Widget _buildTopSection(bool isArabic, AppState appState) {
     return Positioned(
       top: 0,
       left: 0,
@@ -141,7 +166,7 @@ class _MapPageState extends State<MapPage> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha:0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -159,9 +184,9 @@ class _MapPageState extends State<MapPage> {
               children: [
                 _buildAppBar(),
                 const SizedBox(height: 16),
-                const Text(
-                  'Map',
-                  style: TextStyle(
+                Text(
+                  appState.tr('Map', 'الخريطة'),
+                  style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF1E3A8A),
@@ -169,7 +194,7 @@ class _MapPageState extends State<MapPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '2 Bracelets  Active',
+                  appState.tr('2 Bracelets Active', '2 أساور نشطة'),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade500,
@@ -177,7 +202,7 @@ class _MapPageState extends State<MapPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildSearchBar(),
+                _buildSearchBar(appState),
                 const SizedBox(height: 8),
               ],
             ),
@@ -229,7 +254,7 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(AppState appState) {
     return Container(
       height: 48,
       decoration: BoxDecoration(
@@ -251,7 +276,7 @@ class _MapPageState extends State<MapPage> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Search saved places...',
+              appState.tr('Search saved places...', 'ابحث عن الأماكن المحفوظة...'),
               style: TextStyle(
                 color: Colors.grey.shade400,
                 fontSize: 14,
@@ -261,7 +286,7 @@ class _MapPageState extends State<MapPage> {
           Container(
             width: 36,
             height: 36,
-            margin: const EdgeInsets.only(right: 6),
+            margin: const EdgeInsets.only(right: 6, left: 6),
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
               shape: BoxShape.circle,
@@ -277,7 +302,7 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Widget _buildGeofencingChip() {
+  Widget _buildGeofencingChip(bool isArabic, AppState appState) {
     return Positioned(
       left: 20,
       bottom: 130,
@@ -291,7 +316,7 @@ class _MapPageState extends State<MapPage> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha:0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -304,7 +329,7 @@ class _MapPageState extends State<MapPage> {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha:0.15),
+                color: Colors.white.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -314,9 +339,9 @@ class _MapPageState extends State<MapPage> {
               ),
             ),
             const SizedBox(width: 8),
-            const Text(
-              'Geofencing',
-              style: TextStyle(
+            Text(
+              appState.tr('Geofencing', 'السياج الجغرافي'),
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -340,7 +365,7 @@ class _MapPageState extends State<MapPage> {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1B64F2).withValues(alpha:0.35),
+              color: const Color(0xFF1B64F2).withValues(alpha: 0.35),
               blurRadius: 14,
               offset: const Offset(0, 5),
             ),
@@ -361,7 +386,10 @@ class _MapPageState extends State<MapPage> {
       bottom: 200,
       child: Column(
         children: [
-          _buildMapControlButton(Icons.add),
+          _buildMapControlButton(Icons.add, () {
+            // زووم ان
+            _mapController.move(_mapController.camera.center, _mapController.camera.zoom + 1);
+          }),
           const SizedBox(height: 2),
           Container(
             width: 40,
@@ -369,88 +397,38 @@ class _MapPageState extends State<MapPage> {
             color: Colors.grey.shade300,
           ),
           const SizedBox(height: 2),
-          _buildMapControlButton(Icons.remove),
+          _buildMapControlButton(Icons.remove, () {
+            // زووم اوت
+            _mapController.move(_mapController.camera.center, _mapController.camera.zoom - 1);
+          }),
         ],
       ),
     );
   }
 
-  Widget _buildMapControlButton(IconData icon) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha:0.1),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Icon(
-        icon,
-        color: Colors.grey.shade700,
-        size: 20,
+  Widget _buildMapControlButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(
+          icon,
+          color: Colors.grey.shade700,
+          size: 20,
+        ),
       ),
     );
   }
-}
-
-class _MapGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFD1D5DB).withValues(alpha:0.4)
-      ..strokeWidth = 0.5;
-
-    // Draw horizontal grid lines
-    for (double y = 0; y < size.height; y += 60) {
-      canvas.drawLine(
-        Offset(0, y),
-        Offset(size.width, y),
-        paint,
-      );
-    }
-
-    // Draw vertical grid lines
-    for (double x = 0; x < size.width; x += 60) {
-      canvas.drawLine(
-        Offset(x, 0),
-        Offset(x, size.height),
-        paint,
-      );
-    }
-
-    // Draw some road-like lines
-    final roadPaint = Paint()
-      ..color = const Color(0xFFFFFFFF).withValues(alpha:0.7)
-      ..strokeWidth = 4;
-
-    // Horizontal road
-    canvas.drawLine(
-      Offset(0, size.height * 0.4),
-      Offset(size.width, size.height * 0.4),
-      roadPaint,
-    );
-
-    // Vertical road
-    canvas.drawLine(
-      Offset(size.width * 0.35, 0),
-      Offset(size.width * 0.35, size.height),
-      roadPaint,
-    );
-
-    // Diagonal road
-    canvas.drawLine(
-      Offset(0, size.height * 0.7),
-      Offset(size.width, size.height * 0.3),
-      roadPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
