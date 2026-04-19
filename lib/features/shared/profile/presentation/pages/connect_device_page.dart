@@ -5,6 +5,7 @@ import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/syncing_page.dart';
+import 'package:q_link/features/shared/home/presentation/widgets/video_logo_widget.dart';
 
 class ConnectDevicePage extends StatefulWidget {
   final int? targetProfileIndex;
@@ -104,7 +105,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   Widget _buildAppBar() {
     return Row(
       children: [
-        const VideoLogoWidget(),
+        VideoLogoWidget(),
         const SizedBox(width: 8),
         const CircleAvatar(
           radius: 16,

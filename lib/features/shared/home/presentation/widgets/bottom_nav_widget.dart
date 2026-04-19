@@ -66,7 +66,7 @@ class BottomNavWidget extends StatelessWidget {
                             PageRouteBuilder(
                               pageBuilder:
                                   (context, animation, secondaryAnimation) =>
-                                      const AddProfileIdentity(),
+                                      AddProfileIdentity(),
                               transitionsBuilder:
                                   (
                                     context,

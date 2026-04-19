@@ -31,7 +31,7 @@ class HomePage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Custom App Bar Header
-              const HeaderWidget(),
+              HeaderWidget(),
 
               // Dynamic Stats and Status
               AnimatedBuilder(

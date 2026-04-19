@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
+import 'package:q_link/features/shared/home/presentation/widgets/video_logo_widget.dart';
 import 'package:q_link/features/shared/vault/presentation/pages/vault_detail_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
@@ -122,7 +123,7 @@ class _VaultPageState extends State<VaultPage> {
     final appState = AppState();
     return Row(
       children: [
-        const VideoLogoWidget(),
+        VideoLogoWidget(),
         const SizedBox(width: 8),
         const CircleAvatar(
           radius: 16,

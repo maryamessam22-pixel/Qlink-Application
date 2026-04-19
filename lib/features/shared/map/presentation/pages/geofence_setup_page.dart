@@ -27,7 +27,7 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
         final appState = AppState();
         return Scaffold(
           backgroundColor: const Color(0xFFF7F9FC),
-          bottomNavigationBar: const BottomNavWidget(),
+          bottomNavigationBar: BottomNavWidget(),
           body: SafeArea(
             child: Column(
               children: [
@@ -124,8 +124,8 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
         
         // Static examples if profiles is empty for simulation
         if (appState.profiles.isEmpty) ...[
-          _buildMemberCard(appState, ProfileData(name: 'Mohamed', code: '123', connectedAt: 'Now', imagePath: 'assets/images/Mohamed Saber.png')),
-          _buildMemberCard(appState, ProfileData(name: 'Karma', code: '456', connectedAt: 'Now', imagePath: 'assets/images/karma.png')),
+          _buildMemberCard(appState, ProfileData(name: 'Mohamed', imagePath: 'assets/images/Mohamed Saber.png', relationship: 'Father')),
+          _buildMemberCard(appState, ProfileData(name: 'Karma', imagePath: 'assets/images/karma.png', relationship: 'Daughter')),
         ],
 
         _buildAddMemberCard(appState),

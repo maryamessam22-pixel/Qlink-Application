@@ -5,6 +5,8 @@ import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
 import 'package:q_link/features/shared/settings/presentation/pages/settings_page.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
+import 'package:q_link/features/shared/home/presentation/widgets/video_logo_widget.dart';
+
 class HeaderWidget extends StatelessWidget {
   const HeaderWidget({super.key});
 
@@ -18,7 +20,7 @@ class HeaderWidget extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 30.0),
           child: Row(
             children: [
-              const VideoLogoWidget(),
+              VideoLogoWidget(),
               const SizedBox(width: 8),
               CircleAvatar(
                 radius: 16,

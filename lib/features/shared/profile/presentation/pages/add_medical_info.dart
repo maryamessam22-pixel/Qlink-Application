@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:q_link/features/shared/home/presentation/widgets/video_logo_widget.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
 import 'package:q_link/features/shared/profile/presentation/pages/connect_device_page.dart';
@@ -193,7 +194,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
   Widget _buildAppBar() {
     return Row(
       children: [
-        const VideoLogoWidget(),
+        VideoLogoWidget(),
         const SizedBox(width: 8),
         const CircleAvatar(
           radius: 16,

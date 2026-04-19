@@ -223,7 +223,7 @@ class _MapPageState extends State<MapPage> {
   Widget _buildAppBar() {
     return Row(
       children: [
-        const VideoLogoWidget(),
+        VideoLogoWidget(),
         const SizedBox(width: 8),
         const CircleAvatar(
           radius: 16,
@@ -346,47 +346,48 @@ class _MapPageState extends State<MapPage> {
           );
         },
         child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 10,
-        ),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 10,
+          ),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E293B),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
-              child: const Icon(
-                Icons.radar,
-                color: Colors.white,
-                size: 14,
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.radar,
+                  color: Colors.white,
+                  size: 14,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              appState.tr('Geofencing', 'السياج الجغرافي'),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+              const SizedBox(width: 8),
+              Text(
+                appState.tr('Geofencing', 'السياج الجغرافي'),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
