@@ -13,11 +13,19 @@ class GeofenceSetupPage extends StatefulWidget {
 }
 
 class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
+  final MapController _mapController = MapController();
   int _currentStep = 1; // 1: Select Member, 2: Define Zone, 3: Success
   ProfileData? _selectedMember;
   double _radius = 500;
   bool _alertsEnabled = true;
   final TextEditingController _zoneNameController = TextEditingController(text: 'Home');
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    _zoneNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -273,32 +281,77 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
                   boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.1), blurRadius: 20)],
                 ),
                 clipBehavior: Clip.hardEdge,
-                child: FlutterMap(
-                  options: const MapOptions(
-                    initialCenter: LatLng(30.0444, 31.2357),
-                    initialZoom: 14.5,
-                  ),
+                child: Stack(
                   children: [
-                    TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
-                    CircleLayer(
-                      circles: [
-                        CircleMarker(
-                          point: const LatLng(30.0444, 31.2357),
-                          radius: _radius,
-                          useRadiusInMeter: true,
-                          color: const Color(0xFF1B64F2).withValues(alpha: 0.15),
-                          borderColor: const Color(0xFF1B64F2),
-                          borderStrokeWidth: 2,
+                    FlutterMap(
+                      mapController: _mapController,
+                      options: const MapOptions(
+                        initialCenter: LatLng(30.0444, 31.2357),
+                        initialZoom: 14.5,
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.qlink.app',
+                        ),
+                        CircleLayer(
+                          circles: [
+                            CircleMarker(
+                              point: const LatLng(30.0444, 31.2357),
+                              radius: _radius,
+                              useRadiusInMeter: true,
+                              color: const Color(0xFF1B64F2).withValues(alpha: 0.15),
+                              borderColor: const Color(0xFF1B64F2),
+                              borderStrokeWidth: 2,
+                            ),
+                          ],
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            // Show the selected member at the center (simulated)
+                            if (_selectedMember != null)
+                              Marker(
+                                point: const LatLng(30.0444, 31.2357),
+                                width: 80,
+                                height: 80,
+                                child: _buildProfileMarker(
+                                  name: _selectedMember!.name,
+                                  imagePath: _selectedMember!.imagePath,
+                                  hasStatusDot: true,
+                                ),
+                              ),
+                            
+                            // Show other members at different locations
+                            Marker(
+                              point: const LatLng(30.0480, 31.2390),
+                              width: 80,
+                              height: 80,
+                              child: _buildProfileMarker(
+                                name: 'Karma',
+                                imagePath: 'assets/images/karma.png',
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    const MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: LatLng(30.0444, 31.2357),
-                          child: Icon(Icons.location_on, color: Color(0xFF1B64F2), size: 40),
-                        ),
-                      ],
+                    // Zoom Controls
+                    Positioned(
+                      right: 12,
+                      top: 12,
+                      child: Column(
+                        children: [
+                          _buildMapToolButton(Icons.add, () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom + 1)),
+                          const SizedBox(height: 8),
+                          _buildMapToolButton(Icons.remove, () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom - 1)),
+                        ],
+                      ),
+                    ),
+                    // Layers Toggle Icon (Static)
+                    Positioned(
+                      right: 12,
+                      bottom: 12,
+                      child: _buildMapToolButton(Icons.layers, () {}),
                     ),
                   ],
                 ),
@@ -530,6 +583,78 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+    );
+  }
+
+  Widget _buildMapToolButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)],
+        ),
+        child: Icon(icon, color: const Color(0xFF1E3A8A), size: 20),
+      ),
+    );
+  }
+
+  Widget _buildProfileMarker({
+    required String name,
+    required String imagePath,
+    bool hasStatusDot = false,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)],
+              ),
+              child: CircleAvatar(
+                radius: 20,
+                backgroundImage: AssetImage(imagePath),
+              ),
+            ),
+            if (hasStatusDot)
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF22C55E),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            name,
+            style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
+          ),
+        ),
+      ],
     );
   }
 }
