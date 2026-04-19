@@ -3,6 +3,9 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/home/presentation/widgets/header_widget.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/edit_profile_page.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/change_password_page.dart';
+import 'package:q_link/features/shared/settings/presentation/pages/email_preferences_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -27,9 +30,9 @@ class _SettingsPageState extends State<SettingsPage> {
             height: double.infinity,
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/home_bg.png'),
+                image: AssetImage('assets/images/bg.png'),
                 fit: BoxFit.cover,
-                opacity: 0.03,
+                opacity: 0.05,
               ),
             ),
             child: SafeArea(
@@ -69,19 +72,34 @@ class _SettingsPageState extends State<SettingsPage> {
                             _buildListTile(
                               icon: Icons.person_outline,
                               title: appState.tr('Edit Profile', 'تعديل الملف الشخصي'),
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const EditProfilePage()),
+                                );
+                              },
                             ),
                             _buildDivider(),
                             _buildListTile(
                               icon: LucideIcons.lock,
                               title: appState.tr('Change Password', 'تغيير كلمة المرور'),
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const ChangePasswordPage()),
+                                );
+                              },
                             ),
                             _buildDivider(),
                             _buildListTile(
                               icon: LucideIcons.mail,
                               title: appState.tr('Email Preferences', 'تفضيلات البريد الإلكتروني'),
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const EmailPreferencesPage()),
+                                );
+                              },
                             ),
                           ]),
 
