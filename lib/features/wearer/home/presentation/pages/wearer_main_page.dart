@@ -6,6 +6,8 @@ import 'package:q_link/features/wearer/profile/presentation/pages/wearer_setup_i
 import 'package:q_link/features/wearer/presentation/widgets/wearer_header.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.dart';
 import 'package:q_link/features/wearer/health/presentation/pages/wearer_health_page.dart';
+import 'package:q_link/features/wearer/profile/presentation/pages/wearer_qr_page.dart';
+import 'package:q_link/features/wearer/settings/presentation/pages/wearer_settings_page.dart';
 
 class WearerMainPage extends StatefulWidget {
   final bool isConnected;
@@ -266,6 +268,11 @@ class _WearerMainPageState extends State<WearerMainPage> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (_) => const WearerQrPage()),
+                );
+              } else if (index == 3) {
+                 Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const WearerSettingsPage()),
                 );
               }
             },
