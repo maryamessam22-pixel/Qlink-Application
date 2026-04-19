@@ -4,6 +4,7 @@ import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/localization/app_localization.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
+import 'package:q_link/features/wearer/profile/presentation/pages/wearer_hardware_link_page.dart';
 
 class WearerMedicalPage extends StatefulWidget {
   const WearerMedicalPage({super.key});
@@ -230,11 +231,6 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                   ),
                   
                   const SizedBox(height: 48),
-                  
-import 'package:q_link/features/wearer/profile/presentation/pages/wearer_hardware_link_page.dart';
-
-// ... inside _WearerMedicalPageState builder ...
-
                   // Continue Button
                   GestureDetector(
                     onTap: () {
