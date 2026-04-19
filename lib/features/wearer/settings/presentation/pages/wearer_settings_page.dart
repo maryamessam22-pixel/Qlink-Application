@@ -92,6 +92,7 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                     title: appState.tr('Find My Bracelet', 'العثور على سواري'),
                     onTap: () {},
                   ),
+                  const SizedBox(height: 12),
                   _buildSettingsItem(
                     icon: LucideIcons.history,
                     title: appState.tr('QR Scan History', 'سجل مسح QR'),
