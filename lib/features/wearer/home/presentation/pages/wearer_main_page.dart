@@ -262,6 +262,11 @@ class _WearerMainPageState extends State<WearerMainPage> {
                   context,
                   MaterialPageRoute(builder: (_) => const WearerHealthPage()),
                 );
+              } else if (index == 2) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const WearerQrPage()),
+                );
               }
             },
           ),

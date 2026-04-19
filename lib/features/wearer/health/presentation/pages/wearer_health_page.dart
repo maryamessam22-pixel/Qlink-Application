@@ -5,6 +5,7 @@ import 'package:q_link/core/localization/app_localization.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_header.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.dart';
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
+import 'package:q_link/features/wearer/profile/presentation/pages/wearer_qr_page.dart';
 
 class WearerHealthPage extends StatefulWidget {
   const WearerHealthPage({super.key});
@@ -243,8 +244,12 @@ class _WearerHealthPageState extends State<WearerHealthPage> {
                   context,
                   MaterialPageRoute(builder: (_) => const WearerMainPage(isConnected: true)),
                 );
+              } else if (index == 2) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const WearerQrPage()),
+                );
               }
-              // Add other routes as they are created
             },
           ),
         );
