@@ -197,13 +197,13 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                 elevation: 0,
-              ),
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildScannerView(AppState appState) {
     return Stack(
