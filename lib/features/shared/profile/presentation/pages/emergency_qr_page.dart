@@ -138,14 +138,7 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
         
         // QR Container
         GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PublicPreviewQrPage(profile: widget.profile),
-              ),
-            );
-          },
+          onTap: () => _showAccessSimulationDialog(appState),
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -302,6 +295,102 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
           child: _buildCircleAction(LucideIcons.flashlight, () => _scannerController.toggleTorch()),
         ),
       ],
+    );
+  }
+
+  void _showAccessSimulationDialog(AppState appState) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 24,
+          right: 24,
+          top: 32,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Icon(LucideIcons.shieldAlert, color: Color(0xFF1B64F2), size: 48),
+            const SizedBox(height: 20),
+            Text(
+              appState.tr(
+                'QR Code Captured!',
+                'تم التقاط رمز QR..'
+              ),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1F2937)),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              appState.tr(
+                'Please enter your phone number for secure access to patient data.',
+                'يرجى إدخال رقم هاتفك للوصول الآمن لبيانات المريض.'
+              ),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600, height: 1.5),
+            ),
+            const SizedBox(height: 32),
+            TextField(
+              keyboardType: TextInputType.phone,
+              textAlign: appState.isArabic ? TextAlign.right : TextAlign.left,
+              decoration: InputDecoration(
+                hintText: appState.tr('+20 000 000 0000', '+20 000 000 0000'),
+                filled: true,
+                fillColor: const Color(0xFFF9FAFB),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                ),
+                prefixIcon: const Icon(LucideIcons.phone, size: 20, color: Color(0xFF1B64F2)),
+              ),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Close bottom sheet
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PublicPreviewQrPage(profile: widget.profile),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1B64F2),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                elevation: 0,
+              ),
+              child: Text(
+                appState.tr('Confirm and View Data', 'تأكيد وعرض البيانات'),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
     );
   }
 
