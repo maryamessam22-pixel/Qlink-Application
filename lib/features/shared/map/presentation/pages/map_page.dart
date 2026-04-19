@@ -3,7 +3,8 @@ import 'package:q_link/features/shared/home/presentation/widgets/video_logo_widg
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:q_link/features/shared/home/presentation/pages/home_page.dart';
-import 'package:q_link/core/state/app_state.dart'; // مسار الـ AppState عشان الترجمة
+import 'package:q_link/features/shared/map/presentation/pages/geofence_setup_page.dart';
+import 'package:q_link/core/state/app_state.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -337,7 +338,14 @@ class _MapPageState extends State<MapPage> {
     return Positioned(
       left: 20,
       bottom: 130,
-      child: Container(
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const GeofenceSetupPage()),
+          );
+        },
+        child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 10,
