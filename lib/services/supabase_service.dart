@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:q_link/core/models/patient_profile.dart';
 
 class SupabaseService {
   static final SupabaseService _instance = SupabaseService._internal();
@@ -7,13 +8,21 @@ class SupabaseService {
 
   final SupabaseClient client = Supabase.instance.client;
 
-  // Example of a connection helper
-  Future<void> initialize() async {
-    // Initialization logic if needed (usually handled in main)
-  }
+  Future<void> initialize() async {}
 
-  // Auth helpers
-  User? get currentUser => client.auth.currentUser;
-  
-  Session? get currentSession => client.auth.currentSession;
+  Future<List<PatientProfile>> fetchPatientProfiles() async {
+    try {
+      final response = await client
+          .from('patient_profiles')
+          .select()
+          .order('created_at', ascending: false);
+      
+      return (response as List)
+          .map((data) => PatientProfile.fromMap(data))
+          .toList();
+    } catch (e) {
+      print('Error fetching patient profiles: $e');
+      return [];
+    }
+  }
 }
