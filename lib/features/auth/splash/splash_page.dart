@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:q_link/features/auth/presentation/pages/create_account_page.dart';
+import 'package:q_link/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/localization/app_localization.dart';
 
@@ -22,7 +22,7 @@ class _SplashPageState extends State<SplashPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => CreateAccountPage(role: widget.role),
+            builder: (_) => SignInPage(role: widget.role),
           ),
         );
       }

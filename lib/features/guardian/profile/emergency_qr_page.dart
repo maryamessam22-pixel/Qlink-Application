@@ -15,7 +15,7 @@ class EmergencyQrPage extends StatefulWidget {
 }
 
 class _EmergencyQrPageState extends State<EmergencyQrPage> {
-  int _activeTab = 0; // 0 for My Code, 1 for Scanner
+  int _activeTab = 0;
   final MobileScannerController _scannerController = MobileScannerController();
 
   @override
@@ -34,7 +34,6 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
           backgroundColor: _activeTab == 1 ? Colors.black : const Color(0xFFF7F9FC),
           body: Stack(
             children: [
-              // Background (for My Code mode)
               if (_activeTab == 0)
                 Container(
                   width: double.infinity,
@@ -47,11 +46,9 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
                     ),
                   ),
                 ),
-
               SafeArea(
                 child: Column(
                   children: [
-                    // Top Bar Header with Back Button
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       child: Row(
@@ -81,13 +78,11 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
                         ],
                       ),
                     ),
-
-                    // Top Bar Toggle
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                       height: 64,
                       decoration: BoxDecoration(
-                        color: _activeTab == 1 ? Colors.white.withValues(alpha:0.1) : const Color(0xFF1B64F2),
+                        color: _activeTab == 1 ? Colors.white.withValues(alpha: 0.1) : const Color(0xFF1B64F2),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
@@ -97,7 +92,6 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
                         ],
                       ),
                     ),
-
                     Expanded(
                       child: _activeTab == 0 ? _buildMyCodeView(appState) : _buildScannerView(appState),
                     ),
@@ -154,23 +148,21 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
             ),
           ),
           const SizedBox(height: 60),
-          
-          // QR Container
           GestureDetector(
             onTap: () => _showAccessSimulationDialog(appState),
             child: Container(
               padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha:0.05),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
               child: QrImageView(
                 data: 'qlink-profile-${widget.profile.name}',
                 version: QrVersions.auto,
@@ -180,30 +172,29 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
               ),
             ),
           ),
-          
           const SizedBox(height: 80),
-        
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 40),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(LucideIcons.share2, size: 18),
-              label: Text(appState.tr('Share QR Code', 'مشاركة رمز QR'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1B64F2),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                elevation: 0,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {},
+                icon: const Icon(LucideIcons.share2, size: 18),
+                label: Text(appState.tr('Share QR Code', 'مشاركة رمز QR'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1B64F2),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  elevation: 0,
+                ),
+              ),
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   Widget _buildScannerView(AppState appState) {
     return Stack(
@@ -213,8 +204,7 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
           onDetect: (capture) {
             final List<Barcode> barcodes = capture.barcodes;
             if (barcodes.isNotEmpty) {
-               // Simulate successful scan
-               Navigator.push(
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => PublicPreviewQrPage(profile: widget.profile),
@@ -223,8 +213,6 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
             }
           },
         ),
-        
-        // Overlays
         Center(
           child: Container(
             width: 260,
@@ -235,7 +223,6 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
             ),
             child: Stack(
               children: [
-                // Scanning Line Animation simulated with a simple container
                 Positioned(
                   top: 130,
                   left: 0,
@@ -245,7 +232,7 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
                     decoration: BoxDecoration(
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF1B64F2).withValues(alpha:0.8),
+                          color: const Color(0xFF1B64F2).withValues(alpha: 0.8),
                           blurRadius: 10,
                           spreadRadius: 2,
                         ),
@@ -258,7 +245,6 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
             ),
           ),
         ),
-        
         Positioned(
           bottom: 120,
           left: 0,
@@ -307,7 +293,6 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
             ],
           ),
         ),
-        
         Positioned(
           top: 60,
           right: 20,
@@ -391,7 +376,6 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
               onPressed: () {
                 final phoneNumber = phoneController.text.trim();
                 
-                // Add to history state
                 appState.addScanHistory(ScanHistoryItem(
                   title: "Emergency Scan (${widget.profile.name}'s Bracelete)",
                   scanner: phoneNumber.isNotEmpty ? phoneNumber : '+20 123 456 7890',
@@ -399,7 +383,7 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
                   time: 'Just now',
                 ));
 
-                Navigator.pop(context); // Close bottom sheet
+                Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -433,7 +417,7 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
         width: isPrimary ? 70 : 50,
         height: isPrimary ? 70 : 50,
         decoration: BoxDecoration(
-          color: isPrimary ? Colors.white : Colors.white.withValues(alpha:0.2),
+          color: isPrimary ? Colors.white : Colors.white.withValues(alpha: 0.2),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: isPrimary ? Colors.black : Colors.white, size: isPrimary ? 30 : 20),

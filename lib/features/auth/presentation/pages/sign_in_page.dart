@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/auth/presentation/pages/create_account_page.dart';
 import 'package:q_link/features/guardian/home/main_page.dart';
+import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
 
 class SignInPage extends StatefulWidget {
   final String role;
@@ -150,7 +151,11 @@ class _SignInPageState extends State<SignInPage> {
                   onPressed: () {
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (_) => const MainPage()),
+                      MaterialPageRoute(
+                        builder: (_) => widget.role == 'Guardian' 
+                            ? const MainPage() 
+                            : const WearerMainPage(),
+                      ),
                       (Route<dynamic> route) => false,
                     );
                   },
