@@ -77,14 +77,24 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
 
         String avatarUrl = '';
         if (widget.avatarBytes != null && widget.avatarBytes!.isNotEmpty) {
+          debugPrint('[ConnectDevice] Uploading ${widget.avatarBytes!.length} avatar bytes...');
           final uploadedUrl = await SupabaseService().uploadProfileAvatarBytes(widget.avatarBytes!, newProfileId);
           if (uploadedUrl != null) {
             avatarUrl = uploadedUrl;
-          } else {
-            debugPrint('Avatar upload failed');
+            debugPrint('[ConnectDevice] Avatar uploaded: $avatarUrl');
+          } else if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Avatar upload failed. Check Supabase Storage policies.'),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 4),
+              ),
+            );
           }
         } else if (widget.avatarUrl != null && widget.avatarUrl!.startsWith('assets')) {
           avatarUrl = widget.avatarUrl!;
+        } else {
+          debugPrint('[ConnectDevice] No avatar bytes provided (avatarBytes is null or empty)');
         }
 
         final newProfile = PatientProfile(
