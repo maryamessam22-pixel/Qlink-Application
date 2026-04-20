@@ -17,7 +17,12 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
   String? _selectedDeviceType;
   final TextEditingController _codeController = TextEditingController();
 
-  final List<String> _deviceTypes = ['Qlink Bracelet v1', 'Qlink Pulse', 'Qlink Lite'];
+  final List<String> _deviceTypes = [
+    'Qlink Smart Bracelet "Nova"',
+    'Qlink Smart Bracelet "Pulse"',
+    'Qlink Band "Non Digital"',
+    'Link Smart Watch',
+  ];
 
   @override
   void dispose() {
@@ -181,34 +186,53 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                   Text(
                     appState.tr('Device Type', 'نوع الجهاز'),
                     style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF273469),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1E3A8A),
                     ),
                   ),
                   const SizedBox(height: 10),
                   Container(
+                    height: 54,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF7F9FC),
+                      color: const Color(0xFFF9FAFB),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(
+                        color: Colors.grey.shade300,
+                        width: 1,
+                      ),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: _selectedDeviceType,
-                        hint: Text(appState.tr('Choose Device Type', 'اختر نوع الجهاز')),
+                        hint: Text(
+                          appState.tr('Choose Device Type', 'اختر نوع الجهاز'),
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 14,
+                          ),
+                        ),
                         isExpanded: true,
-                        icon: const Icon(LucideIcons.chevronDown),
-                        items: _deviceTypes.map((String value) {
+                        icon: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Colors.grey.shade600,
+                        ),
+                        items: _deviceTypes.map((type) {
                           return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
+                            value: type,
+                            child: Text(
+                              type,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF1F2937),
+                              ),
+                            ),
                           );
                         }).toList(),
-                        onChanged: (newValue) {
+                        onChanged: (value) {
                           setState(() {
-                            _selectedDeviceType = newValue;
+                            _selectedDeviceType = value;
                           });
                         },
                       ),
@@ -221,27 +245,39 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                   Text(
                     appState.tr('Enter Code (Inside the bracelet box)', 'أدخل الرمز (داخل صندوق السوار)'),
                     style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF273469),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1E3A8A),
                     ),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: _codeController,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF1F2937),
+                      letterSpacing: 1.2,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'QLINK-PULSE-8A3F2E',
-                      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 14,
+                        letterSpacing: 1.2,
+                      ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       filled: true,
-                      fillColor: const Color(0xFFF7F9FC),
+                      fillColor: const Color(0xFFF9FAFB),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade200),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFF1B64F2)),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF1E3A8A),
+                          width: 1.5,
+                        ),
                       ),
                     ),
                   ),

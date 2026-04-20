@@ -10,6 +10,37 @@ class SupabaseService {
 
   Future<void> initialize() async {}
 
+  Future<Map<String, dynamic>?> signIn(String email, String password) async {
+    try {
+      final response = await client
+          .from('profiles')
+          .select()
+          .eq('email', email)
+          .eq('password', password)
+          .maybeSingle();
+      
+      return response;
+    } catch (e) {
+      print('Error signing in: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getUserProfile(String userId) async {
+    try {
+      final response = await client
+          .from('profiles')
+          .select()
+          .eq('id', userId)
+          .maybeSingle();
+      
+      return response;
+    } catch (e) {
+      print('Error fetching user profile: $e');
+      return null;
+    }
+  }
+
   Future<List<PatientProfile>> fetchPatientProfiles() async {
     try {
       final response = await client

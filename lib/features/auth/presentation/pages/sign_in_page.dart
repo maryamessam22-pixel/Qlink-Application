@@ -3,6 +3,7 @@ import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/auth/presentation/pages/create_account_page.dart';
 import 'package:q_link/features/guardian/home/main_page.dart';
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
+import 'package:q_link/services/supabase_service.dart';
 
 class SignInPage extends StatefulWidget {
   final String role;
@@ -13,7 +14,74 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSignIn() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppState().tr('Please enter both email and password', 'يرجى إدخال البريد الإلكتروني وكلمة المرور'))),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final userData = await SupabaseService().signIn(email, password);
+
+      if (userData != null) {
+        // Update local app state
+        AppState().updateCurrentUser(
+          name: userData['full_name'],
+          email: userData['email'],
+          password: userData['password'],
+          imagePath: userData['avatar_url'] ?? 'assets/images/mypic.png',
+          role: userData['role'],
+        );
+
+        // Navigate to home
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (_) => widget.role == 'Guardian' 
+                  ? const MainPage() 
+                  : const WearerMainPage(),
+              settings: RouteSettings(name: widget.role == 'Guardian' ? 'MainPage' : 'WearerMainPage'),
+            ),
+            (Route<dynamic> route) => false,
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppState().tr('Invalid email or password', 'البريد الإلكتروني أو كلمة المرور غير صحيحة'))),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +170,7 @@ class _SignInPageState extends State<SignInPage> {
                 
                 // Email Field
                 _buildTextField(
+                  controller: _emailController,
                   hintText: 'Mohamedsaber22@gmail.com',
                   prefixIcon: Icons.mail_outline,
                   keyboardType: TextInputType.emailAddress,
@@ -110,6 +179,7 @@ class _SignInPageState extends State<SignInPage> {
                 
                 // Password Field
                 _buildTextField(
+                  controller: _passwordController,
                   hintText: '........',
                   prefixIcon: Icons.lock_outline,
                   obscureText: _obscurePassword,
@@ -148,18 +218,7 @@ class _SignInPageState extends State<SignInPage> {
                 
                 // Sign In Button
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => widget.role == 'Guardian' 
-                            ? const MainPage() 
-                            : const WearerMainPage(),
-                        settings: RouteSettings(name: widget.role == 'Guardian' ? 'MainPage' : 'WearerMainPage'),
-                      ),
-                      (Route<dynamic> route) => false,
-                    );
-                  },
+                  onPressed: _isLoading ? null : _handleSignIn,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF28365B),
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -168,14 +227,20 @@ class _SignInPageState extends State<SignInPage> {
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    appState.tr('Sign In', 'تسجيل الدخول'),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: _isLoading 
+                    ? const SizedBox(
+                        height: 20, 
+                        width: 20, 
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                      )
+                    : Text(
+                        appState.tr('Sign In', 'تسجيل الدخول'),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                 ),
                 const SizedBox(height: 40),
                 
@@ -301,6 +366,7 @@ class _SignInPageState extends State<SignInPage> {
   Widget _buildTextField({
     required String hintText,
     required IconData prefixIcon,
+    TextEditingController? controller,
     bool obscureText = false,
     Widget? suffixIcon,
     TextInputType? keyboardType,
@@ -311,6 +377,7 @@ class _SignInPageState extends State<SignInPage> {
         borderRadius: BorderRadius.circular(16.0),
       ),
       child: TextField(
+        controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
         style: const TextStyle(color: Colors.black87),
