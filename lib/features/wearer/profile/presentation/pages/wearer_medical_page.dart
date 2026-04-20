@@ -6,6 +6,7 @@ import 'package:q_link/core/localization/app_localization.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_hardware_link_page.dart';
+import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
 
 class WearerMedicalPage extends StatefulWidget {
   final String name;
@@ -63,10 +64,11 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                     children: [
                       VideoLogoWidget(),
                       const SizedBox(width: 8),
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 16,
-                        backgroundColor: Colors.transparent,
-                        backgroundImage: AssetImage('assets/images/mypic.png'),
+                        backgroundColor: const Color(0xFFE6F0FE),
+                        backgroundImage: getUserAvatarProvider(appState.currentUser.imagePath),
+                        onBackgroundImageError: (_, __) {},
                       ),
                       const Spacer(),
                       const LanguageToggle(),

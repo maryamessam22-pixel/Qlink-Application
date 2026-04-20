@@ -9,6 +9,7 @@ import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.
 import 'package:q_link/services/supabase_service.dart';
 import 'package:q_link/core/models/patient_profile.dart';
 import 'package:uuid/uuid.dart';
+import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
 
 class WearerHardwareLinkPage extends StatefulWidget {
   final String name;
@@ -76,10 +77,11 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                     children: [
                       VideoLogoWidget(),
                       const SizedBox(width: 8),
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 16,
-                        backgroundColor: Colors.transparent,
-                        backgroundImage: AssetImage('assets/images/mypic.png'),
+                        backgroundColor: const Color(0xFFE6F0FE),
+                        backgroundImage: getUserAvatarProvider(appState.currentUser.imagePath),
+                        onBackgroundImageError: (_, __) {},
                       ),
                       const Spacer(),
                       const LanguageToggle(),
@@ -194,10 +196,10 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: const Color(0xFF38B2AC), width: 1),
                     ),
-                    child: Text(
+                     child: Text(
                       appState.tr(
-                        'Find the activation card inside your Qlink bracelet box. Enter the credentials to link this hardware to the patient profile.',
-                        'ابحث عن بطاقة التنشيط داخل صندوق سوار Qlink. أدخل بيانات الاعتماد لربط هذا الجهاز بملف المريض الشخصي.'
+                        'Find the activation card inside your Qlink bracelet box. Enter the credentials to link this hardware to your profile.',
+                        'ابحث عن بطاقة التنشيط داخل صندوق سوار Qlink. أدخل بيانات الاعتماد لربط هذا الجهاز بملفك الشخصي.'
                       ),
                       style: const TextStyle(
                         fontSize: 14,
