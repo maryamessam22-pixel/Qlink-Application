@@ -70,8 +70,11 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
       final guardianId = SupabaseService().client.auth.currentUser?.id;
 
       if (guardianId != null) {
-        // N-karyet ID gded
         final newProfileId = Uuid().v4();
+
+        String avatarUrl = widget.avatarUrl ?? 'assets/images/mypic.png';
+        final uploadedUrl = await SupabaseService().uploadProfileAvatar(avatarUrl, newProfileId);
+        if (uploadedUrl != null) avatarUrl = uploadedUrl;
 
         final newProfile = PatientProfile(
           id: newProfileId, 
@@ -92,8 +95,8 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           allergiesEn: widget.allergies ?? '',
           medicalNotesEn: widget.condition ?? '',
           medicalNotesAr: '',
-          status: withDevice, // Lw 3ml connect yb2a true, lw skip yb2a false
-          avatarUrl: widget.avatarUrl ?? 'assets/images/mypic.png',
+          status: withDevice,
+          avatarUrl: avatarUrl,
           seoSlug: '${(widget.name ?? 'new-profile').toLowerCase().replaceAll(' ', '-')}-${newProfileId.substring(0, 8)}',
           metaTitleEn: '',
           metaDescriptionEn: '',
@@ -111,10 +114,10 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
 
         // N-7ot local bardo 3shan t-sme3 f wa2tha
         AppState().addProfile(ProfileData(
-          id: newProfileId, // N-7ot nfs el ID
+          id: newProfileId,
           name: widget.name ?? 'New Profile',
           relationship: widget.relationship ?? 'Member',
-          imagePath: widget.avatarUrl ?? 'assets/images/mypic.png',
+          imagePath: avatarUrl,
           birthYear: widget.birthYear ?? '',
           emergencyContacts: widget.emergencyContacts ?? [],
           bloodType: widget.bloodType ?? '',
