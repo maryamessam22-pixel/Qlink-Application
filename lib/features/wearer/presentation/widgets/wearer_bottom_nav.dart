@@ -47,11 +47,11 @@ class WearerBottomNav extends StatelessWidget {
   Widget _buildNavItem(BuildContext context, IconData icon, String label, int index, int currentIndex) {
     bool isActive = currentIndex == index;
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         final appState = AppState();
         appState.setWearerIndex(index);
         
-        // If not on WearerMainPage, go there
         if (ModalRoute.of(context)?.settings.name != 'WearerMainPage') {
           Navigator.of(context).pushAndRemoveUntil(
             PageRouteBuilder(
@@ -66,24 +66,27 @@ class WearerBottomNav extends StatelessWidget {
           );
         }
       },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: isActive ? const Color(0xFF1B64F2) : Colors.grey.shade400,
-            size: 24,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
+      child: SizedBox(
+        width: 60,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
               color: isActive ? const Color(0xFF1B64F2) : Colors.grey.shade400,
-              fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
+              size: 24,
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: isActive ? const Color(0xFF1B64F2) : Colors.grey.shade400,
+                fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,11 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
-import 'package:q_link/features/guardian/home/home_page.dart';
-import 'package:q_link/features/guardian/map/map_page.dart';
-import 'package:q_link/features/guardian/vault/vault_page.dart';
-import 'package:q_link/features/guardian/settings/settings_page.dart';
 import 'package:q_link/features/guardian/profile/add_profile_identity.dart';
 import 'package:q_link/features/guardian/home/main_page.dart';
 
@@ -23,7 +18,12 @@ class BottomNavWidget extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             height: 70,
             decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.95),
               borderRadius: BorderRadius.circular(35),
+              border: Border.all(
+                color: Colors.grey.shade200,
+                width: 1,
+              ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.blue.withValues(alpha: 0.15),
@@ -32,86 +32,71 @@ class BottomNavWidget extends StatelessWidget {
                 ),
               ],
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(35),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.4),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.5),
-                      width: 1.5,
-                    ),
-                    borderRadius: BorderRadius.circular(35),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildNavItem(
-                        context,
-                        icon: LucideIcons.home,
-                        label: appState.tr('Home', 'الرئيسية'),
-                        target: 0,
-                      ),
-                      _buildNavItem(
-                        context,
-                        icon: LucideIcons.map,
-                        label: appState.tr('Map', 'الخريطة'),
-                        target: 1,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pushAndRemoveUntil(
-                            PageRouteBuilder(
-                              pageBuilder:
-                                  (context, animation, secondaryAnimation) =>
-                                      AddProfileIdentityPage(),
-                              transitionsBuilder: (context, animation,
-                                  secondaryAnimation, child) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: child,
-                                );
-                              },
-                              settings: const RouteSettings(
-                                name: 'AddProfileIdentity',
-                              ),
-                            ),
-                            (route) => false, // Remove all routes
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildNavItem(
+                  context,
+                  icon: LucideIcons.home,
+                  label: appState.tr('Home', 'الرئيسية'),
+                  target: 0,
+                ),
+                _buildNavItem(
+                  context,
+                  icon: LucideIcons.map,
+                  label: appState.tr('Map', 'الخريطة'),
+                  target: 1,
+                ),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      PageRouteBuilder(
+                        pageBuilder:
+                            (context, animation, secondaryAnimation) =>
+                                AddProfileIdentityPage(),
+                        transitionsBuilder: (context, animation,
+                            secondaryAnimation, child) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
                           );
                         },
-                        child: Container(
-                          width: 50,
-                          height: 50,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF1B64F2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.add,
-                            color: Colors.white,
-                            size: 28,
-                          ),
+                        settings: const RouteSettings(
+                          name: 'AddProfileIdentity',
                         ),
                       ),
-                      _buildNavItem(
-                        context,
-                        icon: LucideIcons.lock,
-                        label: appState.tr('Vault', 'الخزنة'),
-                        target: 3,
-                      ),
-                      _buildNavItem(
-                        context,
-                        icon: LucideIcons.settings,
-                        label: appState.tr('Settings', 'الإعدادات'),
-                        target: 4, // Settings
-                      ),
-                    ],
+                      (route) => false,
+                    );
+                  },
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF1B64F2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.add,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                   ),
                 ),
-              ),
+                _buildNavItem(
+                  context,
+                  icon: LucideIcons.lock,
+                  label: appState.tr('Vault', 'الخزنة'),
+                  target: 3,
+                ),
+                _buildNavItem(
+                  context,
+                  icon: LucideIcons.settings,
+                  label: appState.tr('Settings', 'الإعدادات'),
+                  target: 4,
+                ),
+              ],
             ),
           ),
         );
