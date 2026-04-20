@@ -83,11 +83,12 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
             avatarUrl = uploadedUrl;
             debugPrint('[ConnectDevice] Avatar uploaded: $avatarUrl');
           } else if (mounted) {
+            final err = SupabaseService().lastUploadError ?? 'Unknown error';
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Avatar upload failed. Check Supabase Storage policies.'),
+              SnackBar(
+                content: Text('Upload failed: $err'),
                 backgroundColor: Colors.orange,
-                duration: Duration(seconds: 4),
+                duration: const Duration(seconds: 6),
               ),
             );
           }

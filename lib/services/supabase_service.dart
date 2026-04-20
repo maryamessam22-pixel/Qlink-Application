@@ -114,8 +114,14 @@ class SupabaseService {
 
   /// Uploads raw image bytes to Supabase Storage and returns the public URL.
   /// This avoids XFile path issues on Flutter Web where blob URLs can't be re-read.
+  String? lastUploadError;
+
   Future<String?> uploadProfileAvatarBytes(Uint8List bytes, String profileId) async {
-    if (bytes.isEmpty) return null;
+    lastUploadError = null;
+    if (bytes.isEmpty) {
+      lastUploadError = 'Image bytes are empty';
+      return null;
+    }
 
     try {
       debugPrint('[AvatarUpload] Uploading ${bytes.length} bytes for profile $profileId');
@@ -134,9 +140,9 @@ class SupabaseService {
       final publicUrl = client.storage.from('avatars').getPublicUrl(storagePath);
       debugPrint('[AvatarUpload] Success! URL: $publicUrl');
       return publicUrl;
-    } catch (e, stack) {
+    } catch (e) {
+      lastUploadError = e.toString();
       debugPrint('[AvatarUpload] FAILED: $e');
-      debugPrint('[AvatarUpload] Stack: $stack');
       return null;
     }
   }
