@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/auth/presentation/pages/wearer/wearer_create_account_page.dart';
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
-import 'package:q_link/services/supabase_service.dart';
 
 class WearerSignInPage extends StatefulWidget {
   const WearerSignInPage({super.key});
@@ -23,7 +22,7 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
     super.dispose();
   }
 
-  Future<void> _handleSignIn() async {
+  void _handleSignIn() {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -31,38 +30,27 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
 
     setState(() => _isLoading = true);
 
-    try {
-      final userData = await SupabaseService().signIn(email, password);
-
-      if (userData != null) {
-        AppState().updateCurrentUser(
-          name: userData['full_name'] ?? 'Wearer',
-          email: userData['email'] ?? email,
-          password: '',
-          imagePath: userData['avatar_url'] ?? 'assets/images/Mohamed Saber.png',
-          role: 'Wearer',
+    final user = AppState().currentUser;
+    if (user.email == email && user.password == password && user.role == 'Wearer') {
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const WearerMainPage(),
+            settings: const RouteSettings(name: 'WearerMainPage'),
+          ),
+          (route) => false,
         );
-
-        if (mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const WearerMainPage(),
-              settings: const RouteSettings(name: 'WearerMainPage'),
-            ),
-            (route) => false,
-          );
-        }
       }
-    } catch (e) {
+    } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login Failed: $e')),
+          const SnackBar(content: Text('Invalid email or password')),
         );
       }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
+
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
@@ -115,6 +103,28 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                 child: _isLoading 
                   ? const CircularProgressIndicator(color: Colors.white) 
                   : const Text('Sign In', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Don't have an account? "),
+                  GestureDetector(
+                    onTap: () => Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const WearerCreateAccountPage(),
+                      ),
+                    ),
+                    child: const Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        color: Color(0xFF1B64F2),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 48),
             ],

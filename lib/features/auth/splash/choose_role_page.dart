@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:q_link/features/auth/splash/splash_page.dart';
+import 'package:q_link/features/auth/presentation/pages/wearer/wearer_create_account_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/localization/app_localization.dart';
 
@@ -192,7 +193,7 @@ class ChooseRolePage extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (_) =>
-                                    const SplashPage(role: 'Wearer'),
+                                    const WearerCreateAccountPage(),
                               ),
                             );
                           },
