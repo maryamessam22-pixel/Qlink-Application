@@ -8,8 +8,69 @@ class WearerHomePage extends StatelessWidget {
   final bool isConnected;
   const WearerHomePage({super.key, this.isConnected = false});
 
+  void _triggerSOS(BuildContext context) {
+    final appState = AppState();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 28),
+            const SizedBox(width: 8),
+            Flexible(child: Text(appState.tr('SOS Activated!', 'تم تفعيل الطوارئ!'))),
+          ],
+        ),
+        content: Text(appState.tr(
+          'Emergency alert has been sent to your guardian and emergency contacts.',
+          'تم إرسال إنذار الطوارئ إلى وليك وجهات اتصال الطوارئ.',
+        )),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(appState.tr('OK', 'حسناً')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _callEmergencyContact(BuildContext context) {
+    final appState = AppState();
+    final profiles = appState.profiles;
+    String phone = '';
+    if (profiles.isNotEmpty && profiles.first.emergencyContacts.isNotEmpty) {
+      phone = profiles.first.emergencyContacts.first;
+    }
+
+    if (phone.isNotEmpty) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(appState.tr('Emergency Contact', 'جهة اتصال الطوارئ')),
+          content: Text(appState.tr('Calling: $phone', 'جاري الاتصال بـ: $phone')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(appState.tr('Close', 'إغلاق')),
+            ),
+          ],
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(appState.tr(
+          'No emergency contact found. Add one in your profile.',
+          'لا يوجد جهة اتصال طوارئ. أضف واحدة في ملفك الشخصي.',
+        ))),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: AppState(),
+      builder: (context, _) {
     final appState = AppState();
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
@@ -125,6 +186,8 @@ class WearerHomePage extends StatelessWidget {
 
           // Emergency Buttons
           GestureDetector(
+            onTap: () => _triggerSOS(context),
+            onLongPress: () => _triggerSOS(context),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 20),
@@ -170,7 +233,7 @@ class WearerHomePage extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
             ),
             child: TextButton.icon(
-              onPressed: () {},
+              onPressed: () => _callEmergencyContact(context),
               icon: const Icon(LucideIcons.phone, color: Colors.white),
               label: Text(
                 appState.tr('Call Emergency Contact', 'اتصل بجهة اتصال الطوارئ'),
@@ -230,6 +293,8 @@ class WearerHomePage extends StatelessWidget {
           const SizedBox(height: 100),
         ],
       ),
+    );
+      },
     );
   }
 

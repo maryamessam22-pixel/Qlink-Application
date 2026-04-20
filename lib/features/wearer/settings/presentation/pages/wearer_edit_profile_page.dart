@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
-import 'package:q_link/core/localization/app_localization.dart';
+import 'package:q_link/services/supabase_service.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.dart';
+import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
 
 class WearerEditProfilePage extends StatefulWidget {
   const WearerEditProfilePage({super.key});
@@ -12,27 +12,50 @@ class WearerEditProfilePage extends StatefulWidget {
 }
 
 class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
-  // Account Controllers
-  final _nameController = TextEditingController(text: 'Mariam Essam');
-  final _emailController = TextEditingController(text: 'mohamedsaber@gmail.com');
-  final _phoneController = TextEditingController(text: '+20 123 456 7890');
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _phoneController;
+
+  late final TextEditingController _patientNameController;
+  late final TextEditingController _relationshipController;
+  late final TextEditingController _birthYearController;
+  final List<TextEditingController> _emergencyContacts = [];
+
   final _passwordController = TextEditingController(text: '********');
-
-  // Identity Controllers
-  final _patientNameController = TextEditingController(text: 'Mohamed Saber');
-  final _relationshipController = TextEditingController(text: 'Grandfather');
-  final _birthYearController = TextEditingController(text: '1945');
-  final List<TextEditingController> _emergencyContacts = [
-    TextEditingController(text: '01119988299'),
-    TextEditingController(text: '01223344556'),
-  ];
-
-  // Medical Controllers
-  final _safetyNotesController = TextEditingController(text: 'Needs assistance while walking long distances.');
-  final _allergiesController = TextEditingController(text: 'Penicillin, Peanuts');
-  final _medicalNotesController = TextEditingController(text: 'Diabetic Type 2, Hypertension');
-  String? _selectedBloodType = 'O+';
+  late final TextEditingController _safetyNotesController;
+  late final TextEditingController _allergiesController;
+  late final TextEditingController _medicalNotesController;
+  String? _selectedBloodType;
   final List<String> _bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = AppState().currentUser;
+    final profile = AppState().profiles.isNotEmpty ? AppState().profiles.first : null;
+
+    _nameController = TextEditingController(text: user.name);
+    _emailController = TextEditingController(text: user.email);
+    _phoneController = TextEditingController(text: '');
+
+    _patientNameController = TextEditingController(text: profile?.name ?? '');
+    _relationshipController = TextEditingController(text: profile?.relationship ?? '');
+    _birthYearController = TextEditingController(text: profile?.birthYear ?? '');
+
+    if (profile != null && profile.emergencyContacts.isNotEmpty) {
+      for (final c in profile.emergencyContacts) {
+        _emergencyContacts.add(TextEditingController(text: c));
+      }
+    } else {
+      _emergencyContacts.add(TextEditingController());
+    }
+
+    _safetyNotesController = TextEditingController();
+    _allergiesController = TextEditingController(text: profile?.allergies ?? '');
+    _medicalNotesController = TextEditingController(text: profile?.condition ?? '');
+    _selectedBloodType = (profile?.bloodType.isNotEmpty ?? false) ? profile!.bloodType : null;
+  }
 
   @override
   void dispose() {
@@ -84,33 +107,10 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
               children: [
                 // Profile Picture Section
                 Center(
-                  child: Stack(
-                    children: [
-                      Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.grey.shade100, width: 4),
-                          image: const DecorationImage(
-                            image: AssetImage('assets/images/Mohamed Saber.png'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 4,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF1B64F2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
-                        ),
-                      ),
-                    ],
+                  child: CircleAvatar(
+                    radius: 60,
+                    backgroundImage: getUserAvatarProvider(appState.currentUser.imagePath),
+                    onBackgroundImageError: (_, __) {},
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -228,15 +228,70 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
                     ],
                   ),
                   child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      appState.tr('Save Changes', 'حفظ التغييرات'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+                    onPressed: _isSaving ? null : () async {
+                      setState(() => _isSaving = true);
+                      try {
+                        AppState().updateCurrentUser(
+                          name: _nameController.text.trim(),
+                          email: _emailController.text.trim(),
+                        );
+
+                        if (AppState().profiles.isNotEmpty) {
+                          final profile = AppState().profiles.first;
+                          profile.name = _patientNameController.text.trim();
+                          profile.relationship = _relationshipController.text.trim();
+                          profile.birthYear = _birthYearController.text.trim();
+                          profile.bloodType = _selectedBloodType ?? '';
+                          profile.allergies = _allergiesController.text.trim();
+                          profile.condition = _medicalNotesController.text.trim();
+                          profile.emergencyContacts = _emergencyContacts
+                              .map((c) => c.text.trim())
+                              .where((t) => t.isNotEmpty)
+                              .toList();
+                          AppState().updateProfile(0, profile);
+
+                          if (profile.id != null && profile.id!.isNotEmpty) {
+                            await SupabaseService().client
+                                .from('patient_profiles')
+                                .update({
+                                  'profile_name': profile.name,
+                                  'relationship_to_guardian': profile.relationship,
+                                  'birth_year': int.tryParse(profile.birthYear) ?? 0,
+                                  'blood_type': profile.bloodType,
+                                  'allergies_en': profile.allergies,
+                                  'medical_notes_en': profile.condition,
+                                })
+                                .eq('id', profile.id!);
+                          }
+                          AppState().markProfilesDirty();
+                        }
+
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(appState.tr('Profile updated!', 'تم تحديث الملف!'))),
+                          );
+                          Navigator.pop(context);
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                          );
+                        }
+                      } finally {
+                        if (mounted) setState(() => _isSaving = false);
+                      }
+                    },
+                    child: _isSaving
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            appState.tr('Save Changes', 'حفظ التغييرات'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
                   ),
                 ),
                 

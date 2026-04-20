@@ -16,26 +16,25 @@ class WearerMainPage extends StatelessWidget {
   final bool isConnected;
   const WearerMainPage({super.key, this.isConnected = false});
 
-  static const List<Widget> _pages = [
-    WearerHomePage(),
-    WearerHealthPage(),
-    WearerQrPage(),
-    WearerSettingsPage(),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final pages = [
+      WearerHomePage(isConnected: isConnected),
+      const WearerHealthPage(),
+      const WearerQrPage(),
+      const WearerSettingsPage(),
+    ];
+
     return AnimatedBuilder(
       animation: AppState(),
       builder: (context, _) {
-        final appState = AppState();
-        final currentIndex = appState.currentWearerIndex;
+        final currentIndex = AppState().currentWearerIndex;
         
         return Scaffold(
           backgroundColor: const Color(0xFFF7F9FC),
           body: IndexedStack(
             index: currentIndex,
-            children: _pages,
+            children: pages,
           ),
           bottomNavigationBar: const WearerBottomNav(),
         );
