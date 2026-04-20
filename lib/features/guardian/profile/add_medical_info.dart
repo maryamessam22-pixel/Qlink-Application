@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 import 'package:q_link/features/guardian/home/home_page.dart';
@@ -16,6 +17,7 @@ class AddMedicalInfoPage extends StatefulWidget {
   final String birthYear;
   final List<String> emergencyContacts;
   final String? avatarUrl;
+  final Uint8List? avatarBytes;
   final int? editIndex;
   final ProfileData? existingProfile;
 
@@ -26,6 +28,7 @@ class AddMedicalInfoPage extends StatefulWidget {
     this.birthYear = '',
     this.emergencyContacts = const [],
     this.avatarUrl,
+    this.avatarBytes,
     this.editIndex,
     this.existingProfile,
   });
@@ -481,9 +484,10 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
                   emergencyContacts: widget.emergencyContacts,
                   bloodType: _selectedBloodType ?? '',
                   avatarUrl: widget.avatarUrl,
+                  avatarBytes: widget.avatarBytes,
                   allergies: _allergiesController.text.trim(),
                   condition: _medicalNotesController.text.trim(),
-                  safetyNotes: _safetyNotesController.text.trim(), // N-b3at el safety notes kman
+                  safetyNotes: _safetyNotesController.text.trim(),
                 ),
               ),
             );

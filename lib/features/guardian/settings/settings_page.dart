@@ -11,6 +11,7 @@ import 'package:q_link/features/guardian/settings/qr_scan_history_page.dart';
 import 'package:q_link/features/guardian/settings/privacy_policy_page.dart';
 import 'package:q_link/features/guardian/settings/help_center_page.dart';
 import 'package:q_link/features/auth/splash/logout_loading_page.dart';
+import 'package:q_link/features/guardian/settings/linked_devices_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -175,6 +176,18 @@ class _SettingsPageState extends State<SettingsPage> {
                           // Data Section
                           _buildSectionLabel(appState.tr('Data', 'البيانات')),
                           _buildCardWrapper([
+                            _buildListTile(
+                              icon: LucideIcons.watch,
+                              title: appState.tr('Linked Devices', 'الأجهزة المرتبطة'),
+                              subtitle: '${appState.deviceCount} ${appState.tr('devices', 'أجهزة')}',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const LinkedDevicesPage()),
+                                );
+                              },
+                            ),
+                            _buildDivider(),
                             _buildListTile(
                               icon: LucideIcons.qrCode,
                               title: appState.tr('QR Scan History', 'سجل مسح QR'),

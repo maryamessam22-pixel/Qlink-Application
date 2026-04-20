@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -30,14 +31,17 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
   final TextEditingController _birthYearController = TextEditingController();
   final List<TextEditingController> _contactControllers = [];
   String? _imagePath;
+  Uint8List? _imageBytes;
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     
     if (image != null) {
+      final bytes = await image.readAsBytes();
       setState(() {
         _imagePath = image.path;
+        _imageBytes = bytes;
       });
     }
   }
@@ -320,6 +324,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                             birthYear: _birthYearController.text,
                             emergencyContacts: _contactControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
                             avatarUrl: _imagePath,
+                            avatarBytes: _imageBytes,
                             editIndex: widget.editIndex,
                             existingProfile: widget.existingProfile,
                           ),

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:q_link/core/models/patient_profile.dart';
 import 'package:q_link/services/supabase_service.dart';
@@ -19,6 +20,7 @@ class ConnectDevicePage extends StatefulWidget {
   final List<String>? emergencyContacts;
   final String? bloodType;
   final String? avatarUrl;
+  final Uint8List? avatarBytes;
   final String? allergies;
   final String? condition;
   final String? safetyNotes; 
@@ -33,6 +35,7 @@ class ConnectDevicePage extends StatefulWidget {
     this.emergencyContacts,
     this.bloodType,
     this.avatarUrl,
+    this.avatarBytes,
     this.allergies,
     this.condition,
     this.safetyNotes,
@@ -72,13 +75,16 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
       if (guardianId != null) {
         final newProfileId = Uuid().v4();
 
-        final rawAvatar = widget.avatarUrl ?? 'assets/images/mypic.png';
-        String avatarUrl;
-        if (rawAvatar.startsWith('assets')) {
-          avatarUrl = rawAvatar;
-        } else {
-          final uploadedUrl = await SupabaseService().uploadProfileAvatar(rawAvatar, newProfileId);
-          avatarUrl = uploadedUrl ?? 'assets/images/mypic.png';
+        String avatarUrl = '';
+        if (widget.avatarBytes != null && widget.avatarBytes!.isNotEmpty) {
+          final uploadedUrl = await SupabaseService().uploadProfileAvatarBytes(widget.avatarBytes!, newProfileId);
+          if (uploadedUrl != null) {
+            avatarUrl = uploadedUrl;
+          } else {
+            debugPrint('Avatar upload failed');
+          }
+        } else if (widget.avatarUrl != null && widget.avatarUrl!.startsWith('assets')) {
+          avatarUrl = widget.avatarUrl!;
         }
 
         final newProfile = PatientProfile(

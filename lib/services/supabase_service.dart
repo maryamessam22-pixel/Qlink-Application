@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:image_picker/image_picker.dart' show XFile;
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:q_link/core/models/patient_profile.dart';
 
@@ -31,7 +31,7 @@ class SupabaseService {
       }
       return null;
     } catch (e) {
-      print('Error signing in: $e');
+      debugPrint('Error signing in: $e');
       rethrow;
     }
   }
@@ -65,7 +65,7 @@ class SupabaseService {
       }
       return false;
     } catch (e) {
-      print('Error signing up: $e');
+      debugPrint('Error signing up: $e');
       rethrow;
     }
   }
@@ -80,7 +80,7 @@ class SupabaseService {
       
       return response;
     } catch (e) {
-      print('Error fetching user profile: $e');
+      debugPrint('Error fetching user profile: $e');
       return null;
     }
   }
@@ -98,7 +98,7 @@ class SupabaseService {
           .map((data) => PatientProfile.fromMap(data))
           .toList();
     } catch (e) {
-      print('Error fetching patient profiles: $e');
+      debugPrint('Error fetching patient profiles: $e');
       return [];
     }
   }
@@ -107,26 +107,18 @@ class SupabaseService {
     try {
       await client.from('patient_profiles').insert(profile.toMap());
     } catch (e) {
-      print('Error creating patient profile: $e');
+      debugPrint('Error creating patient profile: $e');
       rethrow;
     }
   }
 
-  /// Uploads a picked image to Supabase Storage and returns the public URL.
-  /// Works on both web (blob: URLs) and mobile (file paths) via XFile.readAsBytes().
-  Future<String?> uploadProfileAvatar(String localPath, String profileId) async {
-    if (localPath.isEmpty || localPath.startsWith('assets')) {
-      return null;
-    }
-    // Already a Supabase Storage URL -- no need to re-upload
-    if (localPath.startsWith('http') && localPath.contains('supabase')) {
-      return null;
-    }
+  /// Uploads raw image bytes to Supabase Storage and returns the public URL.
+  /// This avoids XFile path issues on Flutter Web where blob URLs can't be re-read.
+  Future<String?> uploadProfileAvatarBytes(Uint8List bytes, String profileId) async {
+    if (bytes.isEmpty) return null;
 
     try {
-      final xfile = XFile(localPath);
-      final Uint8List bytes = await xfile.readAsBytes();
-      if (bytes.isEmpty) return null;
+      debugPrint('[AvatarUpload] Uploading ${bytes.length} bytes for profile $profileId');
 
       final storagePath = 'profiles/$profileId.jpg';
 
@@ -139,10 +131,12 @@ class SupabaseService {
         ),
       );
 
-      return client.storage.from('avatars').getPublicUrl(storagePath);
-    } catch (e) {
-      print('Error uploading avatar: $e');
-      print('Path was: $localPath');
+      final publicUrl = client.storage.from('avatars').getPublicUrl(storagePath);
+      debugPrint('[AvatarUpload] Success! URL: $publicUrl');
+      return publicUrl;
+    } catch (e, stack) {
+      debugPrint('[AvatarUpload] FAILED: $e');
+      debugPrint('[AvatarUpload] Stack: $stack');
       return null;
     }
   }
@@ -151,7 +145,7 @@ class SupabaseService {
     try {
       await client.from('patient_profiles').update(profile.toMap()).eq('id', id);
     } catch (e) {
-      print('Error updating patient profile: $e');
+      debugPrint('Error updating patient profile: $e');
       rethrow;
     }
   }
