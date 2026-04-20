@@ -6,6 +6,7 @@ import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/guardian/profile/locate_bracelet_page.dart';
 import 'package:q_link/features/guardian/home/home_page.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
+import 'package:q_link/services/supabase_service.dart';
 
 class ConnectedDevicePage extends StatelessWidget {
   final ProfileData profile;
@@ -222,7 +223,48 @@ class ConnectedDevicePage extends StatelessWidget {
                         const SizedBox(height: 16),
 
                         OutlinedButton.icon(
-                          onPressed: () {},
+                          onPressed: () {
+                            final appState = AppState();
+                            showDialog(
+                              context: context,
+                              builder: (dialogCtx) => AlertDialog(
+                                title: Text(appState.tr('Disconnect Device', 'قطع اتصال الجهاز')),
+                                content: Text(appState.tr(
+                                  'Are you sure you want to disconnect this device?',
+                                  'هل أنت متأكد أنك تريد قطع اتصال هذا الجهاز؟',
+                                )),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(dialogCtx),
+                                    child: Text(appState.tr('Cancel', 'إلغاء')),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      // Update Supabase status to disconnected
+                                      if (profile.id != null && profile.id!.isNotEmpty) {
+                                        try {
+                                          await SupabaseService().client
+                                              .from('patient_profiles')
+                                              .update({'status': false})
+                                              .eq('id', profile.id!);
+                                        } catch (e) {
+                                          debugPrint('Error disconnecting: $e');
+                                        }
+                                      }
+                                      // Clear local devices
+                                      profile.devices.clear();
+                                      if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+                                      if (context.mounted) Navigator.pop(context, true);
+                                    },
+                                    child: Text(
+                                      appState.tr('Disconnect', 'قطع الاتصال'),
+                                      style: const TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                           icon: const Icon(LucideIcons.bluetoothOff, color: Colors.red, size: 20),
                           label: Row(
                             children: [

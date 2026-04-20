@@ -4,6 +4,7 @@ import 'package:q_link/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:q_link/features/guardian/home/main_page.dart';
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_initial_setup_page.dart';
+import 'package:q_link/services/supabase_service.dart'; // LAAAAZM TA3MLY IMPORT L-EL SERVICE
 
 class CreateAccountPage extends StatefulWidget {
   final String role;
@@ -15,7 +16,85 @@ class CreateAccountPage extends StatefulWidget {
 }
 
 class _CreateAccountPageState extends State<CreateAccountPage> {
+  // 1. HNA DEFT EL CONTROLLERS 3SHAN N-2RA EL KLAM
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  
   bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  // 2. HNA EL FUNCTION ELLY B-TRBOT B-SUPABASE
+  Future<void> _handleSignUp() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // Lw feh 7aga fadya
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppState().tr('Please fill all fields', 'يرجى ملء جميع الحقول'))),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // B-n-klem el Service elly by-rfa3 3la table el profiles
+      final success = await SupabaseService().signUpUser(
+        email: email,
+        password: password,
+        fullName: name,
+        role: widget.role,
+      );
+
+      if (success && mounted) {
+        // N-7ot el data f el AppState (el memory bta3t el app)
+        AppState().updateCurrentUser(
+          name: name,
+          email: email,
+          password: '',
+          imagePath: widget.role == 'Wearer' ? 'assets/images/Mohamed Saber.png' : 'assets/images/mypic.png',
+          role: widget.role,
+        );
+
+        // N-wady 3la el Home page
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) => widget.role == 'Guardian' 
+                ? const MainPage() 
+                : const WearerInitialSetupPage(),
+            settings: RouteSettings(name: widget.role == 'Guardian' ? 'MainPage' : 'WearerInitialSetupPage'),
+          ),
+          (Route<dynamic> route) => false,
+        );
+      } else {
+        if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to create account')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +124,9 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFB81829), // Reddish top
-              Color(0xFF4C3A71), // Purple middle
-              Color(0xFF015196), // Deep blue bottom
+              Color(0xFFB81829), 
+              Color(0xFF4C3A71), 
+              Color(0xFF015196), 
             ],
             stops: [0.0, 0.4, 1.0],
           ),
@@ -59,28 +138,16 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 10),
-                // Logo
                 Center(
                   child: Image.asset(
                     'assets/images/qlink_logo.png',
                     height: 70,
                     color: Colors.white,
                     fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Text(
-                        'Qlink',
-                        style: TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      );
-                    },
                   ),
                 ),
                 const SizedBox(height: 30),
                 
-                // Header Texts
                 Text(
                   appState.tr('Create Account', 'إنشاء حساب'),
                   textAlign: TextAlign.center,
@@ -102,7 +169,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 ),
                 const SizedBox(height: 30),
 
-                // Profile Image Selection
                 Center(
                   child: Stack(
                     children: [
@@ -139,16 +205,22 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
 
                 const SizedBox(height: 30),
 
-                _buildTextField(hintText: appState.tr('Full Name', 'الاسم الكامل')),
+                // 3. HNA RABATNA EL CONTROLLERS B-EL TEXT FIELDS
+                _buildTextField(
+                  controller: _nameController, // Rabatna Esm
+                  hintText: appState.tr('Full Name', 'الاسم الكامل')
+                ),
                 const SizedBox(height: 16),
 
                 _buildTextField(
+                  controller: _emailController, // Rabatna Email
                   hintText: appState.tr('Email Address', 'عنوان البريد الإلكتروني'),
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 16),
 
                 _buildTextField(
+                  controller: _passwordController, // Rabatna Password
                   hintText: appState.tr('Password', 'كلمة المرور'),
                   obscureText: _obscurePassword,
                   suffixIcon: IconButton(
@@ -166,20 +238,9 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 ),
                 const SizedBox(height: 30),
                 
-                // Create Button
+                // 4. HNA RABATNA ZRAR EL CREATE B-EL FUNCTION
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => widget.role == 'Guardian' 
-                            ? const MainPage() 
-                            : const WearerInitialSetupPage(),
-                        settings: RouteSettings(name: widget.role == 'Guardian' ? 'MainPage' : 'WearerMainPage'),
-                      ),
-                      (Route<dynamic> route) => false,
-                    );
-                  },
+                  onPressed: _isLoading ? null : _handleSignUp, // <--- HNA
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF28365B),
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -188,18 +249,23 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    appState.tr('Create a ${widget.role} Hub', 'إنشاء حساب ${widget.role}'),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: _isLoading 
+                    ? const SizedBox(
+                        height: 20, 
+                        width: 20, 
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                      )
+                    : Text(
+                        appState.tr('Create a ${widget.role} Hub', 'إنشاء حساب ${widget.role}'),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                 ),
                 const SizedBox(height: 40),
                 
-                // OR Divider
                 Row(
                   children: [
                     Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.8), thickness: 1)),
@@ -212,7 +278,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 ),
                 const SizedBox(height: 30),
                 
-                // Social Icons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -240,7 +305,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 ),
                 const SizedBox(height: 40),
                 
-                // Sign In Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -274,8 +338,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     );
   }
 
+  // 5. DEFT HNA `TextEditingController? controller`
   Widget _buildTextField({
     required String hintText,
+    TextEditingController? controller, 
     bool obscureText = false,
     Widget? suffixIcon,
     TextInputType? keyboardType,
@@ -286,6 +352,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
         borderRadius: BorderRadius.circular(16.0),
       ),
       child: TextField(
+        controller: controller, // <-- w rabato hna bel TextField
         obscureText: obscureText,
         keyboardType: keyboardType,
         style: const TextStyle(color: Colors.black87),
@@ -324,6 +391,4 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       ),
     );
   }
-
-
 }

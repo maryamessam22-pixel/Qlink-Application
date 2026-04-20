@@ -4,10 +4,10 @@ import 'package:q_link/features/guardian/home/home_page.dart';
 import 'package:q_link/features/guardian/profile/connect_device_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:q_link/core/models/patient_profile.dart';
 import 'package:q_link/services/supabase_service.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
+import 'package:uuid/uuid.dart'; // N-stkhdm uuid 3shan ne-generate ID sa7
 
 class AddMedicalInfoPage extends StatefulWidget {
   final String name;
@@ -38,6 +38,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
   final TextEditingController _safetyNotesController = TextEditingController();
   final TextEditingController _allergiesController = TextEditingController();
   final TextEditingController _medicalNotesController = TextEditingController();
+  bool _isLoading = false; // Zwedna loading state
 
   final List<String> _bloodTypes = [
     'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-',
@@ -421,94 +422,82 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
   Widget _buildContinueButton() {
     return GestureDetector(
       onTap: () async {
-        if (widget.editIndex == null) {
-          try {
-            await Supabase.instance.client.from('patient_profiles').insert({
-              'profile_name': widget.name,
-              'relationship_to_guardian': widget.relationship,
-              'birth_year': int.tryParse(widget.birthYear),
-              'blood_type': _selectedBloodType,
-              'avatar_url': widget.avatarUrl ?? 'assets/images/mypic.png',
-              'status': false,
-            });
-          } catch (e) {
-            print("Error saving to Supabase: $e");
-          }
-        } else {
-          final updatedProfile = ProfileData(
-            id: widget.existingProfile?.id,
-            name: widget.name,
-            relationship: widget.relationship,
-            birthYear: widget.birthYear,
-            emergencyContacts: widget.emergencyContacts,
-            bloodType: _selectedBloodType ?? '',
-            allergies: _allergiesController.text,
-            condition: _medicalNotesController.text,
-            devices: widget.existingProfile?.devices,
-            imagePath: widget.avatarUrl ?? widget.existingProfile?.imagePath ?? 'assets/images/mypic.png',
-            visibility: widget.existingProfile?.visibility,
-          );
+        if (_isLoading) return;
 
-          // Update Supabase if ID exists
-          if (updatedProfile.id != null) {
-            SupabaseService().updatePatientProfile(
-              updatedProfile.id!,
-              PatientProfile(
-                id: updatedProfile.id!,
-                guardianId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-                profileName: updatedProfile.name,
-                relationshipToGuardian: updatedProfile.relationship,
-                birthYear: int.tryParse(updatedProfile.birthYear) ?? 2000,
-                age: DateTime.now().year - (int.tryParse(updatedProfile.birthYear) ?? 2000),
-                emergencyContacts: {
-                  'primary': {
-                    'name': 'Primary Contact',
-                    'phone': updatedProfile.emergencyContacts.isNotEmpty ? updatedProfile.emergencyContacts[0] : '',
-                    'relation': 'Guardian'
-                  }
-                },
-                bloodType: updatedProfile.bloodType,
-                safetyNotesEn: '',
-                allergiesEn: updatedProfile.allergies,
-                medicalNotesEn: updatedProfile.condition,
-                medicalNotesAr: '',
-                status: updatedProfile.hasDevice,
-                avatarUrl: updatedProfile.imagePath,
-                seoSlug: updatedProfile.name.toLowerCase().replaceAll(' ', '-'),
-                metaTitleEn: '',
-                metaDescriptionEn: '',
-                featuredImageAltEn: '',
-                safetyNotesAr: '',
-                allergiesAr: '',
-                metaTitleAr: '',
-                metaDescriptionAr: '',
-                featuredImageAltAr: '',
-                createdAt: DateTime.now(),
+        setState(() {
+          _isLoading = true;
+        });
+
+        try {
+          // --- HNA EL TA3DEEL 3SHAN N-RFA3 3LA SUPABASE ---
+          if (widget.editIndex != null) {
+            // LW E7NA FY SHASHET EL EDIT
+            final updatedProfile = ProfileData(
+              id: widget.existingProfile?.id,
+              name: widget.name,
+              relationship: widget.relationship,
+              birthYear: widget.birthYear,
+              emergencyContacts: widget.emergencyContacts,
+              bloodType: _selectedBloodType ?? '',
+              allergies: _allergiesController.text.trim(),
+              condition: _medicalNotesController.text.trim(),
+              devices: widget.existingProfile?.devices,
+              imagePath: widget.avatarUrl ?? widget.existingProfile?.imagePath ?? 'assets/images/mypic.png',
+              visibility: widget.existingProfile?.visibility,
+            );
+
+            // Update Supabase if ID exists
+            if (updatedProfile.id != null && updatedProfile.id!.isNotEmpty) {
+              await SupabaseService().client.from('patient_profiles').update({
+                'profile_name': updatedProfile.name,
+                'relationship_to_guardian': updatedProfile.relationship,
+                'birth_year': int.tryParse(updatedProfile.birthYear) ?? 0,
+                'blood_type': updatedProfile.bloodType,
+                'allergies_en': updatedProfile.allergies,
+                'medical_notes_en': updatedProfile.condition,
+                'safety_notes_en': _safetyNotesController.text.trim(),
+              }).eq('id', updatedProfile.id!);
+            }
+
+            AppState().updateProfile(widget.editIndex!, updatedProfile);
+            
+            if (mounted) {
+              Navigator.popUntil(context, (route) => route.isFirst);
+            }
+            return;
+          }
+
+          // LW E7NA FY SHASHET EL ADD (NEW PROFILE)
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ConnectDevicePage(
+                  name: widget.name,
+                  relationship: widget.relationship,
+                  birthYear: widget.birthYear,
+                  emergencyContacts: widget.emergencyContacts,
+                  bloodType: _selectedBloodType ?? '',
+                  avatarUrl: widget.avatarUrl,
+                  allergies: _allergiesController.text.trim(),
+                  condition: _medicalNotesController.text.trim(),
+                  safetyNotes: _safetyNotesController.text.trim(), // N-b3at el safety notes kman
+                ),
               ),
             );
           }
-
-          AppState().updateProfile(widget.editIndex!, updatedProfile);
-          Navigator.popUntil(context, (route) => route.isFirst);
-          return;
-        }
-
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ConnectDevicePage(
-                name: widget.name,
-                relationship: widget.relationship,
-                birthYear: widget.birthYear,
-                emergencyContacts: widget.emergencyContacts,
-                bloodType: _selectedBloodType ?? '',
-                avatarUrl: widget.avatarUrl,
-                allergies: _allergiesController.text,
-                condition: _medicalNotesController.text,
-              ),
-            ),
-          );
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error saving info: $e'), backgroundColor: Colors.red),
+            );
+          }
+        } finally {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+            });
+          }
         }
       },
       child: Container(
@@ -525,16 +514,20 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              AppState().tr('Continue', 'متابعة'),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+            _isLoading 
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              : Text(
+                  AppState().tr('Continue to Hardware Link', 'متابعة لربط الأجهزة'), // 8ayrt el text shwya
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+            if (!_isLoading) ...[
+              const SizedBox(width: 8),
+              const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+            ]
           ],
         ),
       ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:q_link/services/supabase_service.dart';
 class VisibilitySettings {
   bool showBloodType;
   bool showAllergies;

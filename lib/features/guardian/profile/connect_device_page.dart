@@ -7,9 +7,11 @@ import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/guardian/profile/syncing_page.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
+import 'package:uuid/uuid.dart';
 
 class ConnectDevicePage extends StatefulWidget {
   final int? targetProfileIndex;
+  final String? targetProfileId;
   final String? name;
   final String? relationship;
   final String? birthYear;
@@ -18,10 +20,12 @@ class ConnectDevicePage extends StatefulWidget {
   final String? avatarUrl;
   final String? allergies;
   final String? condition;
+  final String? safetyNotes; 
 
   const ConnectDevicePage({
     super.key,
     this.targetProfileIndex,
+    this.targetProfileId,
     this.name,
     this.relationship,
     this.birthYear,
@@ -30,6 +34,7 @@ class ConnectDevicePage extends StatefulWidget {
     this.avatarUrl,
     this.allergies,
     this.condition,
+    this.safetyNotes,
   });
 
   @override
@@ -39,6 +44,7 @@ class ConnectDevicePage extends StatefulWidget {
 class _ConnectDevicePageState extends State<ConnectDevicePage> {
   String? _selectedDeviceType;
   final TextEditingController _codeController = TextEditingController();
+  bool _isLoading = false; 
 
   final List<String> _deviceTypes = [
     'Qlink Smart Bracelet "Nova"',
@@ -51,6 +57,110 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   void dispose() {
     _codeController.dispose();
     super.dispose();
+  }
+
+  // --- 3. HNA EL FUNCTION ELLY B-TKRYET EL PROFILE F SUPABASE ---
+  Future<void> _createProfileAndNavigate({required bool withDevice}) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final guardianId = SupabaseService().client.auth.currentUser?.id;
+
+      if (guardianId != null) {
+        // N-karyet ID gded
+        final newProfileId = Uuid().v4();
+
+        final newProfile = PatientProfile(
+          id: newProfileId, 
+          guardianId: guardianId, 
+          profileName: widget.name ?? 'New Profile',
+          relationshipToGuardian: widget.relationship ?? 'Member',
+          birthYear: int.tryParse(widget.birthYear ?? '2000') ?? 2000,
+          age: DateTime.now().year - (int.tryParse(widget.birthYear ?? '2000') ?? 2000),
+          emergencyContacts: {
+            'primary': {
+              'name': 'Primary Contact',
+              'phone': (widget.emergencyContacts != null && widget.emergencyContacts!.isNotEmpty) ? widget.emergencyContacts![0] : '',
+              'relation': 'Guardian'
+            }
+          },
+          bloodType: widget.bloodType ?? '',
+          safetyNotesEn: widget.safetyNotes ?? '',
+          allergiesEn: widget.allergies ?? '',
+          medicalNotesEn: widget.condition ?? '',
+          medicalNotesAr: '',
+          status: withDevice, // Lw 3ml connect yb2a true, lw skip yb2a false
+          avatarUrl: widget.avatarUrl ?? 'assets/images/mypic.png',
+          seoSlug: (widget.name ?? 'new-profile').toLowerCase().replaceAll(' ', '-'),
+          metaTitleEn: '',
+          metaDescriptionEn: '',
+          featuredImageAltEn: '',
+          safetyNotesAr: '',
+          allergiesAr: '',
+          metaTitleAr: '',
+          metaDescriptionAr: '',
+          featuredImageAltAr: '',
+          createdAt: DateTime.now(),
+        );
+
+        // N-rfa3 3la Supabase
+        await SupabaseService().createPatientProfile(newProfile);
+
+        // N-7ot local bardo 3shan t-sme3 f wa2tha
+        AppState().addProfile(ProfileData(
+          id: newProfileId, // N-7ot nfs el ID
+          name: widget.name ?? 'New Profile',
+          relationship: widget.relationship ?? 'Member',
+          imagePath: widget.avatarUrl ?? 'assets/images/mypic.png',
+          birthYear: widget.birthYear ?? '',
+          emergencyContacts: widget.emergencyContacts ?? [],
+          bloodType: widget.bloodType ?? '',
+          allergies: widget.allergies ?? '',
+          condition: widget.condition ?? '',
+        ));
+
+        if (withDevice) {
+           final device = DeviceData(
+            deviceType: _selectedDeviceType!,
+            code: _codeController.text,
+            connectedAt: DateTime.now(),
+          );
+          AppState().addDeviceToProfile(AppState().profileCount - 1, device);
+        }
+      }
+      
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SyncingPage(
+              title: AppState().tr(withDevice ? 'Syncing to Hardware' : 'Finalizing Profile', withDevice ? 'تتم المزامنة مع الجهاز' : 'تجهيز الملف النهائي'),
+              subtitle: AppState().tr(
+                withDevice ? 'Encrypting data into bracelet\'s hardware ID' : 'Saving medical information and creating QR ID', 
+                withDevice ? 'تشفير البيانات في معرف جهاز السوار' : 'حفظ المعلومات الطبية وإنشاء رمز الاستجابة السريعة (QR)'
+              ),
+              onComplete: () {
+                Navigator.popUntil(context, (route) => route.isFirst);
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error creating profile: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -368,6 +478,8 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
+          if (_isLoading) return;
+
           if (_selectedDeviceType == null) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(AppState().tr('Please select a device type', 'الرجاء اختيار نوع الجهاز'))),
@@ -381,76 +493,43 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
             return;
           }
 
-          final device = DeviceData(
-            deviceType: _selectedDeviceType!,
-            code: _codeController.text,
-            connectedAt: DateTime.now(),
-          );
-
-          if (widget.targetProfileIndex != null) {
-            AppState().addDeviceToProfile(widget.targetProfileIndex!, device);
+          // 4. B-n-nady 3la el function 3shan t-karyet w t-connect f nfs el wa2t
+          if (widget.targetProfileIndex == null) {
+             _createProfileAndNavigate(withDevice: true);
           } else {
-            final newProfile = PatientProfile(
-              id: UniqueKey().toString(), // Dummy ID, Supabase will generate a real one if configured, or use UUID
-              guardianId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', // Your guardian ID from the SQL
-              profileName: widget.name ?? 'New Profile',
-              relationshipToGuardian: widget.relationship ?? 'Member',
-              birthYear: int.tryParse(widget.birthYear ?? '2000') ?? 2000,
-              age: DateTime.now().year - (int.tryParse(widget.birthYear ?? '2000') ?? 2000),
-              emergencyContacts: {
-                'primary': {
-                  'name': 'Primary Contact',
-                  'phone': (widget.emergencyContacts != null && widget.emergencyContacts!.isNotEmpty) ? widget.emergencyContacts![0] : '',
-                  'relation': 'Guardian'
-                }
-              },
-              bloodType: widget.bloodType ?? '',
-              safetyNotesEn: '',
-              allergiesEn: widget.allergies ?? '',
-              medicalNotesEn: widget.condition ?? '',
-              medicalNotesAr: '',
-              status: true,
-              avatarUrl: widget.avatarUrl ?? 'assets/images/mypic.png',
-              seoSlug: (widget.name ?? 'new-profile').toLowerCase().replaceAll(' ', '-'),
-              metaTitleEn: '',
-              metaDescriptionEn: '',
-              featuredImageAltEn: '',
-              safetyNotesAr: '',
-              allergiesAr: '',
-              metaTitleAr: '',
-              metaDescriptionAr: '',
-              featuredImageAltAr: '',
-              createdAt: DateTime.now(),
+             // Adding device to existing profile
+             final device = DeviceData(
+              deviceType: _selectedDeviceType!,
+              code: _codeController.text,
+              connectedAt: DateTime.now(),
             );
-
-            SupabaseService().createPatientProfile(newProfile);
             
-            // Also keep local fallback if needed
-            AppState().addProfile(ProfileData(
-              name: widget.name ?? 'New Profile',
-              imagePath: 'assets/images/mypic.png',
-              relationship: widget.relationship ?? 'Member',
-              birthYear: widget.birthYear ?? '',
-              emergencyContacts: widget.emergencyContacts ?? [],
-              bloodType: widget.bloodType ?? '',
-              allergies: widget.allergies ?? '',
-              condition: widget.condition ?? '',
-            ));
-            AppState().addDeviceToProfile(AppState().profileCount - 1, device);
-          }
-          
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SyncingPage(
-                title: AppState().tr('Syncing to Hardware', 'تتم المزامنة مع الجهاز'),
-                subtitle: AppState().tr('Encrypting data into bracelet\'s hardware ID', 'تشفير البيانات في معرف جهاز السوار'),
-                onComplete: () {
-                  Navigator.popUntil(context, (route) => route.isFirst);
-                },
+            // Add locally if profile exists in AppState
+            if (widget.targetProfileIndex != null && 
+                widget.targetProfileIndex! < AppState().profileCount) {
+              AppState().addDeviceToProfile(widget.targetProfileIndex!, device);
+            }
+
+            // Update Supabase status to connected using the passed profileId
+            final profileId = widget.targetProfileId;
+            if (profileId != null && profileId.isNotEmpty) {
+              SupabaseService().client.from('patient_profiles')
+                .update({'status': true}).eq('id', profileId);
+            }
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SyncingPage(
+                  title: AppState().tr('Syncing to Hardware', 'تتم المزامنة مع الجهاز'),
+                  subtitle: AppState().tr('Encrypting data into bracelet\'s hardware ID', 'تشفير البيانات في معرف جهاز السوار'),
+                  onComplete: () {
+                    Navigator.popUntil(context, (route) => route.isFirst);
+                  },
+                ),
               ),
-            ),
-          );
+            );
+          }
         },
         borderRadius: BorderRadius.circular(27),
         child: Container(
@@ -474,14 +553,16 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                AppState().tr('Connect the Bracelet', 'توصيل السوار'),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              _isLoading 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : Text(
+                    AppState().tr('Connect the Bracelet', 'توصيل السوار'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
             ],
           ),
         ),
@@ -492,67 +573,14 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   Widget _buildSkipButton() {
     return GestureDetector(
       onTap: () {
-        // Add profile before skipping hardware link if needed
+        if (_isLoading) return;
+
+        // 5. B-n-nady 3la el function bs b- false (ya3ny 3ml skip ll-bracelet)
         if (widget.targetProfileIndex == null) {
-          final newProfile = PatientProfile(
-            id: UniqueKey().toString(),
-            guardianId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-            profileName: widget.name ?? 'New Profile',
-            relationshipToGuardian: widget.relationship ?? 'Member',
-            birthYear: int.tryParse(widget.birthYear ?? '2000') ?? 2000,
-            age: DateTime.now().year - (int.tryParse(widget.birthYear ?? '2000') ?? 2000),
-            emergencyContacts: {
-              'primary': {
-                'name': 'Primary Contact',
-                'phone': (widget.emergencyContacts != null && widget.emergencyContacts!.isNotEmpty) ? widget.emergencyContacts![0] : '',
-                'relation': 'Guardian'
-              }
-            },
-            bloodType: widget.bloodType ?? '',
-            safetyNotesEn: '',
-            allergiesEn: widget.allergies ?? '',
-            medicalNotesEn: widget.condition ?? '',
-            medicalNotesAr: '',
-            status: false,
-            avatarUrl: widget.avatarUrl ?? 'assets/images/mypic.png',
-            seoSlug: (widget.name ?? 'new-profile').toLowerCase().replaceAll(' ', '-'),
-            metaTitleEn: '',
-            metaDescriptionEn: '',
-            featuredImageAltEn: '',
-            safetyNotesAr: '',
-            allergiesAr: '',
-            metaTitleAr: '',
-            metaDescriptionAr: '',
-            featuredImageAltAr: '',
-            createdAt: DateTime.now(),
-          );
-
-          SupabaseService().createPatientProfile(newProfile);
-
-          AppState().addProfile(ProfileData(
-            name: widget.name ?? 'New Profile',
-            relationship: widget.relationship ?? 'Member',
-            imagePath: 'assets/images/mypic.png',
-            birthYear: widget.birthYear ?? '',
-            emergencyContacts: widget.emergencyContacts ?? [],
-            bloodType: widget.bloodType ?? '',
-            allergies: widget.allergies ?? '',
-            condition: widget.condition ?? '',
-          ));
+          _createProfileAndNavigate(withDevice: false);
+        } else {
+           Navigator.pop(context); // Lw hwa aslan kan gowa el profile w das skip, yrg3
         }
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SyncingPage(
-              title: AppState().tr('Finalizing Profile', 'تجهيز الملف النهائي'),
-              subtitle: AppState().tr('Saving medical information and creating QR ID', 'حفظ المعلومات الطبية وإنشاء رمز الاستجابة السريعة (QR)'),
-              onComplete: () {
-                Navigator.popUntil(context, (route) => route.isFirst);
-              },
-            ),
-          ),
-        );
       },
       child: Container(
         width: double.infinity,
@@ -568,18 +596,19 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              AppState().tr('Skip this step for now', 'تخطي هذه الخطوة الآن'),
-              style: const TextStyle(
-                color: Color(0xFFEF4444),
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
+            _isLoading 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Color(0xFFEF4444), strokeWidth: 2))
+                : Text(
+                AppState().tr('Skip this step for now', 'تخطي هذه الخطوة الآن'),
+                style: const TextStyle(
+                  color: Color(0xFFEF4444),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
           ],
         ),
       ),
     );
   }
-
 }

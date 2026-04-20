@@ -13,9 +13,9 @@ import 'package:q_link/features/guardian/profile/public_preview_qr_page.dart';
 import 'package:q_link/features/guardian/profile/locate_bracelet_page.dart';
 import 'package:q_link/features/guardian/profile/connected_device_page.dart';
 import 'package:q_link/core/models/patient_profile.dart';
-import 'package:q_link/features/guardian/profile/add_profile_identity.dart';
+import 'package:q_link/services/supabase_service.dart';
 
-class ProfileManagementPage extends StatelessWidget {
+class ProfileManagementPage extends StatefulWidget {
   final int profileIndex;
   final ProfileData profile;
 
@@ -24,6 +24,41 @@ class ProfileManagementPage extends StatelessWidget {
     required this.profileIndex,
     required this.profile,
   });
+
+  @override
+  State<ProfileManagementPage> createState() => _ProfileManagementPageState();
+}
+
+class _ProfileManagementPageState extends State<ProfileManagementPage> {
+  late TextEditingController _nameController;
+  late TextEditingController _relationshipController;
+  bool _isEditing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.profile.name);
+    _relationshipController = TextEditingController(
+      text: widget.profile.relationship,
+    );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _relationshipController.dispose();
+    super.dispose();
+  }
+
+  void _saveChanges() {
+    widget.profile.name = _nameController.text;
+    widget.profile.relationship = _relationshipController.text;
+    setState(() => _isEditing = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile updated successfully')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +121,9 @@ class ProfileManagementPage extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(22),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF1E3A8A).withValues(alpha: 0.2),
+                                      color: const Color(
+                                        0xFF1E3A8A,
+                                      ).withValues(alpha: 0.2),
                                       blurRadius: 15,
                                       offset: const Offset(0, 8),
                                     ),
@@ -94,63 +131,184 @@ class ProfileManagementPage extends StatelessWidget {
                                 ),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(22),
-                                  child: profile.imagePath.startsWith('http')
-                                      ? Image.network(profile.imagePath, fit: BoxFit.cover)
-                                      : (profile.imagePath.startsWith('assets')
-                                          ? Image.asset(profile.imagePath, fit: BoxFit.cover)
-                                          : (profile.imagePath.isNotEmpty && !profile.imagePath.contains('mypic')
-                                              ? Image.file(File(profile.imagePath), fit: BoxFit.cover)
-                                              : Container(
-                                                  alignment: Alignment.center,
-                                                  color: const Color(0xFF273469),
-                                                  child: Text(
-                                                    profile.name.isNotEmpty ? profile.name[0].toUpperCase() : '?',
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 40,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ))),
+                                  child:
+                                      widget.profile.imagePath.startsWith(
+                                        'http',
+                                      )
+                                      ? Image.network(
+                                          widget.profile.imagePath,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : (widget.profile.imagePath.startsWith(
+                                              'assets',
+                                            )
+                                            ? Image.asset(
+                                                widget.profile.imagePath,
+                                                fit: BoxFit.cover,
+                                              )
+                                            : (widget
+                                                          .profile
+                                                          .imagePath
+                                                          .isNotEmpty &&
+                                                      !widget.profile.imagePath
+                                                          .contains('mypic')
+                                                  ? Image.file(
+                                                      File(
+                                                        widget
+                                                            .profile
+                                                            .imagePath,
+                                                      ),
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                  : Container(
+                                                      alignment:
+                                                          Alignment.center,
+                                                      color: const Color(
+                                                        0xFF273469,
+                                                      ),
+                                                      child: Text(
+                                                        widget
+                                                                .profile
+                                                                .name
+                                                                .isNotEmpty
+                                                            ? widget
+                                                                  .profile
+                                                                  .name[0]
+                                                                  .toUpperCase()
+                                                            : '?',
+                                                        style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 40,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ))),
                                 ),
                               ),
                               const SizedBox(height: 16),
-                              Text(
-                                profile.name,
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E3A8A),
-                                ),
-                              ),
-                              Text(
-                                profile.relationship,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF1B64F2),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              OutlinedButton.icon(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AddProfileIdentityPage(
-                                        editIndex: profileIndex,
-                                        existingProfile: profile,
+                              _isEditing
+                                  ? TextField(
+                                      controller: _nameController,
+                                      decoration: InputDecoration(
+                                        labelText: appState.tr(
+                                          'Full Name',
+                                          'الاسم الكامل',
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 12,
+                                            ),
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  : Text(
+                                      widget.profile.name,
+                                      style: const TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E3A8A),
                                       ),
                                     ),
-                                  );
-                                },
-                                icon: const Icon(Icons.edit_outlined, size: 18),
-                                label: Text(appState.tr('Edit Profile', 'تعديل الملف')),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFF1E3A8A),
-                                  side: const BorderSide(color: Color(0xFFE5E7EB)),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                ),
-                              ),
+                              const SizedBox(height: 8),
+                              _isEditing
+                                  ? TextField(
+                                      controller: _relationshipController,
+                                      decoration: InputDecoration(
+                                        labelText: appState.tr(
+                                          'Relationship',
+                                          'العلاقة',
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 12,
+                                            ),
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(fontSize: 14),
+                                    )
+                                  : Text(
+                                      widget.profile.relationship,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Color(0xFF1B64F2),
+                                      ),
+                                    ),
+                              const SizedBox(height: 16),
+                              _isEditing
+                                  ? Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        ElevatedButton(
+                                          onPressed: () => setState(
+                                            () => _isEditing = false,
+                                          ),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                Colors.grey.shade400,
+                                          ),
+                                          child: Text(
+                                            appState.tr('Cancel', 'إلغاء'),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        ElevatedButton(
+                                          onPressed: _saveChanges,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(
+                                              0xFF1B64F2,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            appState.tr('Save', 'حفظ'),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : OutlinedButton.icon(
+                                      onPressed: () =>
+                                          setState(() => _isEditing = true),
+                                      icon: const Icon(
+                                        Icons.edit_outlined,
+                                        size: 18,
+                                      ),
+                                      label: Text(
+                                        appState.tr(
+                                          'Edit Profile',
+                                          'تعديل الملف',
+                                        ),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: const Color(
+                                          0xFF1E3A8A,
+                                        ),
+                                        side: const BorderSide(
+                                          color: Color(0xFFE5E7EB),
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                             ],
                           ),
                         ),
@@ -172,11 +330,16 @@ class ProfileManagementPage extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => EmergencyInfoPage(
-                                  profileIndex: profileIndex,
-                                  profile: profile,
+                                  profileIndex: widget.profileIndex,
+                                  profile: widget.profile,
                                 ),
                               ),
-                            );
+                            ).then((result) {
+                              // If EmergencyInfoPage saved successfully, pop back to home so it re-fetches
+                              if (result == true && mounted) {
+                                Navigator.pop(context, true);
+                              }
+                            });
                           },
                         ),
                         _buildFeatureCard(
@@ -194,8 +357,8 @@ class ProfileManagementPage extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => PrivacyControlPage(
-                                  profileIndex: profileIndex,
-                                  profile: profile,
+                                  profileIndex: widget.profileIndex,
+                                  profile: widget.profile,
                                 ),
                               ),
                             ).then((_) {
@@ -213,7 +376,8 @@ class ProfileManagementPage extends StatelessWidget {
                           ),
                           isLocked: true,
                           onTap: () {
-                            List<Map<String, String>> mappedContacts = profile
+                            List<Map<String, String>> mappedContacts = widget
+                                .profile
                                 .emergencyContacts
                                 .map((contact) {
                                   return {
@@ -228,25 +392,32 @@ class ProfileManagementPage extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (context) => VaultDetailPage(
                                   profile: PatientProfile(
-                                    id: profile.id ?? '',
+                                    id: widget.profile.id ?? '',
                                     guardianId: '',
-                                    profileName: profile.name,
-                                    relationshipToGuardian: profile.relationship,
-                                    birthYear: int.tryParse(profile.birthYear) ?? 0,
+                                    profileName: widget.profile.name,
+                                    relationshipToGuardian:
+                                        widget.profile.relationship,
+                                    birthYear:
+                                        int.tryParse(
+                                          widget.profile.birthYear,
+                                        ) ??
+                                        0,
                                     age: 0,
                                     emergencyContacts: {
                                       'primary': {
-                                        'name': mappedContacts.isNotEmpty ? mappedContacts[0]['name'] : '',
-                                        'relation': profile.relationship,
-                                      }
+                                        'name': mappedContacts.isNotEmpty
+                                            ? mappedContacts[0]['name']
+                                            : '',
+                                        'relation': widget.profile.relationship,
+                                      },
                                     },
-                                    bloodType: profile.bloodType,
+                                    bloodType: widget.profile.bloodType,
                                     safetyNotesEn: '',
-                                    allergiesEn: profile.allergies,
-                                    medicalNotesEn: profile.condition,
+                                    allergiesEn: widget.profile.allergies,
+                                    medicalNotesEn: widget.profile.condition,
                                     medicalNotesAr: '',
-                                    status: profile.hasDevice,
-                                    avatarUrl: profile.imagePath,
+                                    status: widget.profile.hasDevice,
+                                    avatarUrl: widget.profile.imagePath,
                                     seoSlug: '',
                                     metaTitleEn: '',
                                     metaDescriptionEn: '',
@@ -281,8 +452,9 @@ class ProfileManagementPage extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    PublicPreviewQrPage(profile: profile),
+                                builder: (context) => PublicPreviewQrPage(
+                                  profile: widget.profile,
+                                ),
                               ),
                             );
                           },
@@ -308,27 +480,39 @@ class ProfileManagementPage extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ConnectDevicePage(
-                                  targetProfileIndex: profileIndex,
+                                  targetProfileIndex: widget.profileIndex,
+                                  targetProfileId: widget.profile.id,
                                 ),
                               ),
                             );
                           },
                         ),
 
-                        if (profile.hasDevice)
+                        if (widget.profile.hasDevice)
                           _buildActionItem(
                             icon: Icons.watch_outlined,
-                            title: appState.tr('Connected Device', 'الجهاز المتصل'),
+                            title: appState.tr(
+                              'Connected Device',
+                              'الجهاز المتصل',
+                            ),
+                            subtitle: widget.profile.devices.isNotEmpty
+                                ? widget.profile.devices.first.code
+                                : null,
                             color: const Color(0xFF0E9F6E),
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => ConnectedDevicePage(
-                                    profile: profile,
+                                    profile: widget.profile,
                                   ),
                                 ),
-                              );
+                              ).then((result) {
+                                // Device was disconnected — pop back to home to refresh
+                                if (result == true && mounted) {
+                                  Navigator.pop(context, true);
+                                }
+                              });
                             },
                           ),
 
@@ -342,9 +526,8 @@ class ProfileManagementPage extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => LocateBraceletPage(
-                                  profile: profile,
-                                ),
+                                builder: (context) =>
+                                    LocateBraceletPage(profile: widget.profile),
                               ),
                             );
                           },
@@ -489,21 +672,33 @@ class ProfileManagementPage extends StatelessWidget {
   void _showDeleteConfirm(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         title: Text(AppState().tr('Delete Profile', 'حذف الملف الشخصي')),
         content: Text(
-          '${AppState().tr('Are you sure you want to delete', 'هل أنت متأكد أنك تريد حذف')} ${profile.name}? ${AppState().tr('This action cannot be undone.', 'لا يمكن التراجع عن هذا الإجراء.')}',
+          '${AppState().tr('Are you sure you want to delete', 'هل أنت متأكد أنك تريد حذف')} ${widget.profile.name}? ${AppState().tr('This action cannot be undone.', 'لا يمكن التراجع عن هذا الإجراء.')}',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogCtx),
             child: Text(AppState().tr('Cancel', 'إلغاء')),
           ),
           TextButton(
-            onPressed: () {
-              AppState().removeProfile(profileIndex);
-              Navigator.pop(context);
-              Navigator.pop(context);
+            onPressed: () async {
+              // Delete from Supabase
+              if (widget.profile.id != null && widget.profile.id!.isNotEmpty) {
+                try {
+                  await SupabaseService().client
+                      .from('patient_profiles')
+                      .delete()
+                      .eq('id', widget.profile.id!);
+                } catch (e) {
+                  debugPrint('Error deleting profile: $e');
+                }
+              }
+              // Remove from local state
+              AppState().removeProfile(widget.profileIndex);
+              if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+              if (context.mounted) Navigator.pop(context, true); // Signal home to refresh
             },
             child: Text(
               AppState().tr('Delete', 'حذف'),
