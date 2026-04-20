@@ -94,7 +94,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           medicalNotesAr: '',
           status: withDevice, // Lw 3ml connect yb2a true, lw skip yb2a false
           avatarUrl: widget.avatarUrl ?? 'assets/images/mypic.png',
-          seoSlug: (widget.name ?? 'new-profile').toLowerCase().replaceAll(' ', '-'),
+          seoSlug: '${(widget.name ?? 'new-profile').toLowerCase().replaceAll(' ', '-')}-${newProfileId.substring(0, 8)}',
           metaTitleEn: '',
           metaDescriptionEn: '',
           featuredImageAltEn: '',
