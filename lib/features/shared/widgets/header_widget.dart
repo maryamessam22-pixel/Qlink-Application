@@ -1,11 +1,17 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
-import 'package:q_link/features/guardian/home/home_page.dart';
-import 'package:q_link/features/guardian/settings/settings_page.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
+
+ImageProvider getUserAvatarProvider(String path) {
+  if (path.startsWith('assets')) return AssetImage(path);
+  if (path.startsWith('http') || path.startsWith('blob:')) return NetworkImage(path);
+  if (!kIsWeb) return FileImage(File(path));
+  return const AssetImage('assets/images/mypic.png');
+}
 
 class HeaderWidget extends StatelessWidget {
   const HeaderWidget({super.key});
@@ -24,13 +30,9 @@ class HeaderWidget extends StatelessWidget {
               const SizedBox(width: 8),
               CircleAvatar(
                 radius: 16,
-                backgroundColor: Colors.transparent,
-                backgroundImage: appState.currentUser.imagePath.startsWith('assets')
-                    ? AssetImage(appState.currentUser.imagePath)
-                    : null, // Update this if file-based images are used
-                child: !appState.currentUser.imagePath.startsWith('assets') 
-                    ? const Icon(Icons.person, color: Color(0xFF1E3A8A)) 
-                    : null,
+                backgroundColor: const Color(0xFFE6F0FE),
+                backgroundImage: getUserAvatarProvider(appState.currentUser.imagePath),
+                onBackgroundImageError: (_, __) {},
               ),
               const Spacer(),
               LanguageToggle(),

@@ -7,6 +7,7 @@ import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/core/models/patient_profile.dart';
 import 'package:q_link/services/supabase_service.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
+import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
 import 'package:uuid/uuid.dart'; // N-stkhdm uuid 3shan ne-generate ID sa7
 
 class AddMedicalInfoPage extends StatefulWidget {
@@ -125,10 +126,11 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
       children: [
         VideoLogoWidget(),
         const SizedBox(width: 8),
-        const CircleAvatar(
+        CircleAvatar(
           radius: 16,
-          backgroundColor: Colors.transparent,
-          backgroundImage: AssetImage('assets/images/mypic.png'),
+          backgroundColor: const Color(0xFFE6F0FE),
+          backgroundImage: getUserAvatarProvider(AppState().currentUser.imagePath),
+          onBackgroundImageError: (_, __) {},
         ),
         const Spacer(),
         const LanguageToggle(),

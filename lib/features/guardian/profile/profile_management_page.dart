@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
@@ -74,6 +75,37 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
     AppState().markProfilesDirty();
 
     setState(() => _isEditing = false);
+  }
+
+  Widget _buildProfileAvatar(ProfileData profile) {
+    final path = profile.imagePath;
+    if (path.startsWith('http') || path.startsWith('blob:')) {
+      return Image.network(path, fit: BoxFit.cover);
+    }
+    if (path.startsWith('assets')) {
+      return Image.asset(path, fit: BoxFit.cover);
+    }
+    if (path.isNotEmpty && !kIsWeb) {
+      return Image.file(File(path), fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildInitialsAvatar(profile.name),
+      );
+    }
+    return _buildInitialsAvatar(profile.name);
+  }
+
+  Widget _buildInitialsAvatar(String name) {
+    return Container(
+      alignment: Alignment.center,
+      color: const Color(0xFF273469),
+      child: Text(
+        name.isNotEmpty ? name[0].toUpperCase() : '?',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 40,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -153,59 +185,7 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
                                 ),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(22),
-                                  child:
-                                      widget.profile.imagePath.startsWith(
-                                        'http',
-                                      )
-                                      ? Image.network(
-                                          widget.profile.imagePath,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : (widget.profile.imagePath.startsWith(
-                                              'assets',
-                                            )
-                                            ? Image.asset(
-                                                widget.profile.imagePath,
-                                                fit: BoxFit.cover,
-                                              )
-                                            : (widget
-                                                          .profile
-                                                          .imagePath
-                                                          .isNotEmpty &&
-                                                      !widget.profile.imagePath
-                                                          .contains('mypic')
-                                                  ? Image.file(
-                                                      File(
-                                                        widget
-                                                            .profile
-                                                            .imagePath,
-                                                      ),
-                                                      fit: BoxFit.cover,
-                                                    )
-                                                  : Container(
-                                                      alignment:
-                                                          Alignment.center,
-                                                      color: const Color(
-                                                        0xFF273469,
-                                                      ),
-                                                      child: Text(
-                                                        widget
-                                                                .profile
-                                                                .name
-                                                                .isNotEmpty
-                                                            ? widget
-                                                                  .profile
-                                                                  .name[0]
-                                                                  .toUpperCase()
-                                                            : '?',
-                                                        style: const TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 40,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                    ))),
+                                  child: _buildProfileAvatar(widget.profile),
                                 ),
                               ),
                               const SizedBox(height: 16),

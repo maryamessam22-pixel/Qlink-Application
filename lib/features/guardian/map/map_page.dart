@@ -6,6 +6,7 @@ import 'package:q_link/features/guardian/home/home_page.dart';
 import 'package:q_link/features/guardian/map/geofence_setup_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
+import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -226,10 +227,11 @@ class _MapPageState extends State<MapPage> {
       children: [
         VideoLogoWidget(),
         const SizedBox(width: 8),
-        const CircleAvatar(
+        CircleAvatar(
           radius: 16,
-          backgroundColor: Colors.transparent,
-          backgroundImage: AssetImage('assets/images/mypic.png'),
+          backgroundColor: const Color(0xFFE6F0FE),
+          backgroundImage: getUserAvatarProvider(AppState().currentUser.imagePath),
+          onBackgroundImageError: (_, __) {},
         ),
         const Spacer(),
         const LanguageToggle(),

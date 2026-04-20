@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:q_link/features/guardian/home/home_page.dart';
@@ -7,6 +8,7 @@ import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
+import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
 
 class AddProfileIdentityPage extends StatefulWidget {
   final int? editIndex;
@@ -87,10 +89,11 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                     children: [
                       VideoLogoWidget(),
                       const SizedBox(width: 8),
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 16,
-                        backgroundColor: Colors.transparent,
-                        backgroundImage: AssetImage('assets/images/mypic.png'),
+                        backgroundColor: const Color(0xFFE6F0FE),
+                        backgroundImage: getUserAvatarProvider(AppState().currentUser.imagePath),
+                        onBackgroundImageError: (_, __) {},
                       ),
                       const Spacer(),
                       const LanguageToggle(),
@@ -208,11 +211,13 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                           ),
                           child: ClipOval(
                             child: _imagePath != null
-                                ? (_imagePath!.startsWith('http')
+                                ? (_imagePath!.startsWith('http') || _imagePath!.startsWith('blob:')
                                     ? Image.network(_imagePath!, fit: BoxFit.cover)
-                                    : (_imagePath!.startsWith('assets') 
+                                    : (_imagePath!.startsWith('assets')
                                       ? Image.asset(_imagePath!, fit: BoxFit.cover)
-                                      : Image.file(File(_imagePath!), fit: BoxFit.cover)))
+                                      : (!kIsWeb
+                                        ? Image.file(File(_imagePath!), fit: BoxFit.cover)
+                                        : const Icon(Icons.person, size: 60, color: Color(0xFF1B64F2)))))
                                 : Container(
                                     color: const Color(0xFFE6F0FE),
                                     child: const Icon(Icons.person, size: 60, color: Color(0xFF1B64F2)),

@@ -7,6 +7,7 @@ import 'package:q_link/features/guardian/vault/vault_detail_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
+import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
 
 class VaultPage extends StatefulWidget {
   const VaultPage({super.key});
@@ -107,10 +108,11 @@ class _VaultPageState extends State<VaultPage> {
       children: [
         VideoLogoWidget(),
         const SizedBox(width: 8),
-        const CircleAvatar(
+        CircleAvatar(
           radius: 16,
-          backgroundColor: Colors.transparent,
-          backgroundImage: AssetImage('assets/images/mypic.png'),
+          backgroundColor: const Color(0xFFE6F0FE),
+          backgroundImage: getUserAvatarProvider(appState.currentUser.imagePath),
+          onBackgroundImageError: (_, __) {},
         ),
         const Spacer(),
         Text(

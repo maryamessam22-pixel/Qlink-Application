@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
@@ -217,10 +218,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget _buildProfileImage(String path) {
     if (path.startsWith('assets')) {
       return Image.asset(path, fit: BoxFit.cover);
-    } else {
+    } else if (path.startsWith('http') || path.startsWith('blob:')) {
+      return Image.network(path, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) {
+        return const Icon(Icons.person, size: 60, color: Color(0xFF1B64F2));
+      });
+    } else if (!kIsWeb) {
       return Image.file(File(path), fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) {
         return const Icon(Icons.person, size: 60, color: Color(0xFF1B64F2));
       });
+    } else {
+      return const Icon(Icons.person, size: 60, color: Color(0xFF1B64F2));
     }
   }
 
