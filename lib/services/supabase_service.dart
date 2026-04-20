@@ -115,9 +115,11 @@ class SupabaseService {
   /// Uploads a picked image to Supabase Storage and returns the public URL.
   /// Works on both web (blob: URLs) and mobile (file paths) via XFile.readAsBytes().
   Future<String?> uploadProfileAvatar(String localPath, String profileId) async {
-    if (localPath.isEmpty ||
-        localPath.startsWith('assets') ||
-        localPath.startsWith('http')) {
+    if (localPath.isEmpty || localPath.startsWith('assets')) {
+      return null;
+    }
+    // Already a Supabase Storage URL -- no need to re-upload
+    if (localPath.startsWith('http') && localPath.contains('supabase')) {
       return null;
     }
 
@@ -126,19 +128,21 @@ class SupabaseService {
       final Uint8List bytes = await xfile.readAsBytes();
       if (bytes.isEmpty) return null;
 
-      String ext = localPath.split('.').last.toLowerCase();
-      if (ext.length > 5 || ext.contains('/')) ext = 'jpg';
-      final storagePath = 'profiles/$profileId.$ext';
+      final storagePath = 'profiles/$profileId.jpg';
 
       await client.storage.from('avatars').uploadBinary(
         storagePath,
         bytes,
-        fileOptions: const FileOptions(upsert: true),
+        fileOptions: const FileOptions(
+          upsert: true,
+          contentType: 'image/jpeg',
+        ),
       );
 
       return client.storage.from('avatars').getPublicUrl(storagePath);
     } catch (e) {
       print('Error uploading avatar: $e');
+      print('Path was: $localPath');
       return null;
     }
   }

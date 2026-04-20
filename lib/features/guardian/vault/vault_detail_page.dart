@@ -5,6 +5,7 @@ import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
 import 'package:q_link/core/models/patient_profile.dart';
+import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
 
 class VaultDetailPage extends StatelessWidget {
   final PatientProfile profile;
@@ -117,11 +118,10 @@ class VaultDetailPage extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 32,
-            backgroundImage: profile.avatarUrl.isEmpty
-                ? const AssetImage('assets/images/mypic.png')
-                : (profile.avatarUrl.startsWith('http')
-                    ? NetworkImage(profile.avatarUrl)
-                    : AssetImage(profile.avatarUrl)) as ImageProvider,
+            backgroundImage: getUserAvatarProvider(
+              profile.avatarUrl.isNotEmpty ? profile.avatarUrl : 'assets/images/mypic.png',
+            ),
+            onBackgroundImageError: (_, __) {},
           ),
           const SizedBox(width: 14),
           Expanded(

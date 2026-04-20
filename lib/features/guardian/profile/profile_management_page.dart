@@ -79,16 +79,18 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
 
   Widget _buildProfileAvatar(ProfileData profile) {
     final path = profile.imagePath;
-    if (path.startsWith('http') || path.startsWith('blob:')) {
-      return Image.network(path, fit: BoxFit.cover);
-    }
+    if (path.isEmpty) return _buildInitialsAvatar(profile.name);
     if (path.startsWith('assets')) {
-      return Image.asset(path, fit: BoxFit.cover);
+      return Image.asset(path, fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildInitialsAvatar(profile.name));
     }
-    if (path.isNotEmpty && !kIsWeb) {
+    if (path.startsWith('http') || path.startsWith('blob:')) {
+      return Image.network(path, fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildInitialsAvatar(profile.name));
+    }
+    if (!kIsWeb) {
       return Image.file(File(path), fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildInitialsAvatar(profile.name),
-      );
+        errorBuilder: (_, __, ___) => _buildInitialsAvatar(profile.name));
     }
     return _buildInitialsAvatar(profile.name);
   }

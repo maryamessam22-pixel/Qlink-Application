@@ -46,6 +46,34 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Widget _buildInitials(String name) {
+    return Text(
+      name.isNotEmpty ? name[0].toUpperCase() : '?',
+      style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+    );
+  }
+
+  Widget _buildProfileAvatar(PatientProfile profile) {
+    final url = profile.avatarUrl;
+    if (url.isEmpty) return _buildInitials(profile.profileName);
+
+    if (url.startsWith('assets')) {
+      return SizedBox(
+        width: 60, height: 60,
+        child: Image.asset(url, fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildInitials(profile.profileName),
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: 60, height: 60,
+      child: Image.network(url, fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildInitials(profile.profileName),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -701,30 +729,7 @@ class _HomePageState extends State<HomePage> {
                 alignment: Alignment.center,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: profile.avatarUrl.isEmpty
-                      ? Text(
-                          profile.profileName.isNotEmpty
-                              ? profile.profileName[0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      : (profile.avatarUrl.startsWith('http')
-                            ? Image.network(
-                                profile.avatarUrl,
-                                fit: BoxFit.cover,
-                                width: 60,
-                                height: 60,
-                              )
-                            : Image.asset(
-                                profile.avatarUrl,
-                                fit: BoxFit.cover,
-                                width: 60,
-                                height: 60,
-                              )),
+                  child: _buildProfileAvatar(profile),
                 ),
               ),
               const SizedBox(width: 16),

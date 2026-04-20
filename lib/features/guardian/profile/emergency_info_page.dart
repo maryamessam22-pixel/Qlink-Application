@@ -36,6 +36,20 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
   late TextEditingController _allergiesController;
   late List<TextEditingController> _contactControllers;
 
+  Widget _buildAvatar(String path, String name, double size) {
+    Widget fallback = Text(
+      name.isNotEmpty ? name[0].toUpperCase() : '?',
+      style: TextStyle(color: Colors.white, fontSize: size * 0.45, fontWeight: FontWeight.bold),
+    );
+    if (path.isEmpty) return fallback;
+    if (path.startsWith('assets')) {
+      return Image.asset(path, fit: BoxFit.cover, width: size, height: size,
+        errorBuilder: (_, __, ___) => fallback);
+    }
+    return Image.network(path, fit: BoxFit.cover, width: size, height: size,
+      errorBuilder: (_, __, ___) => fallback);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -271,16 +285,9 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     alignment: Alignment.center,
-                                    child: widget.profile.imagePath.contains('mypic')
-                                        ? Text(
-                                            widget.profile.name.isNotEmpty ? widget.profile.name[0].toUpperCase() : '?',
-                                            style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
-                                          )
-                                        : ClipRRect(
+                                    child: ClipRRect(
                                             borderRadius: BorderRadius.circular(12),
-                                            child: widget.profile.imagePath.startsWith('http') 
-                                              ? Image.network(widget.profile.imagePath, fit: BoxFit.cover, width: 70, height: 70) 
-                                              : Image.asset(widget.profile.imagePath, fit: BoxFit.cover, width: 70, height: 70),
+                                            child: _buildAvatar(widget.profile.imagePath, widget.profile.name, 70),
                                           ),
                                   ),
                                   const SizedBox(width: 16),

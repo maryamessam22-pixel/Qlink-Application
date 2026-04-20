@@ -65,7 +65,6 @@ class _VaultPageState extends State<VaultPage> {
                               name: profile.profileName,
                               role: appState.tr(profile.relationshipToGuardian, profile.relationshipToGuardian),
                               imagePath: profile.avatarUrl.isNotEmpty ? profile.avatarUrl : 'assets/images/mypic.png',
-                              isNetworkImage: profile.avatarUrl.isNotEmpty,
                               recordCount: 5, // Mock for now, could be fetched
                               lastUpdate: appState.tr('Latest', 'الأحدث'),
                               statusLabel: statusLabel,
@@ -235,7 +234,6 @@ class _VaultPageState extends State<VaultPage> {
     required String name,
     required String role,
     required String imagePath,
-    bool isNetworkImage = false,
     required int recordCount,
     required String lastUpdate,
     required String statusLabel,
@@ -268,9 +266,8 @@ class _VaultPageState extends State<VaultPage> {
             children: [
               CircleAvatar(
                 radius: 28,
-                backgroundImage: isNetworkImage 
-                    ? NetworkImage(imagePath) 
-                    : AssetImage(imagePath) as ImageProvider,
+                backgroundImage: getUserAvatarProvider(imagePath),
+                onBackgroundImageError: (_, __) {},
               ),
               const SizedBox(width: 14),
               Expanded(

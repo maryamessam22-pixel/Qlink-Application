@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/core/models/patient_profile.dart';
 import 'package:q_link/services/supabase_service.dart';
-import 'package:q_link/features/guardian/home/home_page.dart';
+import 'package:q_link/features/guardian/home/main_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/guardian/profile/syncing_page.dart';
@@ -72,9 +72,14 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
       if (guardianId != null) {
         final newProfileId = Uuid().v4();
 
-        String avatarUrl = widget.avatarUrl ?? 'assets/images/mypic.png';
-        final uploadedUrl = await SupabaseService().uploadProfileAvatar(avatarUrl, newProfileId);
-        if (uploadedUrl != null) avatarUrl = uploadedUrl;
+        final rawAvatar = widget.avatarUrl ?? 'assets/images/mypic.png';
+        String avatarUrl;
+        if (rawAvatar.startsWith('assets')) {
+          avatarUrl = rawAvatar;
+        } else {
+          final uploadedUrl = await SupabaseService().uploadProfileAvatar(rawAvatar, newProfileId);
+          avatarUrl = uploadedUrl ?? 'assets/images/mypic.png';
+        }
 
         final newProfile = PatientProfile(
           id: newProfileId, 
@@ -148,7 +153,13 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
                 withDevice ? 'تشفير البيانات في معرف جهاز السوار' : 'حفظ المعلومات الطبية وإنشاء رمز الاستجابة السريعة (QR)'
               ),
               onComplete: () {
-                Navigator.popUntil(context, (route) => route.isFirst);
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (_) => const MainPage(),
+                    settings: const RouteSettings(name: 'MainPage'),
+                  ),
+                  (route) => false,
+                );
               },
             ),
           ),
