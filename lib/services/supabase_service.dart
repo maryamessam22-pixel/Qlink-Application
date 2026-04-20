@@ -12,17 +12,26 @@ class SupabaseService {
 
   Future<Map<String, dynamic>?> signIn(String email, String password) async {
     try {
-      final response = await client
-          .from('profiles')
-          .select()
-          .eq('email', email)
-          .eq('password', password)
-          .maybeSingle();
-      
-      return response;
+      // 1. Authenticate using Supabase Auth
+      final authResponse = await client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      if (authResponse.user != null) {
+        // 2. Fetch additional profile data from the 'profiles' table
+        final profileResponse = await client
+            .from('profiles')
+            .select()
+            .eq('id', authResponse.user!.id)
+            .maybeSingle();
+        
+        return profileResponse;
+      }
+      return null;
     } catch (e) {
       print('Error signing in: $e');
-      return null;
+      rethrow; // Rethrow to handle specific errors in the UI (e.g., user not found, wrong password)
     }
   }
 

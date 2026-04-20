@@ -4,6 +4,7 @@ import 'package:q_link/features/auth/presentation/pages/create_account_page.dart
 import 'package:q_link/features/guardian/home/main_page.dart';
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
 import 'package:q_link/services/supabase_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // Deftlak el import da 3shan nstkhdm Auth
 
 class SignInPage extends StatefulWidget {
   final String role;
@@ -43,16 +44,14 @@ class _SignInPageState extends State<SignInPage> {
       final userData = await SupabaseService().signIn(email, password);
 
       if (userData != null) {
-        // Update local app state
         AppState().updateCurrentUser(
-          name: userData['full_name'],
-          email: userData['email'],
-          password: userData['password'],
+          name: userData['full_name'] ?? 'Unknown',
+          email: userData['email'] ?? email,
+          password: '', 
           imagePath: userData['avatar_url'] ?? 'assets/images/mypic.png',
-          role: userData['role'],
+          role: userData['role'] ?? widget.role,
         );
 
-        // Navigate to home
         if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
@@ -83,6 +82,40 @@ class _SignInPageState extends State<SignInPage> {
     }
   }
 
+  // --- De el function el gdeda bta3t el Forgot Password ---
+  Future<void> _handleForgotPassword() async {
+    final email = _emailController.text.trim();
+    
+    // Lw el user msh kateb email aslan, n2olo ektb el email awel
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppState().tr('Please enter your email first', 'يرجى إدخال بريدك الإلكتروني أولاً'))),
+      );
+      return;
+    }
+
+    try {
+      // B-n-klem Supabase yb3at email reset
+      await Supabase.instance.client.auth.resetPasswordForEmail(email);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppState().tr('Password reset link sent to your email', 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني')),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
+  // --------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -111,9 +144,9 @@ class _SignInPageState extends State<SignInPage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFB81829), // Reddish top
-              Color(0xFF4C3A71), // Purple middle
-              Color(0xFF015196), // Deep blue bottom
+              Color(0xFFB81829), 
+              Color(0xFF4C3A71), 
+              Color(0xFF015196), 
             ],
             stops: [0.0, 0.4, 1.0],
           ),
@@ -125,7 +158,6 @@ class _SignInPageState extends State<SignInPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 10),
-                // Logo
                 Center(
                   child: Image.asset(
                     'assets/images/qlink_logo.png',
@@ -145,8 +177,6 @@ class _SignInPageState extends State<SignInPage> {
                   ),
                 ),
                 const SizedBox(height: 30),
-                
-                // Header Texts
                 Text(
                   '${widget.role} Hub',
                   textAlign: TextAlign.center,
@@ -167,8 +197,6 @@ class _SignInPageState extends State<SignInPage> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                
-                // Email Field
                 _buildTextField(
                   controller: _emailController,
                   hintText: 'Mohamedsaber22@gmail.com',
@@ -176,8 +204,6 @@ class _SignInPageState extends State<SignInPage> {
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 16),
-                
-                // Password Field
                 _buildTextField(
                   controller: _passwordController,
                   hintText: '........',
@@ -198,16 +224,14 @@ class _SignInPageState extends State<SignInPage> {
                 ),
                 const SizedBox(height: 8),
                 
-                // Forgot Password
+                // Forgot Password - Hna rabatna el function el gdeda
                 Align(
                   alignment: Alignment.centerRight,
                   child: GestureDetector(
-                    onTap: () {
-                      // Forgot password logic
-                    },
+                    onTap: _handleForgotPassword, // <--- El Rabta hna
                     child: Text(
                       appState.tr('Forgot Password?', 'هل نسيت كلمة المرور؟'),
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
@@ -216,7 +240,6 @@ class _SignInPageState extends State<SignInPage> {
                 ),
                 const SizedBox(height: 30),
                 
-                // Sign In Button
                 ElevatedButton(
                   onPressed: _isLoading ? null : _handleSignIn,
                   style: ElevatedButton.styleFrom(
@@ -243,8 +266,6 @@ class _SignInPageState extends State<SignInPage> {
                       ),
                 ),
                 const SizedBox(height: 40),
-                
-                // OR Divider
                 Row(
                   children: [
                     Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.8), thickness: 1)),
@@ -256,8 +277,6 @@ class _SignInPageState extends State<SignInPage> {
                   ],
                 ),
                 const SizedBox(height: 30),
-                
-                // Social Icons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -284,8 +303,6 @@ class _SignInPageState extends State<SignInPage> {
                   ],
                 ),
                 const SizedBox(height: 30),
-
-                // EMERGENCY Divider
                 Row(
                   children: [
                     Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.8), thickness: 1)),
@@ -297,14 +314,10 @@ class _SignInPageState extends State<SignInPage> {
                   ],
                 ),
                 const SizedBox(height: 20),
-
-                // Emergency Button
                 ElevatedButton(
-                  onPressed: () {
-                    // Emergency action
-                  },
+                  onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFCE223C), // Red color
+                    backgroundColor: const Color(0xFFCE223C), 
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25.0),
@@ -328,8 +341,6 @@ class _SignInPageState extends State<SignInPage> {
                   ),
                 ),
                 const SizedBox(height: 30),
-                
-                // Create Account Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -417,6 +428,4 @@ class _SignInPageState extends State<SignInPage> {
       ),
     );
   }
-
-
 }
