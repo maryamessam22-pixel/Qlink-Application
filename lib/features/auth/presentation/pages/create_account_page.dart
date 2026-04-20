@@ -175,6 +175,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                         builder: (_) => widget.role == 'Guardian' 
                             ? const MainPage() 
                             : const WearerInitialSetupPage(),
+                        settings: RouteSettings(name: widget.role == 'Guardian' ? 'MainPage' : 'WearerMainPage'),
                       ),
                       (Route<dynamic> route) => false,
                     );

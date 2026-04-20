@@ -155,6 +155,7 @@ class _SignInPageState extends State<SignInPage> {
                         builder: (_) => widget.role == 'Guardian' 
                             ? const MainPage() 
                             : const WearerMainPage(),
+                        settings: RouteSettings(name: widget.role == 'Guardian' ? 'MainPage' : 'WearerMainPage'),
                       ),
                       (Route<dynamic> route) => false,
                     );

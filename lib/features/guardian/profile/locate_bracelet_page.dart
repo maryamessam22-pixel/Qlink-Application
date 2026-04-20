@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/guardian/home/home_page.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
+import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
 
 class LocateBraceletPage extends StatefulWidget {
   final ProfileData profile;
@@ -362,59 +362,10 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
               ),
             ],
           ),
-          bottomNavigationBar: _buildBottomNav(context),
+          bottomNavigationBar: const BottomNavWidget(),
         );
       },
     );
   }
 
-  Widget _buildBottomNav(BuildContext context) {
-    return Container(
-      height: 90,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB).withValues(alpha: 0.8),
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildNavItem(LucideIcons.home, AppState().tr('Home', 'الرئيسية')),
-          _buildNavItem(LucideIcons.map, AppState().tr('Map', 'الخريطة')),
-          Container(
-            width: 50,
-            height: 50,
-            decoration: const BoxDecoration(
-              color: Color(0xFF1B64F2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.add, color: Colors.white),
-          ),
-          _buildNavItem(LucideIcons.lock, AppState().tr('Vault', 'الخزنة')),
-          _buildNavItem(LucideIcons.settings, AppState().tr('Settings', 'الإعدادات')),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: Colors.grey.shade400, size: 24),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey.shade400,
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
 }

@@ -254,7 +254,10 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                       // Finalize setup
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (_) => const WearerMainPage(isConnected: true)),
+                        MaterialPageRoute(
+                          builder: (_) => const WearerMainPage(isConnected: true),
+                          settings: const RouteSettings(name: 'WearerMainPage'),
+                        ),
                         (route) => false,
                       );
                     },
@@ -289,7 +292,10 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                     onTap: () {
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (_) => const WearerMainPage(isConnected: false)),
+                        MaterialPageRoute(
+                          builder: (_) => const WearerMainPage(isConnected: false),
+                          settings: const RouteSettings(name: 'WearerMainPage'),
+                        ),
                         (route) => false,
                       );
                     },

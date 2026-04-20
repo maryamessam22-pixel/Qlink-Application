@@ -5,6 +5,7 @@ import 'package:q_link/core/widgets/language_toggle.dart';
 
 import 'package:q_link/features/guardian/profile/locate_bracelet_page.dart';
 import 'package:q_link/features/guardian/home/home_page.dart';
+import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
 
 class ConnectedDevicePage extends StatelessWidget {
   final ProfileData profile;
@@ -246,7 +247,7 @@ class ConnectedDevicePage extends StatelessWidget {
               ],
             ),
           ),
-          bottomNavigationBar: _buildBottomNav(context),
+          bottomNavigationBar: const BottomNavWidget(),
         );
       },
     );
@@ -314,64 +315,4 @@ class ConnectedDevicePage extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomNav(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        height: 70,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(35),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.blue.withValues(alpha:0.15),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(35),
-          child: Container(
-            color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildNavItem(context, icon: LucideIcons.home, label: AppState().tr('Home', 'الرئيسية')),
-                _buildNavItem(context, icon: LucideIcons.map, label: AppState().tr('Map', 'الخريطة')),
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF1B64F2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.add, color: Colors.white, size: 28),
-                ),
-                _buildNavItem(context, icon: LucideIcons.lock, label: AppState().tr('Vault', 'الخزنة')),
-                _buildNavItem(context, icon: LucideIcons.settings, label: AppState().tr('Settings', 'الإعدادات')),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(BuildContext context, {required IconData icon, required String label}) {
-    return GestureDetector(
-      onTap: () => Navigator.popUntil(context, (route) => route.isFirst),
-      child: SizedBox(
-        width: 60,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.grey.shade400, size: 24),
-            const SizedBox(height: 4),
-            Text(label, style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
-          ],
-        ),
-      ),
-    );
-  }
 }
