@@ -66,6 +66,17 @@ class SupabaseService {
       return false;
     } catch (e) {
       debugPrint('Error signing up: $e');
+      
+      // Iza el user mawgod aslan (mohem l-demo), n-7awel n-sign in 3altol
+      if (e.toString().contains('user_already_exists') || 
+          e.toString().contains('User already registered')) {
+        try {
+          final signInRes = await signIn(email, password);
+          if (signInRes != null) return true;
+        } catch (signInErr) {
+          debugPrint('Silent sign in failed: $signInErr');
+        }
+      }
       rethrow;
     }
   }

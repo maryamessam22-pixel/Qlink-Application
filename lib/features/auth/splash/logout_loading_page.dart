@@ -23,6 +23,9 @@ class _LogoutLoadingPageState extends State<LogoutLoadingPage> with SingleTicker
       duration: const Duration(seconds: 10),
     )..repeat(reverse: true);
 
+    // Clear user data and log out
+    AppState().clearData();
+
     // Simulate logout process - extended to 3s to allow user to see the animation
     Timer(const Duration(seconds: 3), () {
       if (mounted) {

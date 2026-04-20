@@ -1,9 +1,14 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/localization/app_localization.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
+import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_medical_page.dart';
 
 class WearerIdentityPage extends StatefulWidget {
@@ -18,6 +23,21 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
   final TextEditingController _relationshipController = TextEditingController();
   final TextEditingController _birthYearController = TextEditingController();
   final List<TextEditingController> _contactControllers = [];
+  String? _imagePath;
+  Uint8List? _imageBytes;
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    
+    if (image != null) {
+      final bytes = await image.readAsBytes();
+      setState(() {
+        _imagePath = image.path;
+        _imageBytes = bytes;
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -56,10 +76,11 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
                     children: [
                       VideoLogoWidget(),
                       const SizedBox(width: 8),
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 16,
-                        backgroundColor: Colors.transparent,
-                        backgroundImage: AssetImage('assets/images/mypic.png'),
+                        backgroundColor: const Color(0xFFE6F0FE),
+                        backgroundImage: getUserAvatarProvider(AppState().currentUser.imagePath),
+                        onBackgroundImageError: (_, __) {},
                       ),
                       const Spacer(),
                       const LanguageToggle(),
@@ -168,6 +189,70 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
                   const Divider(color: Color(0xFFE5E7EB), thickness: 1),
                   const SizedBox(height: 24),
 
+                  // Profile Picture Section
+                  Center(
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFF1E3A8A), width: 2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: ClipOval(
+                            child: _imagePath != null
+                                ? (_imagePath!.startsWith('http') || _imagePath!.startsWith('blob:')
+                                    ? Image.network(_imagePath!, fit: BoxFit.cover)
+                                    : (_imagePath!.startsWith('assets')
+                                      ? Image.asset(_imagePath!, fit: BoxFit.cover)
+                                      : (!kIsWeb
+                                        ? Image.file(File(_imagePath!), fit: BoxFit.cover)
+                                        : const Icon(Icons.person, size: 60, color: Color(0xFF1B64F2)))))
+                                : Container(
+                                    color: const Color(0xFFE6F0FE),
+                                    child: const Icon(Icons.person, size: 60, color: Color(0xFF1B64F2)),
+                                  ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: _pickImage,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF1B64F2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Text(
+                      AppState().tr('Add Profile Picture', 'إضافة صورة الملف الشخصي'),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
                   // Form Fields
                   _buildLabelAndTextField(
                     label: appState.tr('Patient\'s Full Name', 'الاسم الكامل للمريض'),
@@ -240,7 +325,19 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const WearerMedicalPage()),
+                        MaterialPageRoute(
+                          builder: (_) => WearerMedicalPage(
+                            name: _nameController.text,
+                            relationship: _relationshipController.text,
+                            birthYear: _birthYearController.text,
+                            emergencyContacts: _contactControllers
+                                .map((c) => c.text)
+                                .where((t) => t.isNotEmpty)
+                                .toList(),
+                            avatarUrl: _imagePath,
+                            avatarBytes: _imageBytes,
+                          ),
+                        ),
                       );
                     },
                     child: Container(

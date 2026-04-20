@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 class VisibilitySettings {
   bool showBloodType;
   bool showAllergies;
@@ -42,8 +43,8 @@ class ProfileData {
     this.allergies = '',
     VisibilitySettings? visibility,
     List<DeviceData>? devices,
-  })  : visibility = visibility ?? VisibilitySettings(),
-        devices = devices ?? [];
+  }) : visibility = visibility ?? VisibilitySettings(),
+       devices = devices ?? [];
 
   bool get hasDevice => devices.isNotEmpty;
 }
@@ -132,7 +133,13 @@ class AppState extends ChangeNotifier {
 
   UserProfile get currentUser => _currentUser;
 
-  void updateCurrentUser({String? name, String? email, String? password, String? imagePath, String? role}) {
+  void updateCurrentUser({
+    String? name,
+    String? email,
+    String? password,
+    String? imagePath,
+    String? role,
+  }) {
     if (name != null) _currentUser.name = name;
     if (email != null) _currentUser.email = email;
     if (password != null) _currentUser.password = password;
@@ -214,5 +221,20 @@ class AppState extends ChangeNotifier {
 
   String tr(String en, String ar) {
     return _isArabic ? ar : en;
+  }
+
+  void clearData() {
+    _currentUser = UserProfile(
+      name: '',
+      email: '',
+      password: '',
+      imagePath: '',
+    );
+    _profiles.clear();
+    _scanHistory.clear();
+    _profilesDirty = false;
+    _currentGuardianIndex = 0;
+    _currentWearerIndex = 0;
+    notifyListeners();
   }
 }

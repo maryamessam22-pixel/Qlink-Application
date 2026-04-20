@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
@@ -5,9 +6,35 @@ import 'package:q_link/core/localization/app_localization.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
+import 'package:q_link/services/supabase_service.dart';
+import 'package:q_link/core/models/patient_profile.dart';
+import 'package:uuid/uuid.dart';
 
 class WearerHardwareLinkPage extends StatefulWidget {
-  const WearerHardwareLinkPage({super.key});
+  final String name;
+  final String relationship;
+  final String birthYear;
+  final List<String> emergencyContacts;
+  final String? avatarUrl;
+  final Uint8List? avatarBytes;
+  final String bloodType;
+  final String allergies;
+  final String condition;
+  final String safetyNotes;
+
+  const WearerHardwareLinkPage({
+    super.key,
+    required this.name,
+    required this.relationship,
+    this.birthYear = '',
+    this.emergencyContacts = const [],
+    this.avatarUrl,
+    this.avatarBytes,
+    this.bloodType = '',
+    this.allergies = '',
+    this.condition = '',
+    this.safetyNotes = '',
+  });
 
   @override
   State<WearerHardwareLinkPage> createState() => _WearerHardwareLinkPageState();
@@ -16,6 +43,7 @@ class WearerHardwareLinkPage extends StatefulWidget {
 class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
   String? _selectedDeviceType;
   final TextEditingController _codeController = TextEditingController();
+  bool _isLoading = false;
 
   final List<String> _deviceTypes = [
     'Qlink Smart Bracelet "Nova"',
@@ -286,16 +314,79 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                   
                   // Connect Button
                   GestureDetector(
-                    onTap: () {
-                      // Finalize setup
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const WearerMainPage(isConnected: true),
-                          settings: const RouteSettings(name: 'WearerMainPage'),
-                        ),
-                        (route) => false,
-                      );
+                    onTap: () async {
+                      if (_isLoading) return;
+                      setState(() => _isLoading = true);
+
+                      try {
+                        final profileId = const Uuid().v4();
+                        final newProfile = ProfileData(
+                          id: profileId,
+                          name: widget.name,
+                          relationship: widget.relationship,
+                          birthYear: widget.birthYear,
+                          emergencyContacts: widget.emergencyContacts,
+                          bloodType: widget.bloodType,
+                          allergies: widget.allergies,
+                          condition: widget.condition,
+                          imagePath: widget.avatarUrl ?? 'assets/images/mypic.png',
+                          devices: [
+                            DeviceData(
+                              deviceType: _selectedDeviceType ?? 'Nova',
+                              code: _codeController.text.trim(),
+                              connectedAt: DateTime.now(),
+                              batteryLevel: 95,
+                              signalStrength: 'Strong',
+                              isConnected: true,
+                            )
+                          ],
+                        );
+
+                        final Map<String, dynamic> contactsJson = {};
+                        for (int i = 0; i < widget.emergencyContacts.length; i++) {
+                          final key = i == 0 ? 'primary' : 'secondary';
+                          contactsJson[key] = {
+                            'name': widget.emergencyContacts[i],
+                            'phone': '',
+                            'relation': i == 0 ? 'Guardian' : 'Contact',
+                          };
+                        }
+
+                        await SupabaseService().client.from('patient_profiles').insert({
+                          'id': profileId,
+                          'profile_name': widget.name,
+                          'relationship_to_guardian': widget.relationship,
+                          'birth_year': int.tryParse(widget.birthYear) ?? 0,
+                          'blood_type': widget.bloodType,
+                          'allergies_en': widget.allergies,
+                          'medical_notes_en': widget.condition,
+                          'safety_notes_en': widget.safetyNotes,
+                          'emergency_contacts': contactsJson,
+                          'status': true,
+                          'device_code': _codeController.text.trim(),
+                        });
+
+                        AppState().addProfile(newProfile);
+
+                        if (mounted) {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const WearerMainPage(isConnected: true),
+                              settings: const RouteSettings(name: 'WearerMainPage'),
+                            ),
+                            (route) => false,
+                          );
+                        }
+                      } catch (e) {
+                         if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                          );
+                        }
+                      } finally {
+                        if (mounted) setState(() => _isLoading = false);
+                      }
                     },
                     child: Container(
                       width: double.infinity,
@@ -309,14 +400,16 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                         borderRadius: BorderRadius.circular(28),
                       ),
                       child: Center(
-                        child: Text(
-                          appState.tr('Connect the Bracelet', 'ربط السوار'),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
+                        child: _isLoading 
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              appState.tr('Connect the Bracelet', 'ربط السوار'),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                       ),
                     ),
                   ),

@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
-import 'package:q_link/core/localization/app_localization.dart';
+import 'package:q_link/features/auth/splash/logout_loading_page.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_header.dart';
-import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.dart';
-import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
-import 'package:q_link/features/wearer/health/presentation/pages/wearer_health_page.dart';
-import 'package:q_link/features/wearer/profile/presentation/pages/wearer_qr_page.dart';
 import 'package:q_link/features/wearer/settings/presentation/pages/wearer_edit_profile_page.dart';
 import 'package:q_link/features/wearer/settings/presentation/pages/wearer_privacy_policy_page.dart';
 import 'package:q_link/features/wearer/settings/presentation/pages/wearer_help_center_page.dart';
 import 'package:q_link/features/wearer/settings/presentation/pages/wearer_qr_scan_history_page.dart';
+import 'package:q_link/features/wearer/settings/presentation/pages/wearer_find_my_bracelet_page.dart';
 
 class WearerSettingsPage extends StatefulWidget {
   const WearerSettingsPage({super.key});
@@ -38,7 +35,7 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                 children: [
                   const WearerHeader(),
                   const SizedBox(height: 32),
-                  
+
                   Text(
                     appState.tr('Settings', 'الإعدادات'),
                     style: const TextStyle(
@@ -56,9 +53,9 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   // Profile Section
                   _buildSectionTitle(appState.tr('Profile', 'الملف الشخصي')),
                   _buildSettingsItem(
@@ -67,13 +64,15 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const WearerEditProfilePage()),
+                        MaterialPageRoute(
+                          builder: (_) => const WearerEditProfilePage(),
+                        ),
                       );
                     },
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Security Section
                   _buildSectionTitle(appState.tr('Security', 'الأمان')),
                   _buildSettingsToggle(
@@ -82,15 +81,22 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                     value: _biometricEnabled,
                     onChanged: (val) => setState(() => _biometricEnabled = val),
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Device Section
                   _buildSectionTitle(appState.tr('Device', 'الجهاز')),
                   _buildSettingsItem(
                     icon: LucideIcons.locate,
                     title: appState.tr('Find My Bracelet', 'العثور على سواري'),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const WearerFindMyBraceletPage(),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 12),
                   _buildSettingsItem(
@@ -99,28 +105,34 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const WearerQrScanHistoryPage()),
+                        MaterialPageRoute(
+                          builder: (_) => const WearerQrScanHistoryPage(),
+                        ),
                       );
                     },
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Privacy Section
-                  _buildSectionTitle(appState.tr('Privacy Policy', 'سياسة الخصوصية')),
+                  _buildSectionTitle(
+                    appState.tr('Privacy Policy', 'سياسة الخصوصية'),
+                  ),
                   _buildSettingsItem(
                     icon: LucideIcons.shieldCheck,
                     title: appState.tr('Privacy Policy', 'سياسة الخصوصية'),
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const WearerPrivacyPolicyPage()),
+                        MaterialPageRoute(
+                          builder: (_) => const WearerPrivacyPolicyPage(),
+                        ),
                       );
                     },
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Support Section
                   _buildSectionTitle(appState.tr('Support', 'الدعم')),
                   Container(
@@ -137,11 +149,17 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const WearerHelpCenterPage()),
+                              MaterialPageRoute(
+                                builder: (_) => const WearerHelpCenterPage(),
+                              ),
                             );
                           },
                         ),
-                        Divider(height: 1, color: Colors.grey.shade100, indent: 60),
+                        Divider(
+                          height: 1,
+                          color: Colors.grey.shade100,
+                          indent: 60,
+                        ),
                         Padding(
                           padding: const EdgeInsets.all(20),
                           child: Row(
@@ -152,7 +170,11 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                                   color: const Color(0xFFEFF6FF),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(LucideIcons.info, color: Color(0xFF1B64F2), size: 20),
+                                child: const Icon(
+                                  LucideIcons.info,
+                                  color: Color(0xFF1B64F2),
+                                  size: 20,
+                                ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
@@ -179,21 +201,31 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 48),
-                  
+
                   // Logout Button
                   SizedBox(
                     width: double.infinity,
                     height: 60,
                     child: OutlinedButton(
                       onPressed: () {
-                        Navigator.of(context).popUntil((route) => route.isFirst);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LogoutLoadingPage(),
+                          ),
+                        );
                       },
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFFFE4E6), width: 1.5),
+                        side: const BorderSide(
+                          color: Color(0xFFFFE4E6),
+                          width: 1.5,
+                        ),
                         backgroundColor: const Color(0xFFFFF1F2),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                       ),
                       child: Text(
                         appState.tr('Logout', 'تسجيل الخروج'),
@@ -205,7 +237,7 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 100),
                 ],
               ),
@@ -268,7 +300,11 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                   ),
                 ),
               ),
-              Icon(LucideIcons.chevronRight, color: Colors.grey.shade300, size: 20),
+              Icon(
+                LucideIcons.chevronRight,
+                color: Colors.grey.shade300,
+                size: 20,
+              ),
             ],
           ),
         ),

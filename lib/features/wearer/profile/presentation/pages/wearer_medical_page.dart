@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
@@ -7,7 +8,22 @@ import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_hardware_link_page.dart';
 
 class WearerMedicalPage extends StatefulWidget {
-  const WearerMedicalPage({super.key});
+  final String name;
+  final String relationship;
+  final String birthYear;
+  final List<String> emergencyContacts;
+  final String? avatarUrl;
+  final Uint8List? avatarBytes;
+
+  const WearerMedicalPage({
+    super.key,
+    required this.name,
+    required this.relationship,
+    this.birthYear = '',
+    this.emergencyContacts = const [],
+    this.avatarUrl,
+    this.avatarBytes,
+  });
 
   @override
   State<WearerMedicalPage> createState() => _WearerMedicalPageState();
@@ -236,7 +252,20 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const WearerHardwareLinkPage()),
+                        MaterialPageRoute(
+                          builder: (_) => WearerHardwareLinkPage(
+                            name: widget.name,
+                            relationship: widget.relationship,
+                            birthYear: widget.birthYear,
+                            emergencyContacts: widget.emergencyContacts,
+                            avatarUrl: widget.avatarUrl,
+                            avatarBytes: widget.avatarBytes,
+                            bloodType: _selectedBloodType ?? '',
+                            allergies: _allergiesController.text,
+                            condition: _medicalNotesController.text,
+                            safetyNotes: _safetyNotesController.text,
+                          ),
+                        ),
                       );
                     },
                     child: Container(

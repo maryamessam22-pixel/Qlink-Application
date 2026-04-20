@@ -116,25 +116,7 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                   ? const CircularProgressIndicator(color: Colors.white) 
                   : const Text('Sign In', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
               ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Don't have an account? "),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const WearerCreateAccountPage()),
-                      );
-                    },
-                    child: const Text(
-                      'Create Account',
-                      style: TextStyle(color: Color(0xFF1B64F2), fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
+              const SizedBox(height: 48),
             ],
           ),
         ),
