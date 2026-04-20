@@ -129,6 +129,8 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           );
           AppState().addDeviceToProfile(AppState().profileCount - 1, device);
         }
+
+        AppState().markProfilesDirty();
       }
       
       if (mounted) {
@@ -477,7 +479,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
+        onTap: () async {
           if (_isLoading) return;
 
           if (_selectedDeviceType == null) {
@@ -497,26 +499,26 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           if (widget.targetProfileIndex == null) {
              _createProfileAndNavigate(withDevice: true);
           } else {
-             // Adding device to existing profile
              final device = DeviceData(
               deviceType: _selectedDeviceType!,
               code: _codeController.text,
               connectedAt: DateTime.now(),
             );
             
-            // Add locally if profile exists in AppState
             if (widget.targetProfileIndex != null && 
                 widget.targetProfileIndex! < AppState().profileCount) {
               AppState().addDeviceToProfile(widget.targetProfileIndex!, device);
             }
 
-            // Update Supabase status to connected using the passed profileId
             final profileId = widget.targetProfileId;
             if (profileId != null && profileId.isNotEmpty) {
-              SupabaseService().client.from('patient_profiles')
+              await SupabaseService().client.from('patient_profiles')
                 .update({'status': true}).eq('id', profileId);
             }
 
+            AppState().markProfilesDirty();
+
+            if (!mounted) return;
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -524,11 +526,13 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
                   title: AppState().tr('Syncing to Hardware', 'تتم المزامنة مع الجهاز'),
                   subtitle: AppState().tr('Encrypting data into bracelet\'s hardware ID', 'تشفير البيانات في معرف جهاز السوار'),
                   onComplete: () {
-                    Navigator.popUntil(context, (route) => route.isFirst);
+                    Navigator.pop(context);
                   },
                 ),
               ),
-            );
+            ).then((_) {
+              if (mounted) Navigator.pop(context, true);
+            });
           }
         },
         borderRadius: BorderRadius.circular(27),

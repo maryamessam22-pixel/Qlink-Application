@@ -251,8 +251,8 @@ class ConnectedDevicePage extends StatelessWidget {
                                           debugPrint('Error disconnecting: $e');
                                         }
                                       }
-                                      // Clear local devices
                                       profile.devices.clear();
+                                      AppState().markProfilesDirty();
                                       if (dialogCtx.mounted) Navigator.pop(dialogCtx);
                                       if (context.mounted) Navigator.pop(context, true);
                                     },

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/auth/presentation/pages/wearer/wearer_create_account_page.dart';
-import 'package:q_link/features/wearer/home/wearer_home_page.dart';
+import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
 import 'package:q_link/services/supabase_service.dart';
 
 class WearerSignInPage extends StatefulWidget {
@@ -16,6 +16,13 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   Future<void> _handleSignIn() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -28,7 +35,6 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
       final userData = await SupabaseService().signIn(email, password);
 
       if (userData != null) {
-        AppState().clearData();
         AppState().updateCurrentUser(
           name: userData['full_name'] ?? 'Wearer',
           email: userData['email'] ?? email,
@@ -40,7 +46,10 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
         if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const WearerHomePage()),
+            MaterialPageRoute(
+              builder: (context) => const WearerMainPage(),
+              settings: const RouteSettings(name: 'WearerMainPage'),
+            ),
             (route) => false,
           );
         }

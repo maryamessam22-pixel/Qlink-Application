@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/core/state/app_state.dart';
-import 'package:q_link/features/wearer/home/wearer_home_page.dart';
+import 'package:q_link/features/auth/presentation/pages/wearer/wearer_sign_in_page.dart';
+import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
 import 'package:q_link/services/supabase_service.dart';
 
 class WearerCreateAccountPage extends StatefulWidget {
@@ -16,6 +17,14 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   Future<void> _handleSignUp() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
@@ -26,27 +35,33 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
     setState(() => _isLoading = true);
 
     try {
-      final userData = await SupabaseService().signUpUser(
+      final success = await SupabaseService().signUpUser(
         email: email,
         password: password,
         fullName: name,
         role: 'Wearer',
       );
 
-      if (userData != null && mounted) {
-        AppState().clearData();
+      if (success && mounted) {
         AppState().updateCurrentUser(
-          name: userData['full_name'] ?? name,
-          email: userData['email'] ?? email,
+          name: name,
+          email: email,
           password: '',
-          imagePath: userData['avatar_url'] ?? 'assets/images/Mohamed Saber.png',
+          imagePath: 'assets/images/Mohamed Saber.png',
           role: 'Wearer',
         );
 
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const WearerHomePage()),
+          MaterialPageRoute(
+            builder: (context) => const WearerMainPage(),
+            settings: const RouteSettings(name: 'WearerMainPage'),
+          ),
           (route) => false,
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to create account')),
         );
       }
     } catch (e) {

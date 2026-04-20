@@ -24,6 +24,20 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _profilesFuture = SupabaseService().fetchPatientProfiles();
+    AppState().addListener(_checkProfileRefresh);
+  }
+
+  @override
+  void dispose() {
+    AppState().removeListener(_checkProfileRefresh);
+    super.dispose();
+  }
+
+  void _checkProfileRefresh() {
+    if (AppState().profilesDirty) {
+      AppState().clearProfilesDirty();
+      _refreshProfiles();
+    }
   }
 
   void _refreshProfiles() {

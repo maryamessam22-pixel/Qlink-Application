@@ -50,14 +50,36 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
     super.dispose();
   }
 
-  void _saveChanges() {
+  Future<void> _saveChanges() async {
     widget.profile.name = _nameController.text;
     widget.profile.relationship = _relationshipController.text;
+
+    if (widget.profile.id != null && widget.profile.id!.isNotEmpty) {
+      try {
+        await SupabaseService().client
+            .from('patient_profiles')
+            .update({
+              'profile_name': _nameController.text,
+              'relationship_to_guardian': _relationshipController.text,
+            })
+            .eq('id', widget.profile.id!);
+      } catch (e) {
+        debugPrint('Error updating profile: $e');
+      }
+    }
+
+    if (widget.profileIndex >= 0 && widget.profileIndex < AppState().profileCount) {
+      AppState().updateProfile(widget.profileIndex, widget.profile);
+    }
+    AppState().markProfilesDirty();
+
     setState(() => _isEditing = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated successfully')),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppState().tr('Profile updated successfully', 'تم تحديث الملف بنجاح'))),
+      );
+    }
   }
 
   @override
@@ -484,7 +506,11 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
                                   targetProfileId: widget.profile.id,
                                 ),
                               ),
-                            );
+                            ).then((result) {
+                              if (result == true && mounted) {
+                                Navigator.pop(context, true);
+                              }
+                            });
                           },
                         ),
 
@@ -695,10 +721,10 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
                   debugPrint('Error deleting profile: $e');
                 }
               }
-              // Remove from local state
               AppState().removeProfile(widget.profileIndex);
+              AppState().markProfilesDirty();
               if (dialogCtx.mounted) Navigator.pop(dialogCtx);
-              if (context.mounted) Navigator.pop(context, true); // Signal home to refresh
+              if (context.mounted) Navigator.pop(context, true);
             },
             child: Text(
               AppState().tr('Delete', 'حذف'),

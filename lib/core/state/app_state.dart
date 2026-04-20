@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:q_link/services/supabase_service.dart';
 class VisibilitySettings {
   bool showBloodType;
   bool showAllergies;
@@ -191,6 +190,18 @@ class AppState extends ChangeNotifier {
       _profiles.removeAt(index);
       notifyListeners();
     }
+  }
+
+  bool _profilesDirty = false;
+  bool get profilesDirty => _profilesDirty;
+
+  void markProfilesDirty() {
+    _profilesDirty = true;
+    notifyListeners();
+  }
+
+  void clearProfilesDirty() {
+    _profilesDirty = false;
   }
 
   bool _isArabic = false;
