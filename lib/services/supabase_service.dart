@@ -1,5 +1,5 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:typed_data';
+import 'package:image_picker/image_picker.dart' show XFile;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:q_link/core/models/patient_profile.dart';
 
@@ -112,8 +112,8 @@ class SupabaseService {
     }
   }
 
-  /// Uploads a local image file to Supabase Storage and returns the public URL.
-  /// Returns null if upload fails or if running on web with a non-http path.
+  /// Uploads a picked image to Supabase Storage and returns the public URL.
+  /// Works on both web (blob: URLs) and mobile (file paths) via XFile.readAsBytes().
   Future<String?> uploadProfileAvatar(String localPath, String profileId) async {
     if (localPath.isEmpty ||
         localPath.startsWith('assets') ||
@@ -121,18 +121,18 @@ class SupabaseService {
       return null;
     }
 
-    if (kIsWeb) return null;
-
     try {
-      final file = File(localPath);
-      if (!await file.exists()) return null;
+      final xfile = XFile(localPath);
+      final Uint8List bytes = await xfile.readAsBytes();
+      if (bytes.isEmpty) return null;
 
-      final ext = localPath.split('.').last.toLowerCase();
+      String ext = localPath.split('.').last.toLowerCase();
+      if (ext.length > 5 || ext.contains('/')) ext = 'jpg';
       final storagePath = 'profiles/$profileId.$ext';
 
-      await client.storage.from('avatars').upload(
+      await client.storage.from('avatars').uploadBinary(
         storagePath,
-        file,
+        bytes,
         fileOptions: const FileOptions(upsert: true),
       );
 
