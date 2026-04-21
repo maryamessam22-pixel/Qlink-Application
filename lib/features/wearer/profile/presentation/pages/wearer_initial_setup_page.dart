@@ -15,11 +15,11 @@ class WearerInitialSetupPage extends StatelessWidget {
         return Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 children: [
-                  const Spacer(),
+                  const SizedBox(height: 40),
                   
                   // Large circular icon
                   Center(
@@ -133,8 +133,8 @@ class WearerInitialSetupPage extends StatelessWidget {
                     ),
                   ),
                   
-                  const Spacer(),
-                  
+                  const SizedBox(height: 40),
+
                   // Device Status
                   Text(
                     appState.tr('DEVICE STATUS', 'حالة الجهاز'),
