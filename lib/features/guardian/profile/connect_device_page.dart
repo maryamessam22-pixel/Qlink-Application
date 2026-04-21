@@ -51,6 +51,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   bool _isLoading = false; 
 
   final List<String> _deviceTypes = [
+    'Qlink Smart Bracelet "Pro"',
     'Qlink Smart Bracelet "Nova"',
     'Qlink Smart Bracelet "Pulse"',
     'Qlink Band "Non Digital"',
@@ -63,7 +64,6 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
     super.dispose();
   }
 
-  // --- 3. HNA EL FUNCTION ELLY B-TKRYET EL PROFILE F SUPABASE ---
   Future<void> _createProfileAndNavigate({required bool withDevice}) async {
     setState(() {
       _isLoading = true;
@@ -98,6 +98,10 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           debugPrint('[ConnectDevice] No avatar bytes provided (avatarBytes is null or empty)');
         }
 
+        String deviceType = _selectedDeviceType ?? 'Qlink Smart Bracelet "Pro"';
+        String deviceCode = _codeController.text.trim();
+        String shortDeviceType = deviceType.contains('Qlink') ? 'Qlink Bracelet' : 'Smart Watch';
+
         final newProfile = PatientProfile(
           id: newProfileId, 
           guardianId: guardianId, 
@@ -119,6 +123,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           medicalNotesAr: '',
           status: withDevice,
           avatarUrl: avatarUrl,
+          deviceCode: withDevice ? deviceCode : '',
           seoSlug: '${(widget.name ?? 'new-profile').toLowerCase().replaceAll(' ', '-')}-${newProfileId.substring(0, 8)}',
           metaTitleEn: '',
           metaDescriptionEn: '',
@@ -131,8 +136,46 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           createdAt: DateTime.now(),
         );
 
-        // N-rfa3 3la Supabase
+        // N-rfa3 3la Supabase (Profile)
         await SupabaseService().createPatientProfile(newProfile);
+
+        // N-rfa3 3la Dashboard Tables (Devices & Bracelets)
+        if (withDevice) {
+           await SupabaseService().client.from('devices').insert({
+              'id': const Uuid().v4(),
+              'device_name': deviceType,
+              'device_code': deviceCode,
+              'type': shortDeviceType,
+              'profile_id': newProfileId,
+              'linekd_profile': widget.name ?? 'New Profile',
+              'status': true,
+              'battery_level': 100,
+              'action': 'connect',
+              'image': avatarUrl.isNotEmpty ? avatarUrl : 'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/default-avatar.png',
+              'created_at': DateTime.now().toIso8601String(),
+           });
+
+           if (deviceType.contains('Qlink')) {
+              await SupabaseService().client.from('bracelets').insert({
+                'id': const Uuid().v4(),
+                'bracelet_id_code': deviceCode,
+                'status': 'Active',
+                'assigned_profile_id': newProfileId,
+                'assigned_profile': widget.name ?? 'New Profile',
+                'last_sync': 'Just now',
+                'actions': 'Assign',
+                'image': avatarUrl.isNotEmpty ? avatarUrl : 'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/default-avatar.png',
+                'created_at': DateTime.now().toIso8601String(),
+              });
+           }
+
+           final device = DeviceData(
+            deviceType: deviceType,
+            code: deviceCode,
+            connectedAt: DateTime.now(),
+          );
+          AppState().addDeviceToProfile(AppState().profileCount - 1, device);
+        }
 
         // N-7ot local bardo 3shan t-sme3 f wa2tha
         AppState().addProfile(ProfileData(
@@ -146,15 +189,6 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           allergies: widget.allergies ?? '',
           condition: widget.condition ?? '',
         ));
-
-        if (withDevice) {
-           final device = DeviceData(
-            deviceType: _selectedDeviceType!,
-            code: _codeController.text,
-            connectedAt: DateTime.now(),
-          );
-          AppState().addDeviceToProfile(AppState().profileCount - 1, device);
-        }
 
         AppState().markProfilesDirty();
       }
@@ -528,44 +562,87 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
             return;
           }
 
-          // 4. B-n-nady 3la el function 3shan t-karyet w t-connect f nfs el wa2t
           if (widget.targetProfileIndex == null) {
              _createProfileAndNavigate(withDevice: true);
           } else {
-             final device = DeviceData(
-              deviceType: _selectedDeviceType!,
-              code: _codeController.text,
-              connectedAt: DateTime.now(),
-            );
-            
-            if (widget.targetProfileIndex != null && 
-                widget.targetProfileIndex! < AppState().profileCount) {
-              AppState().addDeviceToProfile(widget.targetProfileIndex!, device);
-            }
+             // Lw by-Add Device l-profile mawgood
+             setState(() => _isLoading = true);
+             try {
+                String deviceType = _selectedDeviceType!;
+                String deviceCode = _codeController.text.trim();
+                String shortDeviceType = deviceType.contains('Qlink') ? 'Qlink Bracelet' : 'Smart Watch';
 
-            final profileId = widget.targetProfileId;
-            if (profileId != null && profileId.isNotEmpty) {
-              await SupabaseService().client.from('patient_profiles')
-                .update({'status': true}).eq('id', profileId);
-            }
+                final device = DeviceData(
+                  deviceType: deviceType,
+                  code: deviceCode,
+                  connectedAt: DateTime.now(),
+                );
+                
+                if (widget.targetProfileIndex != null && 
+                    widget.targetProfileIndex! < AppState().profileCount) {
+                  AppState().addDeviceToProfile(widget.targetProfileIndex!, device);
+                }
 
-            AppState().markProfilesDirty();
+                final profileId = widget.targetProfileId;
+                if (profileId != null && profileId.isNotEmpty) {
+                  // Update Profile table
+                  await SupabaseService().client.from('patient_profiles')
+                    .update({'status': true}).eq('id', profileId);
 
-            if (!mounted) return;
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SyncingPage(
-                  title: AppState().tr('Syncing to Hardware', 'تتم المزامنة مع الجهاز'),
-                  subtitle: AppState().tr('Encrypting data into bracelet\'s hardware ID', 'تشفير البيانات في معرف جهاز السوار'),
-                  onComplete: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ),
-            ).then((_) {
-              if (mounted) Navigator.pop(context, true);
-            });
+                  // Update Dashboard Tables
+                  String linkedName = widget.targetProfileIndex! < AppState().profileCount ? AppState().profiles[widget.targetProfileIndex!].name : 'Unknown';
+
+                  await SupabaseService().client.from('devices').insert({
+                    'id': const Uuid().v4(),
+                    'device_name': deviceType,
+                    'device_code': deviceCode,
+                    'type': shortDeviceType,
+                    'profile_id': profileId,
+                    'linekd_profile': linkedName,
+                    'status': true,
+                    'battery_level': 100,
+                    'action': 'connect',
+                    'image': 'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/default-avatar.png',
+                    'created_at': DateTime.now().toIso8601String(),
+                  });
+
+                  if (deviceType.contains('Qlink')) {
+                    await SupabaseService().client.from('bracelets').insert({
+                      'id': const Uuid().v4(),
+                      'bracelet_id_code': deviceCode,
+                      'status': 'Active',
+                      'assigned_profile_id': profileId,
+                      'assigned_profile': linkedName,
+                      'last_sync': 'Just now',
+                      'actions': 'Assign',
+                      'image': 'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/default-avatar.png',
+                      'created_at': DateTime.now().toIso8601String(),
+                    });
+                  }
+                }
+
+                AppState().markProfilesDirty();
+
+                if (!mounted) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SyncingPage(
+                      title: AppState().tr('Syncing to Hardware', 'تتم المزامنة مع الجهاز'),
+                      subtitle: AppState().tr('Encrypting data into bracelet\'s hardware ID', 'تشفير البيانات في معرف جهاز السوار'),
+                      onComplete: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ),
+                ).then((_) {
+                  if (mounted) Navigator.pop(context, true);
+                });
+             } catch (e) {
+                 if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+             } finally {
+                 if (mounted) setState(() => _isLoading = false);
+             }
           }
         },
         borderRadius: BorderRadius.circular(27),
@@ -612,11 +689,10 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
       onTap: () {
         if (_isLoading) return;
 
-        // 5. B-n-nady 3la el function bs b- false (ya3ny 3ml skip ll-bracelet)
         if (widget.targetProfileIndex == null) {
           _createProfileAndNavigate(withDevice: false);
         } else {
-           Navigator.pop(context); // Lw hwa aslan kan gowa el profile w das skip, yrg3
+           Navigator.pop(context); 
         }
       },
       child: Container(

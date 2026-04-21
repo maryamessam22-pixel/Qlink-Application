@@ -422,6 +422,7 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
                                     medicalNotesAr: '',
                                     status: widget.profile.hasDevice,
                                     avatarUrl: widget.profile.imagePath,
+                                    deviceCode: widget.profile.devices.isNotEmpty ? widget.profile.devices.first.code : '',
                                     seoSlug: '',
                                     metaTitleEn: '',
                                     metaDescriptionEn: '',
@@ -681,9 +682,12 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: Text(AppState().tr('Delete Profile', 'حذف الملف الشخصي')),
+        title: Text(AppState().tr('Delete Bracelet', 'حذف السوار')),
         content: Text(
-          '${AppState().tr('Are you sure you want to delete', 'هل أنت متأكد أنك تريد حذف')} ${widget.profile.name}? ${AppState().tr('This action cannot be undone.', 'لا يمكن التراجع عن هذا الإجراء.')}',
+          AppState().tr(
+            'Are you sure you want to remove the connected bracelet? The profile will not be deleted.',
+            'هل أنت متأكد أنك تريد إزالة السوار المتصل؟ لن يتم حذف الملف الشخصي.',
+          ),
         ),
         actions: [
           TextButton(
@@ -692,18 +696,32 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
           ),
           TextButton(
             onPressed: () async {
-              // Delete from Supabase
-              if (widget.profile.id != null && widget.profile.id!.isNotEmpty) {
+              final profileId = widget.profile.id;
+              if (profileId != null && profileId.isNotEmpty) {
                 try {
+                  // Delete device rows linked to this profile
+                  await SupabaseService().client
+                      .from('devices')
+                      .delete()
+                      .eq('profile_id', profileId);
+                  // Delete bracelet rows linked to this profile
+                  await SupabaseService().client
+                      .from('bracelets')
+                      .delete()
+                      .eq('assigned_profile_id', profileId);
+                  // Mark profile as disconnected (status false)
                   await SupabaseService().client
                       .from('patient_profiles')
-                      .delete()
-                      .eq('id', widget.profile.id!);
+                      .update({'status': false})
+                      .eq('id', profileId);
                 } catch (e) {
-                  debugPrint('Error deleting profile: $e');
+                  debugPrint('Error deleting bracelet: $e');
                 }
               }
-              AppState().removeProfile(widget.profileIndex);
+              // Remove devices locally
+              if (widget.profileIndex < AppState().profileCount) {
+                AppState().profiles[widget.profileIndex].devices.clear();
+              }
               AppState().markProfilesDirty();
               if (dialogCtx.mounted) Navigator.pop(dialogCtx);
               if (context.mounted) Navigator.pop(context, true);

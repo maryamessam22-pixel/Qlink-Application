@@ -7,6 +7,7 @@ import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
 import 'package:q_link/core/models/patient_profile.dart';
+import 'package:q_link/services/supabase_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
 
@@ -46,6 +47,7 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
   bool _isLoading = false;
 
   final List<String> _deviceTypes = [
+    'Qlink Smart Bracelet "Pro"',
     'Qlink Smart Bracelet "Nova"',
     'Qlink Smart Bracelet "Pulse"',
     'Qlink Band "Non Digital"',
@@ -320,7 +322,22 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                       setState(() => _isLoading = true);
 
                       try {
+                        final currentUserId = SupabaseService().client.auth.currentUser?.id;
+                        if (currentUserId == null) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Not logged in. Please sign in again.'), backgroundColor: Colors.red),
+                            );
+                            setState(() => _isLoading = false);
+                          }
+                          return;
+                        }
+
                         final profileId = const Uuid().v4();
+                        String deviceType = _selectedDeviceType ?? 'Qlink Smart Bracelet "Pro"';
+                        String deviceCode = _codeController.text.trim();
+                        String shortDeviceType = deviceType.contains('Qlink') ? 'Qlink Bracelet' : 'Smart Watch';
+
                         final newProfile = ProfileData(
                           id: profileId,
                           name: widget.name,
@@ -333,8 +350,8 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                           imagePath: widget.avatarUrl ?? 'assets/images/mypic.png',
                           devices: [
                             DeviceData(
-                              deviceType: _selectedDeviceType ?? 'Nova',
-                              code: _codeController.text.trim(),
+                              deviceType: deviceType,
+                              code: deviceCode,
                               connectedAt: DateTime.now(),
                               batteryLevel: 95,
                               signalStrength: 'Strong',
@@ -342,6 +359,62 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                             )
                           ],
                         );
+
+                        final Map<String, dynamic> contactsJson = {};
+                        for (int i = 0; i < widget.emergencyContacts.length; i++) {
+                          final key = i == 0 ? 'primary' : 'secondary';
+                          contactsJson[key] = {
+                            'name': widget.emergencyContacts[i],
+                            'phone': '',
+                            'relation': i == 0 ? 'Guardian' : 'Contact',
+                          };
+                        }
+
+                        // Insert into patient_profiles
+                        await SupabaseService().client.from('patient_profiles').insert({
+                          'id': profileId,
+                          'guardian_id': currentUserId,
+                          'profile_name': widget.name,
+                          'relationship_to_guardian': widget.relationship,
+                          'birth_year': int.tryParse(widget.birthYear) ?? 0,
+                          'blood_type': widget.bloodType,
+                          'allergies_en': widget.allergies,
+                          'medical_notes_en': widget.condition,
+                          'safety_notes_en': widget.safetyNotes,
+                          'emergency_contacts': contactsJson,
+                          'status': true,
+                          'seo_slug': '${(widget.name).toLowerCase().replaceAll(' ', '-')}-${const Uuid().v4().substring(0, 6)}',
+                        });
+
+                        // Insert into devices table
+                        await SupabaseService().client.from('devices').insert({
+                          'id': const Uuid().v4(),
+                          'device_name': deviceType,
+                          'device_code': deviceCode,
+                          'type': shortDeviceType,
+                          'profile_id': profileId,
+                          'linekd_profile': widget.name,
+                          'status': true,
+                          'battery_level': 100,
+                          'action': 'connect',
+                          'image': widget.avatarUrl ?? 'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/default-avatar.png',
+                          'created_at': DateTime.now().toIso8601String(),
+                        });
+
+                        // Insert into bracelets table
+                        if (deviceType.contains('Qlink')) {
+                          await SupabaseService().client.from('bracelets').insert({
+                            'id': const Uuid().v4(),
+                            'bracelet_id_code': deviceCode,
+                            'status': 'Active',
+                            'assigned_profile_id': profileId,
+                            'assigned_profile': widget.name,
+                            'last_sync': 'Just now',
+                            'actions': 'Assign',
+                            'image': widget.avatarUrl ?? 'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/default-avatar.png',
+                            'created_at': DateTime.now().toIso8601String(),
+                          });
+                        }
 
                         AppState().addProfile(newProfile);
 

@@ -15,6 +15,7 @@ class PatientProfile {
   final String medicalNotesAr;
   final bool status;
   final String avatarUrl;
+  final String deviceCode;
   final String seoSlug;
   final String metaTitleEn;
   final String metaDescriptionEn;
@@ -41,6 +42,7 @@ class PatientProfile {
     required this.medicalNotesAr,
     required this.status,
     required this.avatarUrl,
+    required this.deviceCode,
     required this.seoSlug,
     required this.metaTitleEn,
     required this.metaDescriptionEn,
@@ -71,6 +73,7 @@ class PatientProfile {
       medicalNotesAr: map['medical_notes_ar'] ?? '',
       status: map['status'] ?? false,
       avatarUrl: map['avatar_url'] ?? '',
+      deviceCode: map['device_code'] ?? '',
       seoSlug: map['seo_slug'] ?? '',
       metaTitleEn: map['meta_title_en'] ?? '',
       metaDescriptionEn: map['meta_description_en'] ?? '',
