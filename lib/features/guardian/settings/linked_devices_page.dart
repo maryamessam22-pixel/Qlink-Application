@@ -88,6 +88,13 @@ class _LinkedDevicesPageState extends State<LinkedDevicesPage> {
 
   @override
   Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: AppState(),
+      builder: (context, _) => _buildContent(context),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     final appState = AppState();
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
@@ -356,18 +363,18 @@ class _LinkedDevicesPageState extends State<LinkedDevicesPage> {
       child: Row(
         children: [
           Expanded(flex: 3, child: Text(appState.tr('Device Name', 'اسم الجهاز'),
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600))),
+              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
           Expanded(flex: 2, child: Text(appState.tr('Type', 'النوع'),
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600))),
+              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
           Expanded(flex: 2, child: Text(appState.tr('Linked Profile', 'الملف المرتبط'),
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600))),
+              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
           Expanded(flex: 2, child: Text(appState.tr('Status', 'الحالة'),
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600))),
+              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
           Expanded(flex: 2, child: Text(appState.tr('Battery', 'البطارية'),
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600))),
+              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
           Expanded(flex: 1, child: Text(appState.tr('Actions', 'إجراءات'),
               style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
-              textAlign: TextAlign.end)),
+              textAlign: TextAlign.end, overflow: TextOverflow.ellipsis)),
         ],
       ),
     );
@@ -468,12 +475,15 @@ class _LinkedDevicesPageState extends State<LinkedDevicesPage> {
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  device.isActive
-                      ? appState.tr('Active', 'نشط')
-                      : appState.tr('Inactive', 'غير نشط'),
-                  style: TextStyle(fontSize: 11, color: statusColor, fontWeight: FontWeight.w600),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    device.isActive
+                        ? appState.tr('Active', 'نشط')
+                        : appState.tr('Inactive', 'غير نشط'),
+                    style: TextStyle(fontSize: 11, color: statusColor, fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -484,8 +494,11 @@ class _LinkedDevicesPageState extends State<LinkedDevicesPage> {
               children: [
                 Icon(LucideIcons.battery, size: 14, color: batteryColor),
                 const SizedBox(width: 4),
-                Text('${device.batteryLevel}%',
-                    style: TextStyle(fontSize: 12, color: batteryColor, fontWeight: FontWeight.w600)),
+                Flexible(
+                  child: Text('${device.batteryLevel}%',
+                      style: TextStyle(fontSize: 12, color: batteryColor, fontWeight: FontWeight.w600),
+                      overflow: TextOverflow.ellipsis),
+                ),
               ],
             ),
           ),

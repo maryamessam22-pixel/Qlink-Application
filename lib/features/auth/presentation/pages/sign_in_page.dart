@@ -288,21 +288,21 @@ class _SignInPageState extends State<SignInPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildSocialButton(
-                      iconWidget: Image.asset('assets/icons/fb.png', width: 42, height: 42),
+                      iconWidget: Image.asset('assets/icons/fb.png', width: 48, height: 48),
                       backgroundColor: Colors.transparent,
                       borderColor: Colors.white,
                       onTap: () {},
                     ),
                     const SizedBox(width: 20),
                     _buildSocialButton(
-                      iconWidget: Image.asset('assets/icons/google.png', width: 45, height: 45),
+                      iconWidget: Image.asset('assets/icons/google.png', width: 48, height: 53),
                       backgroundColor: Colors.transparent,
                       borderColor: Colors.white,
                       onTap: () {},
                     ),
                     const SizedBox(width: 20),
                     _buildSocialButton(
-                      iconWidget: Image.asset('assets/icons/apple.png', width: 45, height: 45),
+                      iconWidget: Image.asset('assets/icons/apple.png', width: 48, height: 48),
                       backgroundColor: Colors.transparent,
                       borderColor: Colors.white,
                       onTap: () {},
@@ -430,7 +430,7 @@ class _SignInPageState extends State<SignInPage> {
           border: borderColor != null ? Border.all(color: borderColor, width: 1.5) : null,
         ),
         child: Center(
-          child: iconWidget ?? Icon(icon, color: iconColor, size: 30),
+          child: iconWidget ?? Icon(icon, color: iconColor, size: 36),
         ),
       ),
     );

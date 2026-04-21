@@ -282,21 +282,21 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildSocialButton(
-                      iconWidget: Image.asset('assets/icons/fb.png', width: 24, height: 24),
+                      iconWidget: Image.asset('assets/icons/fb.png', width: 48, height: 48),
                       backgroundColor: Colors.transparent,
                       borderColor: Colors.white,
                       onTap: () {},
                     ),
                     const SizedBox(width: 20),
                     _buildSocialButton(
-                      iconWidget: Image.asset('assets/icons/google.png', width: 24, height: 24),
+                      iconWidget: Image.asset('assets/icons/google.png', width: 48, height: 48),
                       backgroundColor: Colors.transparent,
                       borderColor: Colors.white,
                       onTap: () {},
                     ),
                     const SizedBox(width: 20),
                     _buildSocialButton(
-                      iconWidget: Image.asset('assets/icons/apple.png', width: 24, height: 24),
+                      iconWidget: Image.asset('assets/icons/apple.png', width: 48, height: 48),
                       backgroundColor: Colors.transparent,
                       borderColor: Colors.white,
                       onTap: () {},
