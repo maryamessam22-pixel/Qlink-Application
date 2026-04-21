@@ -346,25 +346,25 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                         const SizedBox(height: 32),
 
                         // Vitals Snapshot
-                        const Text(
-                          'Vitals Snapshot',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
+                        Text(
+                          appState.tr('Vitals Snapshot', 'لمحة عن المؤشرات الحيوية'),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
                         ),
                         const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(
                               child: _buildVitalItem(
-                                AppState().tr('BLOOD_TYPE', 'فصيلة_الدم'),
-                                _bloodTypeController.text.isEmpty ? AppState().tr('N/A', 'غير متوفر') : widget.profile.bloodType,
+                                appState.tr('Blood Type', 'فصيلة الدم'),
+                                _bloodTypeController.text.isEmpty ? appState.tr('N/A', 'غير متوفر') : widget.profile.bloodType,
                                 controller: _bloodTypeController,
                               ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: _buildVitalItem(
-                                AppState().tr('BIRTH_YEAR', 'سنة_الميلاد'),
-                                _birthYearController.text.isEmpty ? AppState().tr('N/A', 'غير متوفر') : widget.profile.birthYear,
+                                appState.tr('Birth Year', 'سنة الميلاد'),
+                                _birthYearController.text.isEmpty ? appState.tr('N/A', 'غير متوفر') : widget.profile.birthYear,
                                 controller: _birthYearController,
                               ),
                             ),
@@ -487,7 +487,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppState().tr('EMERGENCY_CONTACTS', 'جهات_اتصال_الطوارئ'),
+            AppState().tr('Emergency Contacts', 'جهات اتصال الطوارئ'),
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
           ),
           const SizedBox(height: 16),

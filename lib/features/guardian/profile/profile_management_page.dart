@@ -433,9 +433,9 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
                                     featuredImageAltAr: '',
                                     createdAt: DateTime.now(),
                                   ),
-                                  documents: const [
+                                  documents: [
                                     {
-                                      'title': 'Medical Document',
+                                      'title': appState.tr('Medical Document', 'وثيقة طبية'),
                                       'subtitle': 'PDF • 1.2 MB',
                                       'type': 'PDF',
                                     },
