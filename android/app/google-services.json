@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "323422338954",
+    "project_id": "qlink-app-b06d0",
+    "storage_bucket": "qlink-app-b06d0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:323422338954:android:fb915425fef6b809781273",
+        "android_client_info": {
+          "package_name": "com.example.q_link"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBO2rrX9ZoGqtqvIHULz3-W7EGgxYaVnus"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

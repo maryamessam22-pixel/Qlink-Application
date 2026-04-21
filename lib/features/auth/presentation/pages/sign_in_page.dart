@@ -4,6 +4,7 @@ import 'package:q_link/features/auth/presentation/pages/create_account_page.dart
 import 'package:q_link/features/guardian/home/main_page.dart';
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
 import 'package:q_link/services/supabase_service.dart';
+import 'package:q_link/services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'; // Deftlak el import da 3shan nstkhdm Auth
 
 class SignInPage extends StatefulWidget {
@@ -51,6 +52,8 @@ class _SignInPageState extends State<SignInPage> {
           imagePath: userData['avatar_url'] ?? 'assets/images/mypic.png',
           role: userData['role'] ?? widget.role,
         );
+
+        NotificationService().startRealtimeListener();
 
         if (mounted) {
           Navigator.pushAndRemoveUntil(

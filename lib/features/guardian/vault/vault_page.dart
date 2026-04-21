@@ -24,9 +24,20 @@ class _VaultPageState extends State<VaultPage> {
       builder: (context, _) {
         final appState = AppState();
         return Scaffold(
-          backgroundColor: const Color(0xFFF7F9FC),
-          body: SafeArea(
-            child: SingleChildScrollView(
+          backgroundColor: Colors.transparent,
+          body: Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              color: Color(0xFFF7F9FC),
+              image: DecorationImage(
+                image: AssetImage('assets/images/bg.png'),
+                fit: BoxFit.cover,
+                opacity: 0.08,
+              ),
+            ),
+            child: SafeArea(
+              child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
                 horizontal: 20.0,
                 vertical: 16.0,
@@ -94,6 +105,7 @@ class _VaultPageState extends State<VaultPage> {
                   );
                 },
               ),
+            ),
             ),
           ),
         );

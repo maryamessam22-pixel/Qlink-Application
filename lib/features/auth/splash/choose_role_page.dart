@@ -79,7 +79,11 @@ class ChooseRolePage extends StatelessWidget {
               // Foreground
               SafeArea(
                 child: SingleChildScrollView(
-                  child: Padding(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.of(context).size.height,
+                    ),
+                    child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24.0,
                       vertical: 20.0,
@@ -199,9 +203,10 @@ class ChooseRolePage extends StatelessWidget {
                           },
                         ),
 
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 6),
                       ],
                     ),
+                  ),
                   ),
                 ),
               ),

@@ -102,6 +102,25 @@ class AppState extends ChangeNotifier {
   factory AppState() => _instance;
   AppState._internal();
 
+  // Notification badge count
+  int _unreadNotificationCount = 0;
+  int get unreadNotificationCount => _unreadNotificationCount;
+
+  void setUnreadNotificationCount(int count) {
+    _unreadNotificationCount = count;
+    notifyListeners();
+  }
+
+  void incrementUnreadNotifications() {
+    _unreadNotificationCount++;
+    notifyListeners();
+  }
+
+  void clearUnreadNotifications() {
+    _unreadNotificationCount = 0;
+    notifyListeners();
+  }
+
   final List<ScanHistoryItem> _scanHistory = [
     ScanHistoryItem(
       title: "Emergency Scan (Karam's Bracelete)",

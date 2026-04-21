@@ -695,6 +695,56 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _showDeleteProfileConfirm(BuildContext context, int index, PatientProfile profile) {
+    final appState = AppState();
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(appState.tr('Delete Profile', 'حذف الملف الشخصي')),
+        content: Text(
+          appState.tr(
+            'Are you sure you want to delete ${profile.profileName}? This action cannot be undone.',
+            'هل أنت متأكد أنك تريد حذف ${profile.profileName}؟ لا يمكن التراجع عن هذا الإجراء.',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: Text(appState.tr('Cancel', 'إلغاء')),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (profile.id.isNotEmpty) {
+                try {
+                  await SupabaseService().client
+                      .from('devices')
+                      .delete()
+                      .eq('profile_id', profile.id);
+                  await SupabaseService().client
+                      .from('bracelets')
+                      .delete()
+                      .eq('assigned_profile_id', profile.id);
+                  await SupabaseService().client
+                      .from('patient_profiles')
+                      .delete()
+                      .eq('id', profile.id);
+                } catch (e) {
+                  debugPrint('Error deleting profile: $e');
+                }
+              }
+              AppState().markProfilesDirty();
+              if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+            },
+            child: Text(
+              appState.tr('Delete', 'حذف'),
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildProtectedMemberCard(
     BuildContext context,
     int index,
@@ -774,6 +824,17 @@ class _HomePageState extends State<HomePage> {
                       style: const TextStyle(color: Colors.grey),
                     ),
                   ],
+                ),
+              ),
+              GestureDetector(
+                onTap: () => _showDeleteProfileConfirm(context, index, profile),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
                 ),
               ),
             ],

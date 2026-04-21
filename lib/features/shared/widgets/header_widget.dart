@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
-
+import 'package:q_link/features/shared/pages/notifications_page.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 
 ImageProvider getUserAvatarProvider(String path) {
@@ -22,6 +22,7 @@ class HeaderWidget extends StatelessWidget {
       animation: AppState(),
       builder: (context, child) {
         final appState = AppState();
+        final unread = appState.unreadNotificationCount;
         return Padding(
           padding: const EdgeInsets.only(bottom: 30.0),
           child: Row(
@@ -37,22 +38,36 @@ class HeaderWidget extends StatelessWidget {
               const Spacer(),
               LanguageToggle(),
               const SizedBox(width: 16),
-              Stack(
-                children: [
-                  const Icon(Icons.notifications_none, color: Color(0xFF1E3A8A), size: 28),
-                  Positioned(
-                    right: 2,
-                    top: 2,
-                    child: Container(
-                      width: 10,
-                      height: 10,
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NotificationsPage()),
+                  );
+                },
+                child: Stack(
+                  children: [
+                    const Icon(Icons.notifications_none, color: Color(0xFF1E3A8A), size: 28),
+                    if (unread > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                          child: Text(
+                            unread > 99 ? '99+' : '$unread',
+                            style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
