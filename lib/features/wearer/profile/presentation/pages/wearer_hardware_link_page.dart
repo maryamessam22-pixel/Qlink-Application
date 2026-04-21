@@ -354,8 +354,20 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                           };
                         }
 
+                        final currentUserId = SupabaseService().client.auth.currentUser?.id;
+                        if (currentUserId == null) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Not logged in. Please sign in again.'), backgroundColor: Colors.red),
+                            );
+                            setState(() => _isLoading = false);
+                          }
+                          return;
+                        }
+
                         await SupabaseService().client.from('patient_profiles').insert({
                           'id': profileId,
+                          'guardian_id': currentUserId,
                           'profile_name': widget.name,
                           'relationship_to_guardian': widget.relationship,
                           'birth_year': int.tryParse(widget.birthYear) ?? 0,

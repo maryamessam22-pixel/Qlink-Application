@@ -74,7 +74,7 @@ class WearerHomePage extends StatelessWidget {
       builder: (context, _) {
     final appState = AppState();
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.fromLTRB(24.0, 54.0, 24.0, 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
