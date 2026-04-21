@@ -196,10 +196,17 @@ class _SignInPageState extends State<SignInPage> {
                     color: Colors.white.withValues(alpha: 0.6),
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
+                Center(
+                  child: CircleAvatar(
+                    radius: 48,
+                    backgroundImage: AssetImage('assets/images/mypic.png'),
+                  ),
+                ),
+                const SizedBox(height: 24),
                 _buildTextField(
                   controller: _emailController,
-                  hintText: 'Mohamedsaber22@gmail.com',
+                  hintText: 'maryamessam22@gmail.com',
                   prefixIcon: Icons.mail_outline,
                   keyboardType: TextInputType.emailAddress,
                 ),
