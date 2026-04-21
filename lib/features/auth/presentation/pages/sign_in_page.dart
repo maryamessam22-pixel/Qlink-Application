@@ -5,7 +5,7 @@ import 'package:q_link/features/guardian/home/main_page.dart';
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
 import 'package:q_link/services/supabase_service.dart';
 import 'package:q_link/services/notification_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart'; // Deftlak el import da 3shan nstkhdm Auth
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SignInPage extends StatefulWidget {
   final String role;
@@ -85,11 +85,9 @@ class _SignInPageState extends State<SignInPage> {
     }
   }
 
-  // --- De el function el gdeda bta3t el Forgot Password ---
   Future<void> _handleForgotPassword() async {
     final email = _emailController.text.trim();
-    
-    // Lw el user msh kateb email aslan, n2olo ektb el email awel
+
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppState().tr('Please enter your email first', 'يرجى إدخال بريدك الإلكتروني أولاً'))),
@@ -98,7 +96,6 @@ class _SignInPageState extends State<SignInPage> {
     }
 
     try {
-      // B-n-klem Supabase yb3at email reset
       await Supabase.instance.client.auth.resetPasswordForEmail(email);
       
       if (mounted) {

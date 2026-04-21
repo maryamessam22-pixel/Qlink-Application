@@ -46,7 +46,6 @@ class _SyncingPageState extends State<SyncingPage> {
     return AnimatedBuilder(
       animation: AppState(),
       builder: (context, _) {
-        final appState = AppState();
         return Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(

@@ -2,13 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
-import 'package:q_link/features/guardian/profile/locate_bracelet_page.dart';
 import 'package:q_link/features/guardian/profile/emergency_qr_page.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
-
-// Imports bta3t Supabase wel Models
-import 'package:q_link/services/supabase_service.dart'; 
-import 'package:q_link/core/models/patient_profile.dart'; 
+import 'package:q_link/services/supabase_service.dart';
 
 class EmergencyInfoPage extends StatefulWidget {
   final int profileIndex;

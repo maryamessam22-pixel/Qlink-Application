@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
-import 'package:q_link/core/localization/app_localization.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_identity_page.dart';
 
 class WearerSetupIntroPage extends StatelessWidget {

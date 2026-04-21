@@ -4,7 +4,6 @@ import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
-import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
 
 class GeofenceSetupPage extends StatefulWidget {
   const GeofenceSetupPage({super.key});

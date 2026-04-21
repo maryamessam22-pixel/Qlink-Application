@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/core/state/app_state.dart';
-import 'package:q_link/core/localization/app_localization.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.dart';
 
 class WearerPrivacyPolicyPage extends StatelessWidget {

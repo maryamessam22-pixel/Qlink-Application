@@ -1,13 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/guardian/home/home_page.dart';
 import 'package:q_link/features/guardian/map/map_page.dart';
 import 'package:q_link/features/guardian/vault/vault_page.dart';
-import 'package:q_link/features/guardian/profile/add_profile_identity.dart';
 import 'package:q_link/features/guardian/settings/settings_page.dart';
-
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
 
 class MainPage extends StatelessWidget {

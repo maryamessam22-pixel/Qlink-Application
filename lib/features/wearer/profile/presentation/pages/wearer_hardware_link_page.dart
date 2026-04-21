@@ -1,12 +1,9 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
-import 'package:q_link/core/localization/app_localization.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
-import 'package:q_link/core/models/patient_profile.dart';
 import 'package:q_link/services/supabase_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;

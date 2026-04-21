@@ -12,7 +12,7 @@ class SupabaseService {
 
   Future<void> initialize() async {}
 
-  // 1. EL LOGIN SHA8AL ZAY EL FOL
+  // 1. Sign In authentication logic
   Future<Map<String, dynamic>?> signIn(String email, String password) async {
     try {
       final authResponse = await client.auth.signInWithPassword(
@@ -36,7 +36,7 @@ class SupabaseService {
     }
   }
 
-  // 2. EL SIGN UP SHA8AL ZAY EL FOL (Auth + Profiles Table)
+  // 2. User Registration (Auth + Profiles Table)
   Future<bool> signUpUser({
     required String email,
     required String password,
@@ -67,7 +67,7 @@ class SupabaseService {
     } catch (e) {
       debugPrint('Error signing up: $e');
       
-      // Iza el user mawgod aslan (mohem l-demo), n-7awel n-sign in 3altol
+      // If user already exists, attempt to sign in immediately (useful for demo/testing)
       if (e.toString().contains('user_already_exists') || 
           e.toString().contains('User already registered')) {
         try {
@@ -96,10 +96,10 @@ class SupabaseService {
     }
   }
 
-  // 3. HNA EL TRICKA: BY-GEEB EL DATA KOLAHA LEL DEMO (Karma w Mohamed Saber)
+  // 3. Fetching all profiles for demo purposes
   Future<List<PatientProfile>> fetchPatientProfiles() async {
     try {
-      // Shilt el filter bta3 el (guardian_id) 3shan n-geeb kol el data elly fel table t-zhar 3altol
+      // Note: Filter on guardian_id is removed to display all profiles in the table for demo visibility
       final response = await client
           .from('patient_profiles')
           .select()

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:q_link/core/state/app_state.dart';
-import 'package:q_link/core/localization/app_localization.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 

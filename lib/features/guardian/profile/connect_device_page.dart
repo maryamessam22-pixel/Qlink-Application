@@ -136,10 +136,10 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           createdAt: DateTime.now(),
         );
 
-        // N-rfa3 3la Supabase (Profile)
+        // Sync with Supabase (Patient Profile)
         await SupabaseService().createPatientProfile(newProfile);
 
-        // N-rfa3 3la Dashboard Tables (Devices & Bracelets)
+        // Update Dashboard Tables (Both specialized and generic device logs)
         if (withDevice) {
            await SupabaseService().client.from('devices').insert({
               'id': const Uuid().v4(),
@@ -177,7 +177,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           AppState().addDeviceToProfile(AppState().profileCount - 1, device);
         }
 
-        // N-7ot local bardo 3shan t-sme3 f wa2tha
+        // Synchronize local state for immediate UI feedback
         AppState().addProfile(ProfileData(
           id: newProfileId,
           name: widget.name ?? 'New Profile',
@@ -565,7 +565,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           if (widget.targetProfileIndex == null) {
              _createProfileAndNavigate(withDevice: true);
           } else {
-             // Lw by-Add Device l-profile mawgood
+             // Logic for adding a device to an existing patient profile
              setState(() => _isLoading = true);
              try {
                 String deviceType = _selectedDeviceType!;
@@ -585,7 +585,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
 
                 final profileId = widget.targetProfileId;
                 if (profileId != null && profileId.isNotEmpty) {
-                  // Update Profile table
+                  // Update the status in the central profile table
                   await SupabaseService().client.from('patient_profiles')
                     .update({'status': true}).eq('id', profileId);
 

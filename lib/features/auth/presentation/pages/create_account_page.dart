@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:q_link/features/guardian/home/main_page.dart';
-import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_initial_setup_page.dart';
-import 'package:q_link/services/supabase_service.dart'; // LAAAAZM TA3MLY IMPORT L-EL SERVICE
+import 'package:q_link/services/supabase_service.dart';
 
 class CreateAccountPage extends StatefulWidget {
   final String role;
@@ -16,7 +15,6 @@ class CreateAccountPage extends StatefulWidget {
 }
 
 class _CreateAccountPageState extends State<CreateAccountPage> {
-  // 1. HNA DEFT EL CONTROLLERS 3SHAN N-2RA EL KLAM
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -32,13 +30,11 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     super.dispose();
   }
 
-  // 2. HNA EL FUNCTION ELLY B-TRBOT B-SUPABASE
   Future<void> _handleSignUp() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    // Lw feh 7aga fadya
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppState().tr('Please fill all fields', 'يرجى ملء جميع الحقول'))),
@@ -49,7 +45,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     setState(() => _isLoading = true);
 
     try {
-      // B-n-klem el Service elly by-rfa3 3la table el profiles
       final success = await SupabaseService().signUpUser(
         email: email,
         password: password,
@@ -58,7 +53,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       );
 
       if (success && mounted) {
-        // N-7ot el data f el AppState (el memory bta3t el app)
         AppState().updateCurrentUser(
           name: name,
           email: email,
@@ -67,7 +61,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
           role: widget.role,
         );
 
-        // N-wady 3la el Home page
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
@@ -205,15 +198,14 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
 
                 const SizedBox(height: 30),
 
-                // 3. HNA RABATNA EL CONTROLLERS B-EL TEXT FIELDS
                 _buildTextField(
-                  controller: _nameController, // Rabatna Esm
+                  controller: _nameController,
                   hintText: appState.tr('Full Name', 'الاسم الكامل')
                 ),
                 const SizedBox(height: 16),
 
                 _buildTextField(
-                  controller: _emailController, // Rabatna Email
+                  controller: _emailController,
                   hintText: appState.tr('Email Address', 'عنوان البريد الإلكتروني'),
                   keyboardType: TextInputType.emailAddress,
                 ),
@@ -238,9 +230,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 ),
                 const SizedBox(height: 30),
                 
-                // 4. HNA RABATNA ZRAR EL CREATE B-EL FUNCTION
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _handleSignUp, // <--- HNA
+                  onPressed: _isLoading ? null : _handleSignUp,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF28365B),
                     padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -338,7 +329,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     );
   }
 
-  // 5. DEFT HNA `TextEditingController? controller`
   Widget _buildTextField({
     required String hintText,
     TextEditingController? controller, 

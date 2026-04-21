@@ -1,6 +1,4 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
@@ -250,7 +248,7 @@ class VaultDetailPage extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          Expanded( // El Expanded da hwa el btal elly mn3 el overflow!
+          Expanded(
             child: Align(
               alignment: AlignmentDirectional.centerEnd, // by-zbot el mkan ymen aw shmal 7asab el lo8a
               child: Container(

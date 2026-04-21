@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/core/state/app_state.dart';
-import 'package:q_link/core/localization/app_localization.dart';
 
 class WearerPublicPreviewQrPage extends StatelessWidget {
   const WearerPublicPreviewQrPage({super.key});

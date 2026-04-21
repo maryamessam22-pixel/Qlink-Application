@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:q_link/core/models/patient_profile.dart';
 import 'package:q_link/services/supabase_service.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:video_player/video_player.dart';
 import 'package:q_link/features/guardian/profile/add_profile_identity.dart';
 import 'package:q_link/features/guardian/profile/connect_device_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/guardian/profile/profile_management_page.dart';
-import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 import 'package:q_link/features/shared/widgets/header_widget.dart';
 
 class HomePage extends StatefulWidget {

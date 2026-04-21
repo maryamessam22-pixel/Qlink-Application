@@ -52,11 +52,9 @@ class NotificationService {
       const InitializationSettings(android: androidSettings, iOS: iosSettings),
     );
 
-    // ── FCM permission + background handler ──
     await _fcm.requestPermission(alert: true, badge: true, sound: true);
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-    // Foreground FCM messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       _showLocalNotification(
         title: message.notification?.title ?? 'QLink',
@@ -65,7 +63,6 @@ class NotificationService {
       AppState().incrementUnreadNotifications();
     });
 
-    // Save FCM token so Edge Function can push to this device
     final token = await _fcm.getToken();
     debugPrint('[FCM] Token: $token');
     if (token != null) await _saveFcmToken(token);

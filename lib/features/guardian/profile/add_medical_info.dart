@@ -1,15 +1,12 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
-import 'package:q_link/features/guardian/home/home_page.dart';
 import 'package:q_link/features/guardian/profile/connect_device_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
-import 'package:q_link/core/models/patient_profile.dart';
 import 'package:q_link/services/supabase_service.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
 import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
-import 'package:uuid/uuid.dart'; // N-stkhdm uuid 3shan ne-generate ID sa7
 
 class AddMedicalInfoPage extends StatefulWidget {
   final String name;
@@ -434,9 +431,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
         });
 
         try {
-          // --- HNA EL TA3DEEL 3SHAN N-RFA3 3LA SUPABASE ---
           if (widget.editIndex != null) {
-            // LW E7NA FY SHASHET EL EDIT
             final updatedProfile = ProfileData(
               id: widget.existingProfile?.id,
               name: widget.name,
@@ -472,7 +467,6 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
             return;
           }
 
-          // LW E7NA FY SHASHET EL ADD (NEW PROFILE)
           if (mounted) {
             Navigator.push(
               context,

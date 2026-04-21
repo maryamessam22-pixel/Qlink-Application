@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
-import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/header_widget.dart';
 import 'package:q_link/features/guardian/settings/edit_profile_page.dart';
 import 'package:q_link/features/guardian/settings/change_password_page.dart';

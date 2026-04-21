@@ -27,12 +27,7 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
     final client = Supabase.instance.client;
     final guardianId = client.auth.currentUser?.id;
 
-    debugPrint('[Notify] guardianId=$guardianId, profileId=${widget.profile.id}, name=${widget.profile.name}');
-
-    if (guardianId == null || guardianId.isEmpty) {
-      debugPrint('[Notify] SKIPPED — user not logged in');
-      return;
-    }
+    if (guardianId == null || guardianId.isEmpty) return;
 
     try {
       await client.from('notifications').insert({
@@ -44,19 +39,8 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
         'type': 'qr_scan',
         'is_read': false,
       });
-      debugPrint('[Notify] ✅ SUCCESS — notification inserted');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ Notification sent!'), backgroundColor: Colors.green, duration: Duration(seconds: 2)),
-        );
-      }
     } catch (e) {
-      debugPrint('[Notify] ❌ FAILED: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ Notify error: $e'), backgroundColor: Colors.red, duration: const Duration(seconds: 5)),
-        );
-      }
+      debugPrint('[Notify] error: $e');
     }
   }
 
