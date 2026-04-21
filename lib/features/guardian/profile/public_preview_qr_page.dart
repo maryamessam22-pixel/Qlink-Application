@@ -1,14 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
-class PublicPreviewQrPage extends StatelessWidget {
+class PublicPreviewQrPage extends StatefulWidget {
   final ProfileData profile;
 
   const PublicPreviewQrPage({
     super.key,
     required this.profile,
   });
+
+  @override
+  State<PublicPreviewQrPage> createState() => _PublicPreviewQrPageState();
+}
+
+class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
+  @override
+  void initState() {
+    super.initState();
+    _notifyGuardian();
+  }
+
+  Future<void> _notifyGuardian() async {
+    final client = Supabase.instance.client;
+    final guardianId = client.auth.currentUser?.id;
+
+    debugPrint('[Notify] guardianId=$guardianId, profileId=${widget.profile.id}, name=${widget.profile.name}');
+
+    if (guardianId == null || guardianId.isEmpty) {
+      debugPrint('[Notify] SKIPPED — user not logged in');
+      return;
+    }
+
+    try {
+      await client.from('notifications').insert({
+        'id': const Uuid().v4(),
+        'guardian_id': guardianId,
+        'profile_id': widget.profile.id ?? guardianId,
+        'title': 'Bracelet Scanned! 🚨',
+        'body': 'Someone is viewing the profile of ${widget.profile.name}',
+        'type': 'qr_scan',
+        'is_read': false,
+      });
+      debugPrint('[Notify] ✅ SUCCESS — notification inserted');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ Notification sent!'), backgroundColor: Colors.green, duration: Duration(seconds: 2)),
+        );
+      }
+    } catch (e) {
+      debugPrint('[Notify] ❌ FAILED: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('❌ Notify error: $e'), backgroundColor: Colors.red, duration: const Duration(seconds: 5)),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +118,7 @@ class PublicPreviewQrPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    profile.name,
+                    widget.profile.name,
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   const SizedBox(height: 8),
@@ -87,29 +137,29 @@ class PublicPreviewQrPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (profile.visibility.showAllergies && profile.allergies.isNotEmpty)
-                    _buildInfoCard(AppState().tr('Allergies', 'الحساسية'), profile.allergies),
-                  
+                  if (widget.profile.visibility.showAllergies && widget.profile.allergies.isNotEmpty)
+                    _buildInfoCard(AppState().tr('Allergies', 'الحساسية'), widget.profile.allergies),
+
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      if (profile.visibility.showBloodType && profile.bloodType.isNotEmpty)
-                        Expanded(child: _buildInfoCard(AppState().tr('Blood Type', 'فصيلة الدم'), profile.bloodType)),
-                      if (profile.visibility.showBloodType && profile.bloodType.isNotEmpty && profile.visibility.showBirthYear && profile.birthYear.isNotEmpty)
+                      if (widget.profile.visibility.showBloodType && widget.profile.bloodType.isNotEmpty)
+                        Expanded(child: _buildInfoCard(AppState().tr('Blood Type', 'فصيلة الدم'), widget.profile.bloodType)),
+                      if (widget.profile.visibility.showBloodType && widget.profile.bloodType.isNotEmpty && widget.profile.visibility.showBirthYear && widget.profile.birthYear.isNotEmpty)
                         const SizedBox(width: 16),
-                      if (profile.visibility.showBirthYear && profile.birthYear.isNotEmpty)
-                        Expanded(child: _buildInfoCard(AppState().tr('Age', 'العمر'), _calculateAge(profile.birthYear))),
+                      if (widget.profile.visibility.showBirthYear && widget.profile.birthYear.isNotEmpty)
+                        Expanded(child: _buildInfoCard(AppState().tr('Age', 'العمر'), _calculateAge(widget.profile.birthYear))),
                     ],
                   ),
 
-                  if (profile.visibility.showMedicalNotes && profile.condition.isNotEmpty) ...[
+                  if (widget.profile.visibility.showMedicalNotes && widget.profile.condition.isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    _buildInfoCard(AppState().tr('Medical Notes', 'ملاحظات طبية'), profile.condition),
+                    _buildInfoCard(AppState().tr('Medical Notes', 'ملاحظات طبية'), widget.profile.condition),
                   ],
 
-                  if (profile.visibility.showEmergencyContacts && profile.emergencyContacts.isNotEmpty) ...[
+                  if (widget.profile.visibility.showEmergencyContacts && widget.profile.emergencyContacts.isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    _buildEmergencyContacts(profile.emergencyContacts),
+                    _buildEmergencyContacts(widget.profile.emergencyContacts),
                   ],
                 ],
               ),
