@@ -19,9 +19,14 @@ Future<void> main() async {
   );
 
   await Firebase.initializeApp();
-  await NotificationService().initialize();
 
   runApp(const MyApp());
+
+  // Initialize notifications after UI is shown — avoids white screen
+  // if FCM token fetch hangs (e.g. slow network or Play Services delay)
+  NotificationService().initialize().catchError((e) {
+    debugPrint('[Startup] Notification init error: $e');
+  });
 }
 
 class MyApp extends StatelessWidget {
