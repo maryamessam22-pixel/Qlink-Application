@@ -33,6 +33,27 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+    import { getMessaging } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBxmrEwlDJ7h2zKhy1-VUfGLKhCTS2aVyg",
+      authDomain: "qlink-app-b06d0.firebaseapp.com",
+      projectId: "qlink-app-b06d0",
+      storageBucket: "qlink-app-b06d0.firebasestorage.app",
+      messagingSenderId: "323422338954",
+      appId: "1:323422338954:web:39b0d2a05d32a5c2781273",
+      measurementId: "G-MRG2JV0R8L"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const messaging = getMessaging(app);
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
