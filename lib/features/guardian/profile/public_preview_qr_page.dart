@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
+import 'package:q_link/core/utils/emergency_profile_parse.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 class PublicPreviewQrPage extends StatefulWidget {
   final ProfileData profile;
 
+  /// When `true`, server (RPC) or another path already sent the `qr_scan` notification.
+  final bool skipGuardianNotify;
+
   const PublicPreviewQrPage({
     super.key,
     required this.profile,
+    this.skipGuardianNotify = false,
   });
 
   @override
@@ -20,13 +26,25 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
   @override
   void initState() {
     super.initState();
-    _notifyGuardian();
+    if (!widget.skipGuardianNotify) {
+      _notifyGuardian();
+    }
   }
 
   Future<void> _notifyGuardian() async {
     final client = Supabase.instance.client;
-    final guardianId = client.auth.currentUser?.id;
-
+    String? guardianId;
+    if (widget.profile.id != null && widget.profile.id!.isNotEmpty) {
+      try {
+        final patient = await client
+            .from('patient_profiles')
+            .select('guardian_id')
+            .eq('id', widget.profile.id!)
+            .maybeSingle();
+        guardianId = patient?['guardian_id']?.toString();
+      } catch (_) {}
+    }
+    guardianId ??= client.auth.currentUser?.id;
     if (guardianId == null || guardianId.isEmpty) return;
 
     try {
@@ -111,6 +129,14 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
                   ),
+                  if (widget.profile.visibility.showRelationship && widget.profile.relationship.trim().isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      widget.profile.relationship,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 14),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -141,9 +167,10 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
                     _buildInfoCard(AppState().tr('Medical Notes', 'ملاحظات طبية'), widget.profile.condition),
                   ],
 
-                  if (widget.profile.visibility.showEmergencyContacts && widget.profile.emergencyContacts.isNotEmpty) ...[
+                  if (widget.profile.visibility.showEmergencyContacts &&
+                      (widget.profile.emergencyDialRows.isNotEmpty || widget.profile.emergencyContacts.isNotEmpty)) ...[
                     const SizedBox(height: 16),
-                    _buildEmergencyContacts(widget.profile.emergencyContacts),
+                    _buildEmergencyContactsSection(),
                   ],
                 ],
               ),
@@ -222,13 +249,23 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
     );
   }
 
-  String _calculateAge(String birthYear) {
-    int? year = int.tryParse(birthYear);
-    if (year != null) {
-      int currentYear = DateTime.now().year;
-      return '${currentYear - year} ${AppState().tr('years', 'سنة')}';
+  String _calculateAge(String birthYearField) {
+    final y = parseBirthYearFromRowField(birthYearField);
+    if (y == null) {
+      return birthYearField.trim().isEmpty ? '—' : birthYearField.trim();
     }
-    return birthYear;
+    final age = DateTime.now().year - y;
+    if (age < 0 || age > 130) return '—';
+    return '$age ${AppState().tr('years', 'سنة')}';
+  }
+
+  Future<void> _dialPhone(String raw) async {
+    final cleaned = raw.replaceAll(RegExp(r'[^\d+]'), '');
+    if (cleaned.isEmpty) return;
+    final uri = Uri(scheme: 'tel', path: cleaned);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   Widget _buildInfoCard(String title, String content) {
@@ -261,7 +298,84 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
     );
   }
 
-  Widget _buildEmergencyContacts(List<String> contacts) {
+  Widget _buildEmergencyContactsSection() {
+    if (widget.profile.emergencyDialRows.isNotEmpty) {
+      return _buildEmergencyDialRows(widget.profile.emergencyDialRows);
+    }
+    return _buildLegacyEmergencyStrings(widget.profile.emergencyContacts);
+  }
+
+  Widget _buildEmergencyDialRows(List<EmergencyDialRow> rows) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppState().tr('Emergency Contacts', 'جهات اتصال الطوارئ'),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
+          ),
+          const SizedBox(height: 16),
+          ...rows.map((row) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (row.title.isNotEmpty)
+                              Text(
+                                row.title,
+                                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                              ),
+                            if (row.phone.isNotEmpty)
+                              Text(
+                                row.phone,
+                                style: const TextStyle(color: Colors.white, fontSize: 15, letterSpacing: 0.8),
+                              )
+                            else if (row.title.isNotEmpty)
+                              Text(
+                                row.title,
+                                style: const TextStyle(color: Colors.white, fontSize: 15),
+                              ),
+                          ],
+                        ),
+                      ),
+                      if (row.canDial)
+                        Material(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(8),
+                          child: InkWell(
+                            onTap: () => _dialPhone(row.phone),
+                            borderRadius: BorderRadius.circular(8),
+                            child: const Padding(
+                              padding: EdgeInsets.all(10),
+                              child: Icon(Icons.call, color: Colors.white, size: 18),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegacyEmergencyStrings(List<String> contacts) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -283,14 +397,20 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(contact, style: const TextStyle(color: Colors.white, fontSize: 14, letterSpacing: 1.1)),
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(6),
+                    Expanded(
+                      child: Text(contact, style: const TextStyle(color: Colors.white, fontSize: 14, letterSpacing: 1.1)),
+                    ),
+                    Material(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(8),
+                      child: InkWell(
+                        onTap: () => _dialPhone(contact),
+                        borderRadius: BorderRadius.circular(8),
+                        child: const Padding(
+                          padding: EdgeInsets.all(10),
+                          child: Icon(Icons.call, color: Colors.white, size: 16),
+                        ),
                       ),
-                      child: const Icon(Icons.call, color: Colors.white, size: 16),
                     ),
                   ],
                 ),

@@ -1,9 +1,14 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:q_link/features/guardian/home/main_page.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_initial_setup_page.dart';
 import 'package:q_link/services/supabase_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CreateAccountPage extends StatefulWidget {
   final String role;
@@ -21,6 +26,15 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   
   bool _obscurePassword = true;
   bool _isLoading = false;
+  final RegExp _emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+  final ImagePicker _picker = ImagePicker();
+  Uint8List? _selectedAvatarBytes;
+  String? _selectedAvatarPath;
+
+  bool _isGuardianLike(String? role) {
+    final r = (role ?? '').toLowerCase();
+    return r == 'guardian' || r == 'admin';
+  }
 
   @override
   void dispose() {
@@ -28,6 +42,16 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAvatar() async {
+    final image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return;
+    final bytes = await image.readAsBytes();
+    setState(() {
+      _selectedAvatarPath = image.path;
+      _selectedAvatarBytes = bytes;
+    });
   }
 
   Future<void> _handleSignUp() async {
@@ -41,42 +65,107 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       );
       return;
     }
+    if (!_emailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppState().tr(
+              'Please enter a valid email address',
+              'يرجى إدخال بريد إلكتروني صحيح',
+            ),
+          ),
+        ),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
     try {
-      final success = await SupabaseService().signUpUser(
+      final authResponse = await Supabase.instance.client.auth.signUp(
         email: email,
         password: password,
-        fullName: name,
-        role: widget.role,
       );
 
-      if (success && mounted) {
+      final user = authResponse.user;
+      String avatarUrl =
+          'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/profiles/default.png';
+      if (user != null) {
+        if (_selectedAvatarBytes != null) {
+          final uploadedUrl = await SupabaseService()
+              .uploadAndSaveUserAvatar(_selectedAvatarBytes!, user.id);
+          if (uploadedUrl != null) {
+            avatarUrl = uploadedUrl;
+          } else if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Avatar upload failed: ${SupabaseService().lastUploadError ?? 'unknown error'}',
+                ),
+              ),
+            );
+          }
+        }
+
+        await _upsertProfileWithRoleFallback(
+          userId: user.id,
+          fullName: name,
+          email: email,
+          preferredRole: widget.role,
+          avatarUrl: avatarUrl,
+        );
+      }
+
+      if (mounted && user != null) {
+        final openGuardianShell = _isGuardianLike(widget.role);
         AppState().updateCurrentUser(
           name: name,
           email: email,
           password: '',
-          imagePath: widget.role == 'Wearer' ? 'assets/images/Mohamed Saber.png' : 'assets/images/mypic.png',
+          imagePath: avatarUrl,
           role: widget.role,
         );
 
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (_) => widget.role == 'Guardian' 
+            builder: (_) => openGuardianShell
                 ? const MainPage() 
                 : const WearerInitialSetupPage(),
-            settings: RouteSettings(name: widget.role == 'Guardian' ? 'MainPage' : 'WearerInitialSetupPage'),
+            settings: RouteSettings(name: openGuardianShell ? 'MainPage' : 'WearerInitialSetupPage'),
           ),
           (Route<dynamic> route) => false,
         );
       } else {
         if (mounted) {
            ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to create account')),
+            SnackBar(
+              content: Text(
+                AppState().tr(
+                  'Could not create account. Check email confirmation settings.',
+                  'تعذر إنشاء الحساب. تحقق من إعدادات تأكيد البريد الإلكتروني.',
+                ),
+              ),
+            ),
           );
         }
+      }
+    } on AuthApiException catch (e) {
+      if (mounted) {
+        final isInvalidEmail =
+            e.code == 'validation_failed' || e.message.contains('invalid format');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isInvalidEmail
+                  ? AppState().tr(
+                      'Invalid email format. Example: name@email.com',
+                      'تنسيق البريد الإلكتروني غير صحيح. مثال: name@email.com',
+                    )
+                  : 'Error: ${e.message}',
+            ),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -86,6 +175,40 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _upsertProfileWithRoleFallback({
+    required String userId,
+    required String fullName,
+    required String email,
+    required String preferredRole,
+    required String avatarUrl,
+  }) async {
+    final profilePayload = {
+      'id': userId,
+      'full_name': fullName,
+      'email': email,
+      'status': true,
+      'job_title': 'New Member',
+      'registration_date': DateTime.now().toIso8601String().split('T')[0],
+      'avatar_url': avatarUrl,
+    };
+
+    try {
+      await Supabase.instance.client.from('profiles').upsert({
+        ...profilePayload,
+        'role': preferredRole,
+      });
+    } on PostgrestException catch (e) {
+      final isRoleConstraintError =
+          e.code == '23514' || (e.message.contains('profiles_role_check'));
+      if (!isRoleConstraintError) rethrow;
+
+      await Supabase.instance.client.from('profiles').upsert({
+        ...profilePayload,
+        'role': 'Guardian',
+      });
     }
   }
 
@@ -163,37 +286,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 const SizedBox(height: 30),
 
                 Center(
-                  child: Stack(
-                    children: [
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withValues(alpha: 0.2),
-                          border: Border.all(color: Colors.white, width: 2),
-                          image: DecorationImage(
-                            image: AssetImage(widget.role == 'Wearer' 
-                                ? 'assets/images/Mohamed Saber.png' 
-                                : 'assets/images/mypic.png'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF28365B),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: _buildAuthAvatar(),
                 ),
 
                 const SizedBox(height: 30),
@@ -325,6 +418,53 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAuthAvatar() {
+    Widget avatarChild;
+    if (_selectedAvatarPath != null && _selectedAvatarPath!.isNotEmpty) {
+      if (_selectedAvatarPath!.startsWith('http') || _selectedAvatarPath!.startsWith('blob:')) {
+        avatarChild = Image.network(_selectedAvatarPath!, fit: BoxFit.cover);
+      } else if (_selectedAvatarPath!.startsWith('assets')) {
+        avatarChild = Image.asset(_selectedAvatarPath!, fit: BoxFit.cover);
+      } else if (!kIsWeb) {
+        avatarChild = Image.file(File(_selectedAvatarPath!), fit: BoxFit.cover);
+      } else {
+        avatarChild = const Icon(Icons.person, size: 52, color: Colors.white);
+      }
+    } else {
+      avatarChild = const Icon(Icons.person, size: 52, color: Colors.white);
+    }
+
+    return GestureDetector(
+      onTap: _pickAvatar,
+      child: Stack(
+        children: [
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.2),
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: ClipOval(child: avatarChild),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Color(0xFF28365B),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+            ),
+          ),
+        ],
       ),
     );
   }

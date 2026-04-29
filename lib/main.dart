@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -18,15 +19,20 @@ Future<void> main() async {
     anonKey: 'sb_publishable_bsCGwopSC-xFZyt_wiBPNA_4wcGHVgQ',
   );
 
-  await Firebase.initializeApp();
+  // Web requires explicit Firebase options; skip default init there to avoid startup crash.
+  if (!kIsWeb) {
+    await Firebase.initializeApp();
+  }
 
   runApp(const MyApp());
 
   // Initialize notifications after UI is shown — avoids white screen
   // if FCM token fetch hangs (e.g. slow network or Play Services delay)
-  NotificationService().initialize().catchError((e) {
-    debugPrint('[Startup] Notification init error: $e');
-  });
+  if (!kIsWeb) {
+    NotificationService().initialize().catchError((e) {
+      debugPrint('[Startup] Notification init error: $e');
+    });
+  }
 }
 
 class MyApp extends StatelessWidget {

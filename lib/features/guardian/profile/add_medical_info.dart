@@ -432,6 +432,20 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
 
         try {
           if (widget.editIndex != null) {
+            String resolvedAvatarUrl =
+                widget.avatarUrl ?? widget.existingProfile?.imagePath ?? '';
+            final existingId = widget.existingProfile?.id;
+            if (existingId != null &&
+                existingId.isNotEmpty &&
+                widget.avatarBytes != null &&
+                widget.avatarBytes!.isNotEmpty) {
+              final uploadedUrl = await SupabaseService()
+                  .uploadProfileAvatarBytes(widget.avatarBytes!, existingId);
+              if (uploadedUrl != null) {
+                resolvedAvatarUrl = uploadedUrl;
+              }
+            }
+
             final updatedProfile = ProfileData(
               id: widget.existingProfile?.id,
               name: widget.name,
@@ -442,7 +456,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
               allergies: _allergiesController.text.trim(),
               condition: _medicalNotesController.text.trim(),
               devices: widget.existingProfile?.devices,
-              imagePath: widget.avatarUrl ?? widget.existingProfile?.imagePath ?? 'assets/images/mypic.png',
+              imagePath: resolvedAvatarUrl,
               visibility: widget.existingProfile?.visibility,
             );
 
@@ -456,6 +470,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
                 'allergies_en': updatedProfile.allergies,
                 'medical_notes_en': updatedProfile.condition,
                 'safety_notes_en': _safetyNotesController.text.trim(),
+                'avatar_url': resolvedAvatarUrl,
               }).eq('id', updatedProfile.id!);
             }
 

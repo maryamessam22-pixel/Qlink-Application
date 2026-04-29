@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -6,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/guardian/settings/change_password_page.dart';
 import 'package:q_link/features/guardian/settings/email_preferences_page.dart';
+import 'package:q_link/services/supabase_service.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -17,6 +19,9 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _nameController;
   final ImagePicker _picker = ImagePicker();
+  Uint8List? _selectedAvatarBytes;
+  String? _selectedAvatarPath;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -34,10 +39,64 @@ class _EditProfilePageState extends State<EditProfilePage> {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
+        final bytes = await image.readAsBytes();
+        setState(() {
+          _selectedAvatarPath = image.path;
+          _selectedAvatarBytes = bytes;
+        });
         AppState().updateCurrentUser(imagePath: image.path);
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
+    }
+  }
+
+  Future<void> _saveChanges() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+    final appState = AppState();
+
+    try {
+      final userId = SupabaseService().client.auth.currentUser?.id;
+      String? avatarUrl = appState.currentUser.imagePath;
+
+      if (userId != null && _selectedAvatarBytes != null) {
+        final uploaded = await SupabaseService()
+            .uploadAndSaveUserAvatar(_selectedAvatarBytes!, userId);
+        if (uploaded != null) {
+          avatarUrl = uploaded;
+        } else {
+          throw Exception(
+            SupabaseService().lastUploadError ?? 'Avatar upload failed',
+          );
+        }
+      }
+
+      if (userId != null) {
+        await SupabaseService().client.from('profiles').update({
+          'full_name': _nameController.text.trim(),
+          if (avatarUrl != null && avatarUrl.isNotEmpty) 'avatar_url': avatarUrl,
+        }).eq('id', userId);
+      }
+
+      appState.updateCurrentUser(
+        name: _nameController.text.trim(),
+        imagePath: avatarUrl,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(appState.tr('Changes saved successfully', 'تم حفظ التغييرات بنجاح'))),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -183,12 +242,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: () {
-                                appState.updateCurrentUser(name: _nameController.text);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(appState.tr('Changes saved successfully', 'تم حفظ التغييرات بنجاح'))),
-                                );
-                              },
+                              onPressed: _isSaving ? null : _saveChanges,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1B64F2),
                                 foregroundColor: Colors.white,
@@ -196,10 +250,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                                 elevation: 0,
                               ),
-                              child: Text(
-                                appState.tr('Save Changes', 'حفظ التغييرات'),
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
+                              child: _isSaving
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                    )
+                                  : Text(
+                                      appState.tr('Save Changes', 'حفظ التغييرات'),
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    ),
                             ),
                           ),
                         ],

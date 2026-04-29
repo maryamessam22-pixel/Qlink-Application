@@ -1,10 +1,15 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/auth/presentation/pages/create_account_page.dart';
 import 'package:q_link/features/guardian/home/main_page.dart';
+import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
-import 'package:q_link/services/supabase_service.dart';
 import 'package:q_link/services/notification_service.dart';
+import 'package:q_link/services/supabase_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SignInPage extends StatefulWidget {
@@ -20,12 +25,30 @@ class _SignInPageState extends State<SignInPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  final ImagePicker _picker = ImagePicker();
+  Uint8List? _selectedAvatarBytes;
+  String? _selectedAvatarPath;
+
+  bool _isGuardianLike(String? role) {
+    final r = (role ?? '').toLowerCase();
+    return r == 'guardian' || r == 'admin';
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAvatar() async {
+    final image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return;
+    final bytes = await image.readAsBytes();
+    setState(() {
+      _selectedAvatarPath = image.path;
+      _selectedAvatarBytes = bytes;
+    });
   }
 
   Future<void> _handleSignIn() async {
@@ -42,27 +65,63 @@ class _SignInPageState extends State<SignInPage> {
     setState(() => _isLoading = true);
 
     try {
-      final userData = await SupabaseService().signIn(email, password);
+      final authResponse = await Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = authResponse.user;
+      final userData = user == null
+          ? null
+          : await Supabase.instance.client
+              .from('profiles')
+              .select()
+              .eq('id', user.id)
+              .maybeSingle();
 
       if (userData != null) {
+        String resolvedAvatar = userData['avatar_url'] ?? '';
+        if (_selectedAvatarBytes != null && user != null) {
+          final uploadedUrl = await SupabaseService()
+              .uploadAndSaveUserAvatar(_selectedAvatarBytes!, user.id);
+          if (uploadedUrl != null) {
+            resolvedAvatar = uploadedUrl;
+          } else if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Avatar upload failed: ${SupabaseService().lastUploadError ?? 'unknown error'}',
+                ),
+              ),
+            );
+          }
+        }
+
         AppState().updateCurrentUser(
           name: userData['full_name'] ?? 'Unknown',
           email: userData['email'] ?? email,
           password: '', 
-          imagePath: userData['avatar_url'] ?? 'assets/images/mypic.png',
+          imagePath: resolvedAvatar,
           role: userData['role'] ?? widget.role,
         );
 
-        NotificationService().startRealtimeListener();
+        try {
+          NotificationService().startRealtimeListener();
+        } catch (e) {
+          debugPrint('[SignIn] Realtime listener start failed: $e');
+        }
+
+        final resolvedRole = (userData['role'] ?? widget.role).toString();
+        final openGuardianShell = _isGuardianLike(resolvedRole);
 
         if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-              builder: (_) => widget.role == 'Guardian' 
+              builder: (_) => openGuardianShell
                   ? const MainPage() 
                   : const WearerMainPage(),
-              settings: RouteSettings(name: widget.role == 'Guardian' ? 'MainPage' : 'WearerMainPage'),
+              settings: RouteSettings(name: openGuardianShell ? 'MainPage' : 'WearerMainPage'),
             ),
             (Route<dynamic> route) => false,
           );
@@ -198,10 +257,7 @@ class _SignInPageState extends State<SignInPage> {
                 ),
                 const SizedBox(height: 24),
                 Center(
-                  child: CircleAvatar(
-                    radius: 48,
-                    backgroundImage: AssetImage('assets/images/mypic.png'),
-                  ),
+                  child: _buildAuthAvatar(),
                 ),
                 const SizedBox(height: 24),
                 _buildTextField(
@@ -377,6 +433,58 @@ class _SignInPageState extends State<SignInPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAuthAvatar() {
+    Widget avatarChild;
+    if (_selectedAvatarPath != null && _selectedAvatarPath!.isNotEmpty) {
+      if (_selectedAvatarPath!.startsWith('http') || _selectedAvatarPath!.startsWith('blob:')) {
+        avatarChild = Image.network(_selectedAvatarPath!, fit: BoxFit.cover);
+      } else if (_selectedAvatarPath!.startsWith('assets')) {
+        avatarChild = Image.asset(_selectedAvatarPath!, fit: BoxFit.cover);
+      } else if (!kIsWeb) {
+        avatarChild = Image.file(File(_selectedAvatarPath!), fit: BoxFit.cover);
+      } else {
+        avatarChild = const Icon(Icons.person, size: 52, color: Colors.white);
+      }
+    } else if (AppState().currentUser.imagePath.trim().isNotEmpty) {
+      avatarChild = Image(
+        image: getUserAvatarProvider(AppState().currentUser.imagePath),
+        fit: BoxFit.cover,
+      );
+    } else {
+      avatarChild = const Icon(Icons.person, size: 52, color: Colors.white);
+    }
+
+    return GestureDetector(
+      onTap: _pickAvatar,
+      child: Stack(
+        children: [
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.2),
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: ClipOval(child: avatarChild),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Color(0xFF28365B),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+            ),
+          ),
+        ],
       ),
     );
   }

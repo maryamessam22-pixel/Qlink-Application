@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:q_link/core/models/patient_profile.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
+import 'package:q_link/features/guardian/profile/add_profile_identity.dart';
+import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
+import 'package:q_link/services/supabase_service.dart';
 
 class GeofenceSetupPage extends StatefulWidget {
   const GeofenceSetupPage({super.key});
@@ -15,13 +19,90 @@ class GeofenceSetupPage extends StatefulWidget {
 class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
   final MapController _mapController = MapController();
   int _currentStep = 1; // 1: Select Member, 2: Define Zone, 3: Success
-  ProfileData? _selectedMember;
+  PatientProfile? _selectedMember;
   double _radius = 500;
   bool _alertsEnabled = true;
   final TextEditingController _zoneNameController = TextEditingController(text: 'Home');
+  late Future<List<PatientProfile>> _profilesFuture;
+  late Future<Map<String, Map<String, double>>> _locationsFuture;
+  List<PatientProfile> _profiles = [];
+  Map<String, Map<String, double>> _locations = {};
+  LatLng? _zoneCenter;
+
+  Future<List<PatientProfile>> _loadProfiles() async {
+    final rows = await SupabaseService().fetchPatientProfiles();
+    if (mounted) setState(() => _profiles = rows);
+    return rows;
+  }
+
+  Future<Map<String, Map<String, double>>> _loadLocations() async {
+    final rows = await SupabaseService().fetchLatestProfileLocations();
+    if (mounted) setState(() => _locations = rows);
+    return rows;
+  }
+
+  LatLng _selectedMemberCenter() {
+    final profileId = _selectedMember?.id;
+    if (profileId != null) {
+      final loc = _locations[profileId];
+      if (loc != null && loc['lat'] != null && loc['lng'] != null) {
+        return LatLng(loc['lat']!, loc['lng']!);
+      }
+    }
+    return const LatLng(30.0444, 31.2357);
+  }
+
+  LatLng _effectiveZoneCenter() => _zoneCenter ?? _selectedMemberCenter();
+
+  String _formatLatLng(LatLng point) =>
+      '${point.latitude.toStringAsFixed(5)}, ${point.longitude.toStringAsFixed(5)}';
+
+  void _recenterToSelectedMember() {
+    final center = _selectedMemberCenter();
+    setState(() => _zoneCenter = center);
+    _mapController.move(center, _mapController.camera.zoom);
+  }
+
+  void _setRadius(double meters) {
+    setState(() => _radius = meters);
+  }
+
+  void _goToSuccess(AppState appState) {
+    if (_selectedMember == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(appState.tr('Please select a member first.', 'اختر عضواً أولاً.'))),
+      );
+      return;
+    }
+    if (_zoneNameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(appState.tr('Zone name is required.', 'اسم المنطقة مطلوب.'))),
+      );
+      return;
+    }
+    setState(() => _currentStep = 3);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _profilesFuture = _loadProfiles();
+    _locationsFuture = _loadLocations();
+    AppState().addListener(_onAppStateChanged);
+  }
+
+  void _onAppStateChanged() {
+    if (!mounted || !AppState().profilesDirty) return;
+    setState(() {
+      _profilesFuture = _loadProfiles();
+      _locationsFuture = _loadLocations();
+    });
+    AppState().clearProfilesDirty();
+  }
 
   @override
   void dispose() {
+    AppState().removeListener(_onAppStateChanged);
     _mapController.dispose();
     _zoneNameController.dispose();
     super.dispose();
@@ -100,9 +181,13 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
   }
 
   Widget _buildMemberSelection(AppState appState) {
-    return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
+    return FutureBuilder<List<PatientProfile>>(
+      future: _profilesFuture,
+      builder: (context, snapshot) {
+        final profiles = snapshot.data ?? _profiles;
+        return ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -129,14 +214,21 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
         ),
         const SizedBox(height: 32),
         
-        // Profiles from AppState
-        ...appState.profiles.map((profile) => _buildMemberCard(appState, profile)),
-        
-        // Static examples if profiles is empty for simulation
-        if (appState.profiles.isEmpty) ...[
-          _buildMemberCard(appState, ProfileData(name: 'Mohamed', imagePath: 'assets/images/Mohamed Saber.png', relationship: 'Father')),
-          _buildMemberCard(appState, ProfileData(name: 'Karma', imagePath: 'assets/images/karma.png', relationship: 'Daughter')),
-        ],
+        if (snapshot.connectionState == ConnectionState.waiting)
+          const Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (profiles.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Text(
+              appState.tr('No profiles found. Add a member first.', 'لا توجد ملفات حالياً. أضف عضواً أولاً.'),
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            ),
+          )
+        else
+          ...profiles.map((profile) => _buildMemberCard(appState, profile)),
 
         _buildAddMemberCard(appState),
         
@@ -160,14 +252,19 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
             ],
           ),
         ),
-      ],
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildMemberCard(AppState appState, ProfileData profile) {
-    bool isSelected = _selectedMember?.name == profile.name;
+  Widget _buildMemberCard(AppState appState, PatientProfile profile) {
+    bool isSelected = _selectedMember?.id == profile.id;
     return GestureDetector(
-      onTap: () => setState(() => _selectedMember = profile),
+      onTap: () => setState(() {
+        _selectedMember = profile;
+        _zoneCenter = null;
+      }),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
@@ -190,16 +287,30 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
           children: [
             CircleAvatar(
               radius: 30,
-              backgroundImage: AssetImage(profile.imagePath),
+              backgroundImage: profile.avatarUrl.trim().isNotEmpty
+                  ? getUserAvatarProvider(profile.avatarUrl)
+                  : null,
+              child: profile.avatarUrl.trim().isEmpty
+                  ? Text(
+                      profile.profileName.isNotEmpty
+                          ? profile.profileName[0].toUpperCase()
+                          : '?',
+                    )
+                  : null,
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(profile.name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+                  Text(profile.profileName, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
                   const SizedBox(height: 4),
-                  Text(appState.tr('Primary Device: Qlink Bracelet', 'الجهاز الأساسي: سوار Qlink'), style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+                  Text(
+                    profile.status
+                        ? appState.tr('Device connected', 'الجهاز متصل')
+                        : appState.tr('No connected device yet', 'لا يوجد جهاز متصل بعد'),
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                  ),
                 ],
               ),
             ),
@@ -214,20 +325,14 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
   Widget _buildAddMemberCard(AppState appState) {
     return GestureDetector(
       onTap: () {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: Text(appState.tr('Register New Device', 'تسجيل جهاز جديد')),
-            content: Text(appState.tr('You must create an account for the new member first to determine their geofence.', 'يجب عليك إنشاء حساب للعضو الجديد أولاً لتحديد سياجه الجغرافي.')),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(appState.tr('Got it', 'فهمت')),
-              ),
-            ],
-          ),
-        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AddProfileIdentityPage()),
+        ).then((_) {
+          setState(() {
+            _profilesFuture = _loadProfiles();
+          });
+        });
       },
       child: DottedBorderSimulation(
         child: Container(
@@ -256,6 +361,9 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
   }
 
   Widget _buildDefineZone(AppState appState) {
+    final center = _effectiveZoneCenter();
+    final selected = _selectedMember;
+    final hasLocation = selected != null && _locations.containsKey(selected.id);
     return Column(
       children: [
         Expanded(
@@ -287,9 +395,10 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
                   children: [
                     FlutterMap(
                       mapController: _mapController,
-                      options: const MapOptions(
-                        initialCenter: LatLng(30.0444, 31.2357),
+                      options: MapOptions(
+                        initialCenter: center,
                         initialZoom: 14.5,
+                        onTap: (_, point) => setState(() => _zoneCenter = point),
                       ),
                       children: [
                         TileLayer(
@@ -299,7 +408,7 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
                         CircleLayer(
                           circles: [
                             CircleMarker(
-                              point: const LatLng(30.0444, 31.2357),
+                              point: center,
                               radius: _radius,
                               useRadiusInMeter: true,
                               color: const Color(0xFF1B64F2).withValues(alpha: 0.15),
@@ -313,12 +422,12 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
                             // Show ONLY the selected member at the center
                             if (_selectedMember != null)
                               Marker(
-                                point: const LatLng(30.0444, 31.2357),
+                                point: center,
                                 width: 80,
                                 height: 80,
                                 child: _buildProfileMarker(
-                                  name: _selectedMember!.name,
-                                  imagePath: _selectedMember!.imagePath,
+                                  name: _selectedMember!.profileName,
+                                  imagePath: _selectedMember!.avatarUrl,
                                   hasStatusDot: true,
                                 ),
                               ),
@@ -349,11 +458,56 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
               ),
               const SizedBox(height: 12),
               Center(child: Text(appState.tr('Drag the circle to reposition or use the slider below', 'اسحب الدائرة لتغيير موقعها أو استخدم الشريط أدناه'), style: TextStyle(fontSize: 12, color: Colors.grey.shade500))),
+              const SizedBox(height: 16),
+              if (selected != null)
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundImage: selected.avatarUrl.trim().isNotEmpty
+                            ? getUserAvatarProvider(selected.avatarUrl)
+                            : null,
+                        child: selected.avatarUrl.trim().isEmpty
+                            ? Text(selected.profileName.isNotEmpty ? selected.profileName[0].toUpperCase() : '?')
+                            : null,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(selected.profileName, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+                            const SizedBox(height: 2),
+                            Text(
+                              hasLocation
+                                  ? _formatLatLng(_selectedMemberCenter())
+                                  : appState.tr('No live location yet (using fallback center)', 'لا يوجد موقع حي حالياً (يتم استخدام مركز افتراضي)'),
+                              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: _recenterToSelectedMember,
+                        icon: const Icon(Icons.my_location, size: 16),
+                        label: Text(appState.tr('Use member location', 'استخدم موقع العضو')),
+                      ),
+                    ],
+                  ),
+                ),
               
               const SizedBox(height: 32),
               _buildInputLabel(appState.tr('Zone Name', 'اسم المنطقة')),
               TextField(
                 controller: _zoneNameController,
+                onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   prefixIcon: const Icon(LucideIcons.home, size: 20, color: Color(0xFF1B64F2)),
                   filled: true,
@@ -387,13 +541,22 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
                       min: 100,
                       max: 2000,
                       activeColor: const Color(0xFF1B64F2),
-                      onChanged: (v) => setState(() => _radius = v),
+                      onChanged: _setRadius,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('100m', style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
                         Text('2000m', style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        _buildRadiusChip('200m', 200),
+                        _buildRadiusChip('500m', 500),
+                        _buildRadiusChip('1km', 1000),
                       ],
                     ),
                   ],
@@ -429,13 +592,16 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
               
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: () => setState(() => _currentStep = 3),
+                onPressed: _selectedMember != null && _zoneNameController.text.trim().isNotEmpty
+                    ? () => _goToSuccess(appState)
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1E3A8A),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   elevation: 0,
+                  disabledBackgroundColor: Colors.grey.shade300,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -456,6 +622,7 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
   }
 
   Widget _buildSuccess(AppState appState) {
+    final center = _selectedMemberCenter();
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
@@ -502,10 +669,10 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
           ),
           clipBehavior: Clip.hardEdge,
           child: FlutterMap(
-            options: const MapOptions(
-              initialCenter: LatLng(30.0444, 31.2357),
+            options: MapOptions(
+              initialCenter: center,
               initialZoom: 14.5,
-              interactionOptions: InteractionOptions(flags: InteractiveFlag.none), // Disable movement on success screen
+              interactionOptions: const InteractionOptions(flags: InteractiveFlag.none), // Disable movement on success screen
             ),
             children: [
               TileLayer(
@@ -515,7 +682,7 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
               CircleLayer(
                 circles: [
                   CircleMarker(
-                    point: const LatLng(30.0444, 31.2357),
+                    point: center,
                     radius: _radius,
                     useRadiusInMeter: true,
                     color: const Color(0xFF1B64F2).withValues(alpha: 0.15),
@@ -528,12 +695,12 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
                 markers: [
                   if (_selectedMember != null)
                     Marker(
-                      point: const LatLng(30.0444, 31.2357),
+                      point: center,
                       width: 60,
                       height: 60,
                       child: _buildProfileMarker(
-                        name: _selectedMember!.name,
-                        imagePath: _selectedMember!.imagePath,
+                        name: _selectedMember!.profileName,
+                        imagePath: _selectedMember!.avatarUrl,
                         hasStatusDot: true,
                       ),
                     ),
@@ -546,7 +713,11 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
         const SizedBox(height: 40),
         Text(appState.tr('Zone Details', 'تفاصيل المنطقة'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
         const SizedBox(height: 16),
-        _buildDetailTile(LucideIcons.user, appState.tr('Assigned To', 'مخصص لـ'), _selectedMember?.name ?? 'Mohamed'),
+        _buildDetailTile(
+          LucideIcons.user,
+          appState.tr('Assigned To', 'مخصص لـ'),
+          _selectedMember?.profileName ?? appState.tr('No member selected', 'لا يوجد عضو محدد'),
+        ),
         _buildDetailTile(LucideIcons.home, appState.tr('Zone Name', 'اسم المنطقة'), _zoneNameController.text),
         _buildDetailTile(LucideIcons.bell, appState.tr('Notifications', 'التنبيهات'), appState.tr('Entry & Exit Alerts Enabled', 'تم تفعيل تنبيهات الدخول والخروج')),
         
@@ -604,6 +775,23 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
     );
   }
 
+  Widget _buildRadiusChip(String label, double value) {
+    final isSelected = (_radius - value).abs() < 1;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => _setRadius(value),
+      selectedColor: const Color(0xFFE0EAFF),
+      labelStyle: TextStyle(
+        color: isSelected ? const Color(0xFF1B64F2) : const Color(0xFF475569),
+        fontWeight: FontWeight.w600,
+      ),
+      side: BorderSide(
+        color: isSelected ? const Color(0xFF1B64F2) : const Color(0xFFE2E8F0),
+      ),
+    );
+  }
+
   Widget _buildMapToolButton(IconData icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -641,7 +829,12 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
               ),
               child: CircleAvatar(
                 radius: 20,
-                backgroundImage: AssetImage(imagePath),
+                backgroundImage: imagePath.trim().isNotEmpty
+                    ? getUserAvatarProvider(imagePath)
+                    : null,
+                child: imagePath.trim().isEmpty
+                    ? Text(name.isNotEmpty ? name[0].toUpperCase() : '?')
+                    : null,
               ),
             ),
             if (hasStatusDot)

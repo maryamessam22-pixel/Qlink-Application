@@ -1,7 +1,13 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/auth/presentation/pages/wearer/wearer_create_account_page.dart';
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
+import 'package:q_link/services/supabase_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class WearerSignInPage extends StatefulWidget {
   const WearerSignInPage({super.key});
@@ -14,6 +20,9 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  final ImagePicker _picker = ImagePicker();
+  Uint8List? _selectedAvatarBytes;
+  String? _selectedAvatarPath;
 
   @override
   void dispose() {
@@ -22,16 +31,69 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
     super.dispose();
   }
 
-  void _handleSignIn() {
+  Future<void> _pickAvatar() async {
+    final image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return;
+    final bytes = await image.readAsBytes();
+    setState(() {
+      _selectedAvatarPath = image.path;
+      _selectedAvatarBytes = bytes;
+    });
+  }
+
+  Future<void> _handleSignIn() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) return;
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter email and password')),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
-    final user = AppState().currentUser;
-    if (user.email == email && user.password == password && user.role == 'Wearer') {
+    try {
+      final authResponse = await Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = authResponse.user;
+      if (_selectedAvatarBytes != null && user != null) {
+        final uploadedUrl = await SupabaseService()
+            .uploadAndSaveUserAvatar(_selectedAvatarBytes!, user.id);
+        if (uploadedUrl != null) {
+          _selectedAvatarPath = uploadedUrl;
+        }
+      }
+      final userData = user == null
+          ? null
+          : await Supabase.instance.client
+              .from('profiles')
+              .select()
+              .eq('id', user.id)
+              .maybeSingle();
+
+      if (userData != null) {
+        AppState().updateCurrentUser(
+          name: userData['full_name'] ?? '',
+          email: userData['email'] ?? email,
+          password: '',
+          imagePath: userData['avatar_url'] ?? '',
+          role: userData['role'] ?? 'Wearer',
+        );
+      } else {
+        AppState().updateCurrentUser(
+          name: '',
+          email: email,
+          password: '',
+          imagePath: '',
+          role: 'Wearer',
+        );
+      }
+
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -42,15 +104,15 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
           (route) => false,
         );
       }
-    } else {
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Invalid email or password')),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
-
-    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
@@ -74,6 +136,38 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
               ),
               const SizedBox(height: 40),
+              Center(
+                child: GestureDetector(
+                  onTap: _pickAvatar,
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          border: Border.all(color: const Color(0xFF1B64F2), width: 2),
+                        ),
+                        child: ClipOval(child: _buildAvatarPreview()),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF1B64F2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
               TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
@@ -132,5 +226,22 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildAvatarPreview() {
+    if (_selectedAvatarPath == null || _selectedAvatarPath!.isEmpty) {
+      return const Icon(Icons.person, size: 50, color: Color(0xFF1B64F2));
+    }
+    if (_selectedAvatarPath!.startsWith('http') ||
+        _selectedAvatarPath!.startsWith('blob:')) {
+      return Image.network(_selectedAvatarPath!, fit: BoxFit.cover);
+    }
+    if (_selectedAvatarPath!.startsWith('assets')) {
+      return Image.asset(_selectedAvatarPath!, fit: BoxFit.cover);
+    }
+    if (!kIsWeb) {
+      return Image.file(File(_selectedAvatarPath!), fit: BoxFit.cover);
+    }
+    return const Icon(Icons.person, size: 50, color: Color(0xFF1B64F2));
   }
 }

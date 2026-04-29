@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/utils/emergency_profile_parse.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/guardian/profile/emergency_qr_page.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
@@ -94,8 +95,11 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
           .where((t) => t.isNotEmpty)
           .toList();
 
+      final contactsJson = emergencyContactsJsonFromFlatLines(updatedContacts);
+      final dialRows = emergencyDialRowsFromContactsJson(contactsJson);
+
       final updatedProfile = ProfileData(
-        id: widget.profile.id, 
+        id: widget.profile.id,
         name: _nameController.text.trim(),
         relationship: _relationshipController.text.trim(),
         birthYear: _birthYearController.text.trim(),
@@ -103,6 +107,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
         allergies: _allergiesController.text.trim(),
         condition: _conditionController.text.trim(),
         emergencyContacts: updatedContacts,
+        emergencyDialRows: dialRows,
         devices: widget.profile.devices,
         imagePath: widget.profile.imagePath,
       );
@@ -111,21 +116,12 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
 
       // 2. Push to Supabase — send ALL editable columns
       if (widget.profile.id != null && widget.profile.id!.isNotEmpty) {
-        // Build the emergency_contacts JSON from the flat list
-        final Map<String, dynamic> contactsJson = {};
-        for (int i = 0; i < updatedContacts.length; i++) {
-          final key = i == 0 ? 'primary' : 'secondary';
-          contactsJson[key] = {
-            'name': updatedContacts[i],
-            'phone': '',
-            'relation': i == 0 ? 'Guardian' : 'Contact',
-          };
-        }
-
         await SupabaseService().client.from('patient_profiles').update({
           'profile_name': updatedProfile.name,
           'relationship_to_guardian': updatedProfile.relationship,
-          'birth_year': int.tryParse(updatedProfile.birthYear) ?? 0,
+          'birth_year': parseBirthYearFromRowField(updatedProfile.birthYear) ??
+              int.tryParse(updatedProfile.birthYear) ??
+              0,
           'blood_type': updatedProfile.bloodType,
           'allergies_en': updatedProfile.allergies,
           'medical_notes_en': updatedProfile.condition,
@@ -527,22 +523,72 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
               label: Text(AppState().tr('Add Contact', 'إضافة جهة اتصال')),
             ),
           ] else ...[
-            if (widget.profile.emergencyContacts.isEmpty)
+            if (widget.profile.emergencyDialRows.isEmpty && widget.profile.emergencyContacts.isEmpty)
               Text(
                 AppState().tr('No emergency contacts added', 'لم يتم إضافة جهات اتصال طوارئ'),
                 style: const TextStyle(color: Colors.grey, fontSize: 13),
               )
+            else if (widget.profile.emergencyDialRows.isNotEmpty)
+              ...widget.profile.emergencyDialRows.asMap().entries.map((e) {
+                final row = e.value;
+                final label = row.title.isNotEmpty ? row.title : '—';
+                final initial = label.isNotEmpty ? label[0].toUpperCase() : '?';
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF273469),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          initial,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              e.key == 0
+                                  ? AppState().tr('Primary Guardian', 'الوصي الأساسي')
+                                  : '${AppState().tr('Contact', 'جهة اتصال')} ${e.key + 1}',
+                              style: const TextStyle(color: Colors.grey, fontSize: 12),
+                            ),
+                            Text(
+                              label,
+                              style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF1F2937)),
+                            ),
+                            if (row.phone.isNotEmpty)
+                              Text(
+                                row.phone,
+                                style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              })
             else
               ...widget.profile.emergencyContacts.asMap().entries.map((e) {
-                String contactName = e.value;
-                String? avatarPath;
-                if (contactName.toLowerCase().contains('mariam')) {
-                  avatarPath = 'assets/images/mypic.png';
-                } else if (contactName.toLowerCase().contains('saber') || contactName.toLowerCase().contains('ahmed')) {
-                  avatarPath = 'assets/images/Mohamed Saber.png';
-                } else if (contactName.toLowerCase().contains('mazen')) {
-                  avatarPath = 'assets/images/Ahmed Mazen.png';
-                }
+                final contactName = e.value;
+                final initial = contactName.isNotEmpty ? contactName[0].toUpperCase() : '?';
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
@@ -551,11 +597,19 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                       Container(
                         width: 44,
                         height: 44,
-                        decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(10)),
-                        clipBehavior: Clip.antiAlias,
-                        child: avatarPath != null
-                            ? Image.asset(avatarPath, fit: BoxFit.cover)
-                            : Icon(Icons.person, color: Colors.grey.shade400, size: 24),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF273469),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          initial,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -563,10 +617,18 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              e.key == 0 ? AppState().tr('Primary Guardian', 'الوصي الأساسي') : '${AppState().tr('Contact', 'جهة اتصال')} ${e.key + 1}',
+                              e.key == 0
+                                  ? AppState().tr('Primary Guardian', 'الوصي الأساسي')
+                                  : '${AppState().tr('Contact', 'جهة اتصال')} ${e.key + 1}',
                               style: const TextStyle(color: Colors.grey, fontSize: 12),
                             ),
-                            Text(contactName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1F2937))),
+                            Text(
+                              contactName,
+                              style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF1F2937)),
+                            ),
                           ],
                         ),
                       ),

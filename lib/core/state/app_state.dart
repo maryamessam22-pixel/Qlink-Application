@@ -18,6 +18,16 @@ class VisibilitySettings {
   });
 }
 
+/// One row in the public emergency preview (name + optional dialable phone).
+class EmergencyDialRow {
+  final String title;
+  final String phone;
+
+  const EmergencyDialRow({required this.title, required this.phone});
+
+  bool get canDial => phone.trim().isNotEmpty;
+}
+
 class ProfileData {
   String? id;
   String name;
@@ -25,6 +35,8 @@ class ProfileData {
   String relationship;
   String birthYear;
   List<String> emergencyContacts;
+  /// Parsed from `emergency_contacts` JSON (name/phone). When non-empty, preview uses this for call buttons.
+  final List<EmergencyDialRow> emergencyDialRows;
   String bloodType;
   String condition;
   String allergies;
@@ -38,6 +50,7 @@ class ProfileData {
     required this.relationship,
     this.birthYear = '',
     this.emergencyContacts = const [],
+    this.emergencyDialRows = const [],
     this.bloodType = '',
     this.condition = '',
     this.allergies = '',
@@ -144,10 +157,10 @@ class AppState extends ChangeNotifier {
 
   // Current logged in user profile
   UserProfile _currentUser = UserProfile(
-    name: 'Mariam Essam',
-    email: 'maryamessam22@gmail.com',
-    password: 'password123',
-    imagePath: 'assets/images/mypic.png',
+    name: '',
+    email: '',
+    password: '',
+    imagePath: '',
   );
 
   UserProfile get currentUser => _currentUser;

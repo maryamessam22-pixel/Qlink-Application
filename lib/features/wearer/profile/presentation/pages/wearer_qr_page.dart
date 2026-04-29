@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:q_link/core/models/patient_profile.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/features/shared/helpers/emergency_qr_scan.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_header.dart';
+import 'package:q_link/services/supabase_service.dart';
 
 class WearerQrPage extends StatefulWidget {
   const WearerQrPage({super.key});
@@ -15,6 +18,24 @@ class WearerQrPage extends StatefulWidget {
 class _WearerQrPageState extends State<WearerQrPage> {
   int _activeTab = 0;
   final MobileScannerController _scannerController = MobileScannerController();
+  bool _scanBusy = false;
+  late Future<(PatientProfile?, String?)> _myQrPack;
+
+  @override
+  void initState() {
+    super.initState();
+    _myQrPack = _loadWearQrPayload();
+  }
+
+  Future<(PatientProfile?, String?)> _loadWearQrPayload() async {
+    final p = await SupabaseService().fetchWearerPatientProfile();
+    if (p == null || p.id.isEmpty) return (null, null);
+    final token = await SupabaseService().ensurePublicQrToken(p.id);
+    final payload = token != null && token.isNotEmpty
+        ? SupabaseService().buildPublicEmergencyQrPayload(token)
+        : 'qlink://profile/${p.id}';
+    return (p, payload);
+  }
 
   @override
   void dispose() {
@@ -94,7 +115,23 @@ class _WearerQrPageState extends State<WearerQrPage> {
   Widget _buildMyCodeView(AppState appState) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
-      child: Column(
+      child: FutureBuilder<(PatientProfile?, String?)>(
+        future: _myQrPack,
+        builder: (context, snap) {
+          if (snap.connectionState != ConnectionState.done) {
+            return const Padding(
+              padding: EdgeInsets.only(top: 120),
+              child: Center(child: CircularProgressIndicator(color: Color(0xFF1B64F2))),
+            );
+          }
+          final tuple = snap.data ?? (null, null);
+          final wearerProfile = tuple.$1;
+          final qrPayload = tuple.$2;
+
+          final noProfile =
+              wearerProfile == null || qrPayload == null || qrPayload.isEmpty;
+
+          return Column(
         children: [
           const SizedBox(height: 40),
           Text(
@@ -119,10 +156,35 @@ class _WearerQrPageState extends State<WearerQrPage> {
               fontWeight: FontWeight.w500,
             ),
           ),
+          const SizedBox(height: 10),
+          Text(
+            appState.tr(
+              'This QR uses HTTPS — your phone camera can open it in the browser. The Scanner tab loads the preview in QLink.',
+              'رمز HTTPS — كاميرا الهاتف تفتحه في المتصفح. تبويب «الماسح» يعرض المعاينة داخل التطبيق.',
+            ),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              color: const Color(0xFF273469).withValues(alpha: 0.55),
+              height: 1.35,
+            ),
+          ),
+
+          const SizedBox(height: 50),
           
-          const SizedBox(height: 60),
-          
-          // QR Image
+          if (noProfile)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              child: Text(
+                appState.tr(
+                  'No linked profile yet. Complete setup with your guardian to use your QR.',
+                  'لا يوجد ملف مرتبط بعد. أكمل الإعداد مع الوصي لاستخدام الرمز.'
+                ),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade600, height: 1.45),
+              ),
+            )
+          else
           GestureDetector(
             onTap: () => _showEmergencyDialog(appState),
             child: Container(
@@ -139,7 +201,7 @@ class _WearerQrPageState extends State<WearerQrPage> {
                 ],
               ),
               child: QrImageView(
-                data: 'QLINK-WEARER-MOCK-DATA',
+                data: qrPayload,
                 version: QrVersions.auto,
                 size: 200.0,
                 eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF1B64F2)),
@@ -179,8 +241,10 @@ class _WearerQrPageState extends State<WearerQrPage> {
             ),
           ),
           
-          const SizedBox(height: 100),
+          const           SizedBox(height: 100),
         ],
+          );
+        },
       ),
     );
   }
@@ -190,8 +254,18 @@ class _WearerQrPageState extends State<WearerQrPage> {
       children: [
         MobileScanner(
           controller: _scannerController,
-          onDetect: (capture) {
-            // Simulation
+          onDetect: (capture) async {
+            if (_scanBusy) return;
+            final barcodes = capture.barcodes;
+            if (barcodes.isEmpty) return;
+            final raw = barcodes.first.rawValue;
+            if (raw == null || raw.trim().isEmpty) return;
+            _scanBusy = true;
+            try {
+              await navigateEmergencyPreviewFromQrRaw(context, raw);
+            } finally {
+              if (mounted) _scanBusy = false;
+            }
           },
         ),
         Center(

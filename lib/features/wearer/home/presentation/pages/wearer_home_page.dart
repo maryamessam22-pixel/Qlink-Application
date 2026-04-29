@@ -82,7 +82,7 @@ class WearerHomePage extends StatelessWidget {
 
           // Greeting
           Text(
-            appState.tr('Hello, Mohamed Saber', 'مرحباً، محمد صابر'),
+            appState.tr('Hello, ${appState.currentUser.name}', 'مرحباً، ${appState.currentUser.name}'),
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w900,
@@ -273,23 +273,33 @@ class WearerHomePage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          _buildActivityItem(
-            icon: LucideIcons.checkCircle2,
-            iconColor: const Color(0xFF1B64F2),
-            title: appState.tr('System Checkup', 'فحص النظام'),
-            subtitle: 'Today, 09:00 AM',
-            status: 'Success',
-            appState: appState,
-          ),
-          const SizedBox(height: 12),
-          _buildActivityItem(
-            icon: LucideIcons.refreshCcw,
-            iconColor: const Color(0xFF6B7280),
-            title: appState.tr('App Sync', 'مزامنة التطبيق'),
-            subtitle: 'Yesterday, 11:45 PM',
-            status: 'Auto',
-            appState: appState,
-          ),
+          if (appState.scanHistory.isEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade100),
+              ),
+              child: Center(
+                child: Text(
+                  appState.tr('No activity yet', 'لا يوجد نشاط بعد'),
+                  style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                ),
+              ),
+            )
+          else
+            ...appState.scanHistory.take(5).map((item) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildActivityItem(
+                icon: LucideIcons.qrCode,
+                iconColor: const Color(0xFF1B64F2),
+                title: item.title,
+                subtitle: item.time,
+                status: item.location,
+                appState: appState,
+              ),
+            )),
           const SizedBox(height: 100),
         ],
       ),

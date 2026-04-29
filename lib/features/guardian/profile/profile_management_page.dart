@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
@@ -33,6 +35,10 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
   late TextEditingController _nameController;
   late TextEditingController _relationshipController;
   bool _isEditing = false;
+  final ImagePicker _picker = ImagePicker();
+  Uint8List? _selectedProfileImageBytes;
+  String? _selectedProfileImagePath;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -41,6 +47,7 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
     _relationshipController = TextEditingController(
       text: widget.profile.relationship,
     );
+    _selectedProfileImagePath = widget.profile.imagePath;
   }
 
   @override
@@ -51,20 +58,43 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
   }
 
   Future<void> _saveChanges() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
     widget.profile.name = _nameController.text;
     widget.profile.relationship = _relationshipController.text;
 
     if (widget.profile.id != null && widget.profile.id!.isNotEmpty) {
       try {
+        if (widget.profile.id != null &&
+            widget.profile.id!.isNotEmpty &&
+            _selectedProfileImageBytes != null) {
+          final uploadedUrl = await SupabaseService()
+              .uploadProfileAvatarBytes(_selectedProfileImageBytes!, widget.profile.id!);
+          if (uploadedUrl != null) {
+            widget.profile.imagePath = uploadedUrl;
+          }
+        } else if (_selectedProfileImagePath != null &&
+            _selectedProfileImagePath!.isNotEmpty) {
+          widget.profile.imagePath = _selectedProfileImagePath!;
+        }
+
         await SupabaseService().client
             .from('patient_profiles')
             .update({
               'profile_name': _nameController.text,
               'relationship_to_guardian': _relationshipController.text,
+              'avatar_url': widget.profile.imagePath,
             })
             .eq('id', widget.profile.id!);
       } catch (e) {
         debugPrint('Error updating profile: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error updating profile: $e'), backgroundColor: Colors.red),
+          );
+        }
+        setState(() => _isSaving = false);
+        return;
       }
     }
 
@@ -73,11 +103,30 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
     }
     AppState().markProfilesDirty();
 
-    setState(() => _isEditing = false);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppState().tr('Profile updated successfully', 'تم تحديث الملف بنجاح'))),
+      );
+      setState(() {
+        _isEditing = false;
+        _isSaving = false;
+      });
+    }
+  }
+
+  Future<void> _pickProfileImage() async {
+    final image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return;
+    final bytes = await image.readAsBytes();
+    setState(() {
+      _selectedProfileImagePath = image.path;
+      _selectedProfileImageBytes = bytes;
+      widget.profile.imagePath = image.path;
+    });
   }
 
   Widget _buildProfileAvatar(ProfileData profile) {
-    final path = profile.imagePath;
+    final path = _selectedProfileImagePath ?? profile.imagePath;
     if (path.isEmpty) return _buildInitialsAvatar(profile.name);
     if (path.startsWith('assets')) {
       return Image.asset(path, fit: BoxFit.cover,
@@ -107,12 +156,6 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
         ),
       ),
     );
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppState().tr('Profile updated successfully', 'تم تحديث الملف بنجاح'))),
-      );
-    }
   }
 
   @override
@@ -168,26 +211,46 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
                         Center(
                           child: Column(
                             children: [
-                              Container(
-                                width: 110,
-                                height: 110,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF273469),
-                                  borderRadius: BorderRadius.circular(22),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(
-                                        0xFF1E3A8A,
-                                      ).withValues(alpha: 0.2),
-                                      blurRadius: 15,
-                                      offset: const Offset(0, 8),
+                              Stack(
+                                children: [
+                                  Container(
+                                    width: 110,
+                                    height: 110,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF273469),
+                                      borderRadius: BorderRadius.circular(22),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(
+                                            0xFF1E3A8A,
+                                          ).withValues(alpha: 0.2),
+                                          blurRadius: 15,
+                                          offset: const Offset(0, 8),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(22),
-                                  child: _buildProfileAvatar(widget.profile),
-                                ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(22),
+                                      child: _buildProfileAvatar(widget.profile),
+                                    ),
+                                  ),
+                                  if (_isEditing)
+                                    Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      child: GestureDetector(
+                                        onTap: _pickProfileImage,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: const BoxDecoration(
+                                            color: Color(0xFF1B64F2),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                               const SizedBox(height: 16),
                               _isEditing
@@ -260,9 +323,11 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
                                           MainAxisAlignment.center,
                                       children: [
                                         ElevatedButton(
-                                          onPressed: () => setState(
-                                            () => _isEditing = false,
-                                          ),
+                                          onPressed: _isSaving
+                                              ? null
+                                              : () => setState(
+                                                    () => _isEditing = false,
+                                                  ),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor:
                                                 Colors.grey.shade400,
@@ -273,15 +338,24 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
                                         ),
                                         const SizedBox(width: 12),
                                         ElevatedButton(
-                                          onPressed: _saveChanges,
+                                          onPressed: _isSaving ? null : _saveChanges,
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: const Color(
                                               0xFF1B64F2,
                                             ),
                                           ),
-                                          child: Text(
-                                            appState.tr('Save', 'حفظ'),
-                                          ),
+                                          child: _isSaving
+                                              ? const SizedBox(
+                                                  height: 16,
+                                                  width: 16,
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    color: Colors.white,
+                                                  ),
+                                                )
+                                              : Text(
+                                                  appState.tr('Save', 'حفظ'),
+                                                ),
                                         ),
                                       ],
                                     )

@@ -1,4 +1,8 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/services/supabase_service.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.dart';
@@ -28,6 +32,9 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
   String? _selectedBloodType;
   final List<String> _bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   bool _isSaving = false;
+  final ImagePicker _picker = ImagePicker();
+  Uint8List? _selectedAvatarBytes;
+  String? _selectedAvatarPath;
 
   @override
   void initState() {
@@ -107,10 +114,28 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
               children: [
                 // Profile Picture Section
                 Center(
-                  child: CircleAvatar(
-                    radius: 60,
-                    backgroundImage: getUserAvatarProvider(appState.currentUser.imagePath),
-                    onBackgroundImageError: (_, __) {},
+                  child: GestureDetector(
+                    onTap: _pickAvatar,
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 60,
+                          backgroundImage: _buildAvatarProvider(appState.currentUser.imagePath),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF1B64F2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -231,10 +256,33 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
                     onPressed: _isSaving ? null : () async {
                       setState(() => _isSaving = true);
                       try {
+                        final userId = SupabaseService().client.auth.currentUser?.id;
+                        String imagePath = appState.currentUser.imagePath;
+                        if (userId != null && _selectedAvatarBytes != null) {
+                          final uploadedUrl = await SupabaseService()
+                              .uploadAndSaveUserAvatar(_selectedAvatarBytes!, userId);
+                          if (uploadedUrl != null) {
+                            imagePath = uploadedUrl;
+                          } else {
+                            throw Exception(
+                              SupabaseService().lastUploadError ?? 'Avatar upload failed',
+                            );
+                          }
+                        }
+
                         AppState().updateCurrentUser(
                           name: _nameController.text.trim(),
                           email: _emailController.text.trim(),
+                          imagePath: imagePath,
                         );
+
+                        if (userId != null) {
+                          await SupabaseService().client.from('profiles').update({
+                            'full_name': _nameController.text.trim(),
+                            'email': _emailController.text.trim(),
+                            'avatar_url': imagePath,
+                          }).eq('id', userId);
+                        }
 
                         if (AppState().profiles.isNotEmpty) {
                           final profile = AppState().profiles.first;
@@ -410,5 +458,24 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
         );
       },
     );
+  }
+
+  Future<void> _pickAvatar() async {
+    final image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return;
+    final bytes = await image.readAsBytes();
+    setState(() {
+      _selectedAvatarBytes = bytes;
+      _selectedAvatarPath = image.path;
+    });
+  }
+
+  ImageProvider _buildAvatarProvider(String currentPath) {
+    final path = _selectedAvatarPath ?? currentPath;
+    if (path.trim().isEmpty) return const AssetImage('assets/images/mypic.png');
+    if (path.startsWith('http') || path.startsWith('blob:')) return NetworkImage(path);
+    if (path.startsWith('assets')) return AssetImage(path);
+    if (!kIsWeb) return FileImage(File(path));
+    return getUserAvatarProvider(currentPath);
   }
 }

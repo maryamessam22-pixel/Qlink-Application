@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show RealtimeChannel, PostgresChangeEvent, PostgresChangeFilter, PostgresChangeFilterType;
@@ -35,11 +36,15 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
-  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
+  FirebaseMessaging? _fcm;
 
   RealtimeChannel? _realtimeChannel;
 
   Future<void> initialize() async {
+    if (kIsWeb) return;
+
+    _fcm ??= FirebaseMessaging.instance;
+
     // ── Local notifications setup ──
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -52,7 +57,7 @@ class NotificationService {
       const InitializationSettings(android: androidSettings, iOS: iosSettings),
     );
 
-    await _fcm.requestPermission(alert: true, badge: true, sound: true);
+    await _fcm!.requestPermission(alert: true, badge: true, sound: true);
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -63,10 +68,10 @@ class NotificationService {
       AppState().incrementUnreadNotifications();
     });
 
-    final token = await _fcm.getToken();
+    final token = await _fcm!.getToken();
     debugPrint('[FCM] Token: $token');
     if (token != null) await _saveFcmToken(token);
-    _fcm.onTokenRefresh.listen(_saveFcmToken);
+    _fcm!.onTokenRefresh.listen(_saveFcmToken);
   }
 
   Future<void> _saveFcmToken(String token) async {
@@ -149,6 +154,8 @@ class NotificationService {
     required String title,
     required String body,
   }) async {
+    if (kIsWeb) return;
+
     await _localNotifications.show(
       DateTime.now().millisecondsSinceEpoch ~/ 1000,
       title,

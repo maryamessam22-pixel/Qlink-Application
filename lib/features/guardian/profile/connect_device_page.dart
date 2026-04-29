@@ -147,6 +147,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
               'device_code': deviceCode,
               'type': shortDeviceType,
               'profile_id': newProfileId,
+              'guardian_id': guardianId,
               'linekd_profile': widget.name ?? 'New Profile',
               'status': true,
               'battery_level': 100,
@@ -585,6 +586,10 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
 
                 final profileId = widget.targetProfileId;
                 if (profileId != null && profileId.isNotEmpty) {
+                  final guardianId = SupabaseService().client.auth.currentUser?.id;
+                  if (guardianId == null) {
+                    throw Exception('Not logged in. Please sign in again.');
+                  }
                   // Update the status in the central profile table
                   await SupabaseService().client.from('patient_profiles')
                     .update({'status': true}).eq('id', profileId);
@@ -598,6 +603,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
                     'device_code': deviceCode,
                     'type': shortDeviceType,
                     'profile_id': profileId,
+                    'guardian_id': guardianId,
                     'linekd_profile': linkedName,
                     'status': true,
                     'battery_level': 100,

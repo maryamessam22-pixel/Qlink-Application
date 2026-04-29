@@ -51,7 +51,7 @@ class BottomNavWidget extends StatelessWidget {
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    Navigator.of(context).pushAndRemoveUntil(
+                    Navigator.of(context).push(
                       PageRouteBuilder(
                         pageBuilder:
                             (context, animation, secondaryAnimation) =>
@@ -67,7 +67,6 @@ class BottomNavWidget extends StatelessWidget {
                           name: 'AddProfileIdentity',
                         ),
                       ),
-                      (route) => false,
                     );
                   },
                   child: Container(

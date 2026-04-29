@@ -74,7 +74,7 @@ class _VaultPageState extends State<VaultPage> {
                             return _buildProfileCard(
                               name: profile.profileName,
                               role: appState.tr(profile.relationshipToGuardian, profile.relationshipToGuardian),
-                              imagePath: profile.avatarUrl.isNotEmpty ? profile.avatarUrl : 'assets/images/mypic.png',
+                              imagePath: profile.avatarUrl,
                               recordCount: 5, // Mock for now, could be fetched
                               lastUpdate: appState.tr('Latest', 'الأحدث'),
                               statusLabel: statusLabel,
@@ -85,10 +85,7 @@ class _VaultPageState extends State<VaultPage> {
                                   MaterialPageRoute(
                                     builder: (context) => VaultDetailPage(
                                       profile: profile,
-                                      documents: [
-                                        {'title': appState.tr('Medical Report', 'تقرير طبي'), 'subtitle': 'PDF • 3.1 MB', 'type': 'PDF'},
-                                        {'title': appState.tr('Insurance Card', 'بطاقة التأمين'), 'subtitle': 'JPG • 850 KB', 'type': 'JPG'},
-                                      ],
+                                      documents: const [],
                                     ),
                                   ),
                                 );
@@ -121,8 +118,24 @@ class _VaultPageState extends State<VaultPage> {
         CircleAvatar(
           radius: 16,
           backgroundColor: const Color(0xFFE6F0FE),
-          backgroundImage: getUserAvatarProvider(appState.currentUser.imagePath),
-          onBackgroundImageError: (_, __) {},
+          backgroundImage: appState.currentUser.imagePath.trim().isNotEmpty
+              ? getUserAvatarProvider(appState.currentUser.imagePath)
+              : null,
+          onBackgroundImageError: appState.currentUser.imagePath.trim().isNotEmpty
+              ? (_, __) {}
+              : null,
+          child: appState.currentUser.imagePath.trim().isEmpty
+              ? Text(
+                  appState.currentUser.name.isNotEmpty
+                      ? appState.currentUser.name[0].toUpperCase()
+                      : '?',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1B64F2),
+                  ),
+                )
+              : null,
         ),
         const Spacer(),
         Text(
@@ -285,8 +298,20 @@ class _VaultPageState extends State<VaultPage> {
             children: [
               CircleAvatar(
                 radius: 28,
-                backgroundImage: getUserAvatarProvider(imagePath),
-                onBackgroundImageError: (_, __) {},
+                backgroundImage:
+                    imagePath.trim().isNotEmpty ? getUserAvatarProvider(imagePath) : null,
+                onBackgroundImageError:
+                    imagePath.trim().isNotEmpty ? (_, __) {} : null,
+                child: imagePath.trim().isEmpty
+                    ? Text(
+                        name.isNotEmpty ? name[0].toUpperCase() : '?',
+                        style: const TextStyle(
+                          color: Color(0xFF1B64F2),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      )
+                    : null,
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -408,7 +433,13 @@ class _VaultPageState extends State<VaultPage> {
               ),
               const SizedBox(width: 12),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(appState.tr('Open the profile vault to share documents', 'افتح خزنة الملف لمشاركة المستندات')),
+                    ),
+                  );
+                },
                 child: Row(
                   children: [
                     Icon(

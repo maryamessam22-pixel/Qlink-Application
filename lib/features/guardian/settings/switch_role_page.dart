@@ -14,6 +14,11 @@ class SwitchRolePage extends StatefulWidget {
 class _SwitchRolePageState extends State<SwitchRolePage> {
   late String _tempRole;
 
+  bool _isGuardianLike(String? role) {
+    final r = (role ?? '').toLowerCase();
+    return r == 'guardian' || r == 'admin';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -193,7 +198,7 @@ class _SwitchRolePageState extends State<SwitchRolePage> {
                                 );
                                 
                                 // Reset the indices
-                                if (_tempRole == 'Guardian') {
+                                if (_isGuardianLike(_tempRole)) {
                                   appState.setGuardianIndex(0);
                                 } else {
                                   appState.setWearerIndex(0);
@@ -201,10 +206,10 @@ class _SwitchRolePageState extends State<SwitchRolePage> {
 
                                 Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(
-                                    builder: (context) => _tempRole == 'Guardian' 
+                                    builder: (context) => _isGuardianLike(_tempRole)
                                         ? const MainPage() 
                                         : const WearerMainPage(),
-                                    settings: RouteSettings(name: _tempRole == 'Guardian' ? 'MainPage' : 'WearerMainPage'),
+                                    settings: RouteSettings(name: _isGuardianLike(_tempRole) ? 'MainPage' : 'WearerMainPage'),
                                   ),
                                   (route) => false,
                                 );

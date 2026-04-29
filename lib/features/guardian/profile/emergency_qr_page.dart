@@ -4,6 +4,8 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/guardian/profile/public_preview_qr_page.dart';
+import 'package:q_link/features/shared/helpers/emergency_qr_scan.dart';
+import 'package:q_link/services/supabase_service.dart';
 
 class EmergencyQrPage extends StatefulWidget {
   final ProfileData profile;
@@ -17,6 +19,32 @@ class EmergencyQrPage extends StatefulWidget {
 class _EmergencyQrPageState extends State<EmergencyQrPage> {
   int _activeTab = 0;
   final MobileScannerController _scannerController = MobileScannerController();
+  bool _isHandlingScan = false;
+
+  bool _loadingQrPayload = false;
+  String _displayQrPayload = '';
+
+  @override
+  void initState() {
+    super.initState();
+    final id = widget.profile.id?.trim();
+    if (id != null && id.isNotEmpty) {
+      _loadingQrPayload = true;
+      SupabaseService().ensurePublicQrToken(id).then((token) {
+        if (!mounted) return;
+        setState(() {
+          _loadingQrPayload = false;
+          if (token != null && token.isNotEmpty) {
+            _displayQrPayload = SupabaseService().buildPublicEmergencyQrPayload(token);
+          } else {
+            _displayQrPayload = 'qlink://profile/$id';
+          }
+        });
+      });
+    } else {
+      _displayQrPayload = 'qlink-profile-${widget.profile.name}';
+    }
+  }
 
   @override
   void dispose() {
@@ -147,7 +175,19 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 60),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              appState.tr(
+                'This QR uses HTTPS — your phone camera can open it in the browser. The Scanner tab in this app loads the preview inside QLink.',
+                'هذا الرمز يعتمد HTTPS — يمكن كاميرا الهاتف فتحه في المتصفح. تبويب «الماسح» يعرض المعاينة داخل التطبيق.',
+              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600, height: 1.35),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 50),
           GestureDetector(
             onTap: () => _showAccessSimulationDialog(appState),
             child: Container(
@@ -163,13 +203,21 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
                   ),
                 ],
               ),
-              child: QrImageView(
-                data: 'qlink-profile-${widget.profile.name}',
-                version: QrVersions.auto,
-                size: 220.0,
-                eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF1B64F2)),
-                dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF1B64F2)),
-              ),
+              child: _loadingQrPayload
+                  ? const SizedBox(
+                      width: 220,
+                      height: 220,
+                      child: Center(
+                        child: CircularProgressIndicator(color: Color(0xFF1B64F2)),
+                      ),
+                    )
+                  : QrImageView(
+                      data: _displayQrPayload.isNotEmpty ? _displayQrPayload : 'qlink-profile-${widget.profile.name}',
+                      version: QrVersions.auto,
+                      size: 220.0,
+                      eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF1B64F2)),
+                      dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF1B64F2)),
+                    ),
             ),
           ),
           const SizedBox(height: 80),
@@ -202,15 +250,7 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
         MobileScanner(
           controller: _scannerController,
           onDetect: (capture) {
-            final List<Barcode> barcodes = capture.barcodes;
-            if (barcodes.isNotEmpty) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PublicPreviewQrPage(profile: widget.profile),
-                ),
-              );
-            }
+            _handleScanCapture(capture);
           },
         ),
         Center(
@@ -300,6 +340,22 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
         ),
       ],
     );
+  }
+
+  Future<void> _handleScanCapture(BarcodeCapture capture) async {
+    if (_isHandlingScan) return;
+    final barcodes = capture.barcodes;
+    if (barcodes.isEmpty) return;
+
+    final raw = barcodes.first.rawValue;
+    if (raw == null || raw.isEmpty) return;
+
+    _isHandlingScan = true;
+    try {
+      await navigateEmergencyPreviewFromQrRaw(context, raw);
+    } finally {
+      if (mounted) _isHandlingScan = false;
+    }
   }
 
   void _showAccessSimulationDialog(AppState appState) {

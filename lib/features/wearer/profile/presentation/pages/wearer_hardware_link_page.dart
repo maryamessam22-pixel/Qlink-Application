@@ -390,6 +390,7 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                           'device_code': deviceCode,
                           'type': shortDeviceType,
                           'profile_id': profileId,
+                          'guardian_id': currentUserId,
                           'linekd_profile': widget.name,
                           'status': true,
                           'battery_level': 100,

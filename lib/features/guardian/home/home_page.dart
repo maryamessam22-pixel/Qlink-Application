@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:q_link/core/models/patient_profile.dart';
+import 'package:q_link/core/utils/emergency_profile_parse.dart';
 import 'package:q_link/services/supabase_service.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:q_link/features/guardian/profile/add_profile_identity.dart';
@@ -7,6 +8,7 @@ import 'package:q_link/features/guardian/profile/connect_device_page.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/guardian/profile/profile_management_page.dart';
 import 'package:q_link/features/shared/widgets/header_widget.dart';
+import 'package:q_link/features/wearer/profile/presentation/pages/wearer_identity_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,6 +19,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Future<List<PatientProfile>> _profilesFuture;
+  bool _sendingLinkRequest = false;
 
   @override
   void initState() {
@@ -42,6 +45,96 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _profilesFuture = SupabaseService().fetchPatientProfiles();
     });
+  }
+
+  Future<void> _showLinkExistingWearerDialog() async {
+    final appState = AppState();
+    final controller = TextEditingController();
+    await showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) => AlertDialog(
+            title: Text(appState.tr('Link Existing Wearer', 'ربط مستخدم Wearer موجود')),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  appState.tr(
+                    'Enter wearer account email to send a link request.',
+                    'أدخل بريد حساب الـ Wearer لإرسال طلب الربط.',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    hintText: appState.tr('wearer@email.com', 'wearer@email.com'),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: _sendingLinkRequest ? null : () => Navigator.pop(dialogCtx),
+                child: Text(appState.tr('Cancel', 'إلغاء')),
+              ),
+              ElevatedButton(
+                onPressed: _sendingLinkRequest
+                    ? null
+                    : () async {
+                        final email = controller.text.trim();
+                        if (email.isEmpty || !email.contains('@')) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(appState.tr('Enter a valid email.', 'أدخل بريداً صحيحاً.'))),
+                          );
+                          return;
+                        }
+                        setState(() => _sendingLinkRequest = true);
+                        setDialogState(() {});
+                        try {
+                          await SupabaseService().sendWearerLinkRequestByEmail(email);
+                          if (mounted) {
+                            Navigator.pop(dialogCtx);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  appState.tr(
+                                    'Request sent successfully.',
+                                    'تم إرسال الطلب بنجاح.',
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+                            );
+                          }
+                        } finally {
+                          if (mounted) {
+                            setState(() => _sendingLinkRequest = false);
+                            setDialogState(() {});
+                          }
+                        }
+                      },
+                child: _sendingLinkRequest
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(appState.tr('Send Request', 'إرسال الطلب')),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildInitials(String name) {
@@ -118,8 +211,8 @@ class _HomePageState extends State<HomePage> {
                         // Welcome Text
                         Text(
                           appState.tr(
-                            'Hello, Mariam Essam',
-                            'مرحباً، مريم عصام',
+                            'Hello, ${appState.currentUser.name}',
+                            'مرحباً، ${appState.currentUser.name}',
                           ),
                           style: const TextStyle(
                             fontSize: 24,
@@ -397,12 +490,15 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
 
-                // Create Profile Card (Show only if no profiles exist)
-                AnimatedBuilder(
-                  animation: AppState(),
-                  builder: (context, _) {
-                    if (AppState().profiles.isNotEmpty)
+                // Create Profile Card (only when there are no profiles yet)
+                FutureBuilder<List<PatientProfile>>(
+                  future: _profilesFuture,
+                  builder: (context, snapshot) {
+                    final profiles = snapshot.data ?? [];
+                    final loading = snapshot.connectionState == ConnectionState.waiting;
+                    if (loading || profiles.isNotEmpty) {
                       return const SizedBox.shrink();
+                    }
                     return Column(
                       children: [
                         Container(
@@ -633,12 +729,96 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 24),
 
+                // Add / Link Wearer
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF7E22CE), Color(0xFF5B21B6)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppState().tr('Add a Wearer', 'إضافة مستخدم Wearer'),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppState().tr(
+                          'Create a new wearer account or link an existing one to your safety circle.',
+                          'أنشئ حساب Wearer جديداً أو اربط حساباً موجوداً بدائرة الأمان الخاصة بك.',
+                        ),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.9),
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const WearerIdentityPage(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.person_add_alt_1, color: Color(0xFF6D28D9), size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                AppState().tr('Add New Wearer', 'إضافة Wearer جديد'),
+                                style: const TextStyle(
+                                  color: Color(0xFF6D28D9),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Center(
+                        child: TextButton.icon(
+                          onPressed: _sendingLinkRequest ? null : _showLinkExistingWearerDialog,
+                          icon: const Icon(Icons.link, size: 18),
+                          label: Text(AppState().tr('Link Existing Wearer', 'ربط Wearer موجود')),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
                 // Recent Activity Section
-                AnimatedBuilder(
-                  animation: AppState(),
-                  builder: (context, _) {
+                FutureBuilder<List<PatientProfile>>(
+                  future: _profilesFuture,
+                  builder: (context, snapshot) {
                     final appState = AppState();
-                    final hasDevice = appState.deviceCount > 0;
+                    final profiles = snapshot.data ?? [];
+                    final hasActiveDevice = profiles.any((p) => p.status);
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -657,11 +837,11 @@ class _HomePageState extends State<HomePage> {
                             TextButton(
                               onPressed: () {},
                               child: Text(
-                                hasDevice
+                                hasActiveDevice
                                     ? appState.tr('View All', 'عرض الكل')
                                     : appState.tr('See all', 'عرض الكل'),
                                 style: TextStyle(
-                                  color: hasDevice
+                                  color: hasActiveDevice
                                       ? const Color(0xFF1B64F2)
                                       : Colors.grey,
                                   fontWeight: FontWeight.bold,
@@ -671,10 +851,12 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        if (!hasDevice)
+                        if (snapshot.connectionState == ConnectionState.waiting)
+                          const Center(child: CircularProgressIndicator())
+                        else if (!hasActiveDevice)
                           _buildEmptyActivity()
                         else
-                          _buildRealActivity(),
+                          _buildRealActivity(profiles),
                       ],
                     );
                   },
@@ -844,8 +1026,18 @@ class _HomePageState extends State<HomePage> {
                 child: OutlinedButton(
                   onPressed: () {
                     // Navigate to profile management - passing converted data for now
-                    List<String> emergencyContactsList = [];
-                    if (profile.emergencyContacts.isNotEmpty) {
+                    final dialRows = emergencyDialRowsFromContactsJson(profile.emergencyContacts);
+                    final List<String> emergencyContactsList = [];
+                    if (dialRows.isNotEmpty) {
+                      for (final d in dialRows) {
+                        if (d.phone.isNotEmpty) {
+                          emergencyContactsList
+                              .add(d.title.isNotEmpty ? '${d.title}\n${d.phone}' : d.phone);
+                        } else if (d.title.isNotEmpty) {
+                          emergencyContactsList.add(d.title);
+                        }
+                      }
+                    } else if (profile.emergencyContacts.isNotEmpty) {
                       profile.emergencyContacts.forEach((key, value) {
                         if (value is Map && value.containsKey('name')) {
                           emergencyContactsList.add(value['name'].toString());
@@ -883,11 +1075,12 @@ class _HomePageState extends State<HomePage> {
                             name: profile.profileName,
                             imagePath: profile.avatarUrl,
                             relationship: profile.relationshipToGuardian,
-                            birthYear: profile.birthYear.toString(),
+                            birthYear: birthYearStringFromRowField(profile.birthYear),
                             bloodType: profile.bloodType,
                             condition: profile.medicalNotesEn,
                             allergies: profile.allergiesEn,
                             emergencyContacts: emergencyContactsList,
+                            emergencyDialRows: dialRows,
                             devices: matchedDevices,
                           ),
                         ),
@@ -1022,25 +1215,27 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildRealActivity() {
+  Widget _buildRealActivity(List<PatientProfile> profiles) {
+    final firstName = profiles.isNotEmpty ? profiles.first.profileName : '—';
+    final appState = AppState();
     return Column(
       children: [
         _buildActivityRow(
           icon: Icons.error_outline,
           color: Colors.red,
-          title: 'Emergency',
-          subtitle: 'Emergency QR Scanned',
-          details: 'Mohamed Saber • Downtown Metro',
-          time: '10:30 AM',
+          title: appState.tr('Emergency', 'طوارئ'),
+          subtitle: appState.tr('Emergency QR Scanned', 'تم مسح رمز QR الطارئ'),
+          details: firstName,
+          time: '',
         ),
         const SizedBox(height: 12),
         _buildActivityRow(
           icon: Icons.location_on_outlined,
           color: Colors.green,
-          title: 'Safe Zone',
-          subtitle: 'Safe Zone Entry',
-          details: 'Mohamed Saber arrived at Home',
-          time: 'Yesterday',
+          title: appState.tr('Safe Zone', 'منطقة آمنة'),
+          subtitle: appState.tr('Safe Zone Entry', 'دخول منطقة آمنة'),
+          details: firstName,
+          time: '',
         ),
         const SizedBox(height: 16),
         ClipRRect(

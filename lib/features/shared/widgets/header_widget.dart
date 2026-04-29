@@ -32,8 +32,24 @@ class HeaderWidget extends StatelessWidget {
               CircleAvatar(
                 radius: 16,
                 backgroundColor: const Color(0xFFE6F0FE),
-                backgroundImage: getUserAvatarProvider(appState.currentUser.imagePath),
-                onBackgroundImageError: (_, __) {},
+                backgroundImage: appState.currentUser.imagePath.trim().isNotEmpty
+                    ? getUserAvatarProvider(appState.currentUser.imagePath)
+                    : null,
+                onBackgroundImageError: appState.currentUser.imagePath.trim().isNotEmpty
+                    ? (_, __) {}
+                    : null,
+                child: appState.currentUser.imagePath.trim().isEmpty
+                    ? Text(
+                        appState.currentUser.name.isNotEmpty
+                            ? appState.currentUser.name[0].toUpperCase()
+                            : '?',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1B64F2),
+                        ),
+                      )
+                    : null,
               ),
               const Spacer(),
               LanguageToggle(),
