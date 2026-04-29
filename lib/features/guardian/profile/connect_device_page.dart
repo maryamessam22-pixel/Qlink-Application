@@ -139,6 +139,12 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
         // Sync with Supabase (Patient Profile)
         await SupabaseService().createPatientProfile(newProfile);
 
+        try {
+          await SupabaseService().ensurePublicQrToken(newProfileId);
+        } catch (e) {
+          debugPrint('[ConnectDevice] ensurePublicQrToken: $e');
+        }
+
         // Update Dashboard Tables (Both specialized and generic device logs)
         if (withDevice) {
            await SupabaseService().client.from('devices').insert({

@@ -38,6 +38,10 @@ ProfileData profileDataFromPatientProfileRow(Map<String, dynamic> row) {
     } catch (_) {}
   }
 
+  final med = (row['medical_notes_en'] ?? '').toString().trim();
+  final safety = (row['safety_notes_en'] ?? '').toString().trim();
+  final condition = med.isNotEmpty ? med : safety;
+
   return ProfileData(
     id: row['id']?.toString(),
     name: row['profile_name']?.toString() ?? 'Unknown',
@@ -47,7 +51,7 @@ ProfileData profileDataFromPatientProfileRow(Map<String, dynamic> row) {
     emergencyContacts: contacts,
     emergencyDialRows: dialRows,
     bloodType: row['blood_type']?.toString() ?? '',
-    condition: row['medical_notes_en']?.toString() ?? '',
+    condition: condition,
     allergies: row['allergies_en']?.toString() ?? '',
   );
 }

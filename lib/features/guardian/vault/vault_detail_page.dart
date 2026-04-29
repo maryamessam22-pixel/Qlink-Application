@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
@@ -28,11 +27,32 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
   late List<Map<String, String>> _documents;
   bool _isLoadingDocs = true;
 
+  /// Latest `avatar_url` from Supabase (passed [PatientProfile] can be stale or synthetic).
+  String? _avatarUrlOverride;
+  bool _avatarImageFailed = false;
+
   @override
   void initState() {
     super.initState();
     _documents = List<Map<String, String>>.from(widget.documents);
     _loadVaultDocs();
+    _refreshAvatarFromServer();
+  }
+
+  Future<void> _refreshAvatarFromServer() async {
+    final id = widget.profile.id.trim();
+    if (id.isEmpty) return;
+    try {
+      final row = await SupabaseService().fetchPatientProfileById(id);
+      if (!mounted || row == null) return;
+      final u = (row['avatar_url'] ?? '').toString().trim();
+      if (u.isNotEmpty) {
+        setState(() {
+          _avatarUrlOverride = u;
+          _avatarImageFailed = false;
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadVaultDocs() async {
@@ -63,7 +83,6 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
     return AnimatedBuilder(
       animation: AppState(),
       builder: (context, _) {
-        final appState = AppState();
         return Scaffold(
           backgroundColor: Colors.white,
           extendBody: true,
@@ -151,7 +170,9 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
     final appState = AppState();
     final statusColor = profile.status ? const Color(0xFF22C55E) : const Color(0xFFEF4444);
     final statusLabel = profile.status ? appState.tr('SECURE', 'آمن') : appState.tr('ALERT', 'تنبيه');
-    
+    final avatarUrl = (_avatarUrlOverride ?? profile.avatarUrl).trim();
+    final showPhoto = avatarUrl.isNotEmpty && !_avatarImageFailed;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -165,10 +186,26 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
         children: [
           CircleAvatar(
             radius: 32,
-            backgroundImage: getUserAvatarProvider(
-              profile.avatarUrl.isNotEmpty ? profile.avatarUrl : 'assets/images/mypic.png',
-            ),
-            onBackgroundImageError: (_, __) {},
+            backgroundColor: const Color(0xFFE6F0FE),
+            backgroundImage:
+                showPhoto ? getUserAvatarProvider(avatarUrl) : null,
+            onBackgroundImageError: showPhoto
+                ? (_, __) {
+                    if (mounted) setState(() => _avatarImageFailed = true);
+                  }
+                : null,
+            child: showPhoto
+                ? null
+                : Text(
+                    profile.profileName.isNotEmpty
+                        ? profile.profileName[0].toUpperCase()
+                        : '?',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1B64F2),
+                    ),
+                  ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -240,7 +277,9 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
           icon: Icons.bloodtype_outlined,
           iconColor: const Color(0xFFEF4444),
           label: appState.tr('Blood Type', 'فصيلة الدم'),
-          value: profile.bloodType ?? 'N/A',
+          value: profile.bloodType.isEmpty
+              ? appState.tr('Not set', 'غير محدد')
+              : profile.bloodType,
           valueColor: const Color(0xFFEF4444),
         ),
         const Divider(height: 1, color: Color(0xFFF3F4F6)),
