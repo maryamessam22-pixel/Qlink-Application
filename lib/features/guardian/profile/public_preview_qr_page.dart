@@ -129,7 +129,7 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
                   ),
-                  if (widget.profile.visibility.showRelationship && widget.profile.relationship.trim().isNotEmpty) ...[
+                  if (_previewVisibility().showRelationship && widget.profile.relationship.trim().isNotEmpty) ...[
                     const SizedBox(height: 12),
                     Text(
                       widget.profile.relationship,
@@ -146,33 +146,7 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (widget.profile.visibility.showAllergies && widget.profile.allergies.isNotEmpty)
-                    _buildInfoCard(AppState().tr('Allergies', 'الحساسية'), widget.profile.allergies),
-
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      if (widget.profile.visibility.showBloodType && widget.profile.bloodType.isNotEmpty)
-                        Expanded(child: _buildInfoCard(AppState().tr('Blood Type', 'فصيلة الدم'), widget.profile.bloodType)),
-                      if (widget.profile.visibility.showBloodType && widget.profile.bloodType.isNotEmpty && widget.profile.visibility.showBirthYear && widget.profile.birthYear.isNotEmpty)
-                        const SizedBox(width: 16),
-                      if (widget.profile.visibility.showBirthYear && widget.profile.birthYear.isNotEmpty)
-                        Expanded(child: _buildInfoCard(AppState().tr('Age', 'العمر'), _calculateAge(widget.profile.birthYear))),
-                    ],
-                  ),
-
-                  if (widget.profile.visibility.showMedicalNotes && widget.profile.condition.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    _buildInfoCard(AppState().tr('Medical Notes', 'ملاحظات طبية'), widget.profile.condition),
-                  ],
-
-                  if (widget.profile.visibility.showEmergencyContacts &&
-                      (widget.profile.emergencyDialRows.isNotEmpty || widget.profile.emergencyContacts.isNotEmpty)) ...[
-                    const SizedBox(height: 16),
-                    _buildEmergencyContactsSection(),
-                  ],
-                ],
+                children: _buildPublicEmergencyCards(),
               ),
             ),
 
@@ -247,6 +221,65 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
         );
       },
     );
+  }
+
+  /// Uses per-profile cached toggles from [AppState] when set (privacy screen), else [ProfileData.visibility].
+  VisibilitySettings _previewVisibility() {
+    return AppState().qrVisibilitySettingsFor(widget.profile.id) ?? widget.profile.visibility;
+  }
+
+  /// Cards shown after a QR scan respect [ProfileData.visibility] (privacy toggles).
+  List<Widget> _buildPublicEmergencyCards() {
+    final v = _previewVisibility();
+    final showAllergiesCard = v.showAllergies && widget.profile.allergies.isNotEmpty;
+    final showBloodCard = v.showBloodType && widget.profile.bloodType.isNotEmpty;
+    final showAgeCard = v.showBirthYear && widget.profile.birthYear.isNotEmpty;
+    final showMedical = v.showMedicalNotes && widget.profile.condition.isNotEmpty;
+    final showContacts = v.showEmergencyContacts &&
+        (widget.profile.emergencyDialRows.isNotEmpty || widget.profile.emergencyContacts.isNotEmpty);
+
+    final children = <Widget>[];
+
+    if (showAllergiesCard) {
+      children.add(_buildInfoCard(AppState().tr('Allergies', 'الحساسية'), widget.profile.allergies));
+    }
+
+    if (showBloodCard || showAgeCard) {
+      if (children.isNotEmpty) children.add(const SizedBox(height: 16));
+      children.add(
+        Row(
+          children: [
+            if (showBloodCard)
+              Expanded(
+                child: _buildInfoCard(
+                  AppState().tr('Blood Type', 'فصيلة الدم'),
+                  widget.profile.bloodType,
+                ),
+              ),
+            if (showBloodCard && showAgeCard) const SizedBox(width: 16),
+            if (showAgeCard)
+              Expanded(
+                child: _buildInfoCard(
+                  AppState().tr('Age', 'العمر'),
+                  _calculateAge(widget.profile.birthYear),
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
+    if (showMedical) {
+      if (children.isNotEmpty) children.add(const SizedBox(height: 16));
+      children.add(_buildInfoCard(AppState().tr('Medical Notes', 'ملاحظات طبية'), widget.profile.condition));
+    }
+
+    if (showContacts) {
+      if (children.isNotEmpty) children.add(const SizedBox(height: 16));
+      children.add(_buildEmergencyContactsSection());
+    }
+
+    return children;
   }
 
   String _calculateAge(String birthYearField) {

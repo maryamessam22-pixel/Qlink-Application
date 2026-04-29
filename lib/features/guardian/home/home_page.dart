@@ -1065,6 +1065,19 @@ class _HomePageState extends State<HomePage> {
                       ];
                     }
 
+                    VisibilitySettings? mergedVisibility;
+                    final cachedVis = AppState().qrVisibilitySettingsFor(profile.id);
+                    if (cachedVis != null) {
+                      mergedVisibility = VisibilitySettings.copyOf(cachedVis);
+                    } else {
+                      for (final ap in AppState().profiles) {
+                        if (ap.id != null && ap.id!.isNotEmpty && ap.id == profile.id) {
+                          mergedVisibility = VisibilitySettings.copyOf(ap.visibility);
+                          break;
+                        }
+                      }
+                    }
+
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -1082,6 +1095,7 @@ class _HomePageState extends State<HomePage> {
                             emergencyContacts: emergencyContactsList,
                             emergencyDialRows: dialRows,
                             devices: matchedDevices,
+                            visibility: mergedVisibility,
                           ),
                         ),
                       ),

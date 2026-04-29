@@ -16,6 +16,17 @@ class VisibilitySettings {
     this.showBirthYear = true,
     this.showRelationship = true,
   });
+
+  factory VisibilitySettings.copyOf(VisibilitySettings v) {
+    return VisibilitySettings(
+      showBloodType: v.showBloodType,
+      showAllergies: v.showAllergies,
+      showMedicalNotes: v.showMedicalNotes,
+      showEmergencyContacts: v.showEmergencyContacts,
+      showBirthYear: v.showBirthYear,
+      showRelationship: v.showRelationship,
+    );
+  }
 }
 
 /// One row in the public emergency preview (name + optional dialable phone).
@@ -200,9 +211,31 @@ class AppState extends ChangeNotifier {
 
   final List<ProfileData> _profiles = [];
 
+  /// Last-known QR visibility toggles per patient profile id (in-session).
+  /// Preview and privacy read this so toggles apply even when [ProfileData] instances differ.
+  final Map<String, VisibilitySettings> _qrVisibilityByProfileId = {};
+
   List<ProfileData> get profiles => List.unmodifiable(_profiles);
 
   int get profileCount => _profiles.length;
+
+  VisibilitySettings? qrVisibilitySettingsFor(String? profileId) {
+    final id = profileId?.trim();
+    if (id == null || id.isEmpty) return null;
+    return _qrVisibilityByProfileId[id];
+  }
+
+  void setQrVisibilitySettingsForProfile(String? profileId, VisibilitySettings visibility) {
+    final id = profileId?.trim();
+    if (id == null || id.isEmpty) return;
+    _qrVisibilityByProfileId[id] = VisibilitySettings.copyOf(visibility);
+    notifyListeners();
+  }
+
+  /// Notifies listeners when profile visibility changed but there is no profile id to cache under.
+  void notifyQrVisibilityChanged() {
+    notifyListeners();
+  }
   int get deviceCount => _profiles.fold(0, (sum, p) => sum + p.devices.length);
 
   void addProfile(ProfileData profile) {
@@ -211,8 +244,26 @@ class AppState extends ChangeNotifier {
   }
 
   void updateProfile(int index, ProfileData profile) {
-    if (index >= 0 && index < _profiles.length) {
+    if (index < 0) return;
+
+    final id = profile.id?.trim();
+    if (id != null && id.isNotEmpty) {
+      final i = _profiles.indexWhere((p) => p.id?.trim() == id);
+      if (i >= 0) {
+        _profiles[i] = profile;
+        notifyListeners();
+        return;
+      }
+    }
+
+    if (index < _profiles.length) {
       _profiles[index] = profile;
+      notifyListeners();
+      return;
+    }
+
+    if (id != null && id.isNotEmpty) {
+      _profiles.add(profile);
       notifyListeners();
     }
   }
@@ -263,6 +314,7 @@ class AppState extends ChangeNotifier {
       imagePath: '',
     );
     _profiles.clear();
+    _qrVisibilityByProfileId.clear();
     _scanHistory.clear();
     _profilesDirty = false;
     _currentGuardianIndex = 0;

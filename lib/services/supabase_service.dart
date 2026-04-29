@@ -361,9 +361,9 @@ class SupabaseService {
   }
 
   /// Camera-friendly barcode: HTTPS opens in Safari/Chrome without `qlink://` handling.
+  /// Tokens are UUIDs (`[0-9a-f-]`); omit `encodeURIComponent` so cheap scanners don't break on `%`.
   String buildPublicEmergencyQrPayload(String token) {
-    final t = Uri.encodeComponent(token);
-    return '$projectHttpOrigin/functions/v1/public-emergency?t=$t';
+    return '$projectHttpOrigin/functions/v1/public-emergency?t=$token';
   }
 
   Future<String?> ensurePublicQrToken(String profileId) async {

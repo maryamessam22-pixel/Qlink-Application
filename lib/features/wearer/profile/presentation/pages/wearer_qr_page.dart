@@ -203,6 +203,7 @@ class _WearerQrPageState extends State<WearerQrPage> {
               child: QrImageView(
                 data: qrPayload,
                 version: QrVersions.auto,
+                errorCorrectionLevel: QrErrorCorrectLevel.H,
                 size: 200.0,
                 eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF1B64F2)),
                 dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF1B64F2)),

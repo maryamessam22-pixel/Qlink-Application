@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -38,6 +39,9 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
             _displayQrPayload = SupabaseService().buildPublicEmergencyQrPayload(token);
           } else {
             _displayQrPayload = 'qlink://profile/$id';
+          }
+          if (kDebugMode && _displayQrPayload.isNotEmpty) {
+            debugPrint('[Emergency QR] ${_displayQrPayload.length} chars: $_displayQrPayload');
           }
         });
       });
@@ -214,6 +218,7 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
                   : QrImageView(
                       data: _displayQrPayload.isNotEmpty ? _displayQrPayload : 'qlink-profile-${widget.profile.name}',
                       version: QrVersions.auto,
+                      errorCorrectionLevel: QrErrorCorrectLevel.H,
                       size: 220.0,
                       eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF1B64F2)),
                       dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF1B64F2)),

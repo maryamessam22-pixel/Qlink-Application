@@ -1,16 +1,13 @@
 // Deno Deploy / Supabase Edge Function — opens in any mobile browser after camera scan.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
-/** Safari can show raw markup if Content-Type is wrong; avoid default text/plain bodies. */
+/** Use a UTF-8 string body + explicit MIME; some stacks default `Content-Type` to text/plain otherwise. */
 function htmlUtf8(html: string, status: number): Response {
-  return new Response(new TextEncoder().encode(html), {
-    status,
-    headers: {
-      "Content-Type": "text/html; charset=UTF-8",
-      "Cache-Control": "no-store, no-cache, max-age=0",
-      Pragma: "no-cache",
-    },
-  });
+  const headers = new Headers();
+  headers.set("Content-Type", "text/html; charset=utf-8");
+  headers.set("Cache-Control", "private, max-age=0, no-store");
+  headers.set("Pragma", "no-cache");
+  return new Response(html, { status, headers });
 }
 
 function escHtml(s: string | number | boolean | null | undefined): string {

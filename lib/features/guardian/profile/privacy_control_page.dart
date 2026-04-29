@@ -29,6 +29,16 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
   @override
   void initState() {
     super.initState();
+    final cached = AppState().qrVisibilitySettingsFor(widget.profile.id);
+    if (cached != null) {
+      final v = widget.profile.visibility;
+      v.showBloodType = cached.showBloodType;
+      v.showAllergies = cached.showAllergies;
+      v.showMedicalNotes = cached.showMedicalNotes;
+      v.showEmergencyContacts = cached.showEmergencyContacts;
+      v.showBirthYear = cached.showBirthYear;
+      v.showRelationship = cached.showRelationship;
+    }
     _showBloodType = widget.profile.visibility.showBloodType;
     _showAllergies = widget.profile.visibility.showAllergies;
     _showMedicalNotes = widget.profile.visibility.showMedicalNotes;
@@ -44,8 +54,14 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
     widget.profile.visibility.showEmergencyContacts = _showEmergencyContacts;
     widget.profile.visibility.showBirthYear = _showBirthYear;
     widget.profile.visibility.showRelationship = _showRelationship;
-    
+
     AppState().updateProfile(widget.profileIndex, widget.profile);
+    final id = widget.profile.id?.trim();
+    if (id != null && id.isNotEmpty) {
+      AppState().setQrVisibilitySettingsForProfile(id, widget.profile.visibility);
+    } else {
+      AppState().notifyQrVisibilityChanged();
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(AppState().tr('Privacy settings updated', 'تم تحديث إعدادات الخصوصية'))),
     );
