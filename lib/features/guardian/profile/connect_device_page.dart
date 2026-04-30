@@ -20,7 +20,7 @@ class ConnectDevicePage extends StatefulWidget {
   final Uint8List? avatarBytes;
   final String? allergies;
   final String? condition;
-  final String? safetyNotes; 
+  final String? safetyNotes;
 
   const ConnectDevicePage({
     super.key,
@@ -45,7 +45,9 @@ class ConnectDevicePage extends StatefulWidget {
 class _ConnectDevicePageState extends State<ConnectDevicePage> {
   String? _selectedDeviceType;
   final TextEditingController _codeController = TextEditingController();
-  bool _isLoading = false; 
+  bool _isLoading = false;
+  String _syncMessage = '';
+  String _syncSubMessage = '';
 
   final List<String> _deviceTypes = [
     'Qlink Smart Bracelet "Pro"',
@@ -64,6 +66,22 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   Future<void> _createProfileAndNavigate({required bool withDevice}) async {
     setState(() {
       _isLoading = true;
+      if (withDevice) {
+        _syncMessage = AppState().tr(
+          'Syncing to Hardware',
+          'مزامنة إلى الجهاز',
+        );
+        _syncSubMessage = AppState().tr(
+          'Encrypting data into bracelet\'s hardware ID',
+          'تشفير البيانات في معرف الجهاز للسوار',
+        );
+      } else {
+        _syncMessage = AppState().tr('Creating Profile', 'إنشاء الملف الشخصي');
+        _syncSubMessage = AppState().tr(
+          'Setting up patient profile without device',
+          'إعداد ملف المريض بدون جهاز',
+        );
+      }
     });
 
     try {
@@ -74,8 +92,13 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
 
         String avatarUrl = '';
         if (widget.avatarBytes != null && widget.avatarBytes!.isNotEmpty) {
-          debugPrint('[ConnectDevice] Uploading ${widget.avatarBytes!.length} avatar bytes...');
-          final uploadedUrl = await SupabaseService().uploadProfileAvatarBytes(widget.avatarBytes!, newProfileId);
+          debugPrint(
+            '[ConnectDevice] Uploading ${widget.avatarBytes!.length} avatar bytes...',
+          );
+          final uploadedUrl = await SupabaseService().uploadProfileAvatarBytes(
+            widget.avatarBytes!,
+            newProfileId,
+          );
           if (uploadedUrl != null) {
             avatarUrl = uploadedUrl;
             debugPrint('[ConnectDevice] Avatar uploaded: $avatarUrl');
@@ -89,29 +112,40 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
               ),
             );
           }
-        } else if (widget.avatarUrl != null && widget.avatarUrl!.startsWith('assets')) {
+        } else if (widget.avatarUrl != null &&
+            widget.avatarUrl!.startsWith('assets')) {
           avatarUrl = widget.avatarUrl!;
         } else {
-          debugPrint('[ConnectDevice] No avatar bytes provided (avatarBytes is null or empty)');
+          debugPrint(
+            '[ConnectDevice] No avatar bytes provided (avatarBytes is null or empty)',
+          );
         }
 
         String deviceType = _selectedDeviceType ?? 'Qlink Smart Bracelet "Pro"';
         String deviceCode = _codeController.text.trim();
-        String shortDeviceType = deviceType.contains('Qlink') ? 'Qlink Bracelet' : 'Smart Watch';
+        String shortDeviceType = deviceType.contains('Qlink')
+            ? 'Qlink Bracelet'
+            : 'Smart Watch';
 
         final newProfile = PatientProfile(
-          id: newProfileId, 
-          guardianId: guardianId, 
+          id: newProfileId,
+          guardianId: guardianId,
           profileName: widget.name ?? 'New Profile',
           relationshipToGuardian: widget.relationship ?? 'Member',
           birthYear: int.tryParse(widget.birthYear ?? '2000') ?? 2000,
-          age: DateTime.now().year - (int.tryParse(widget.birthYear ?? '2000') ?? 2000),
+          age:
+              DateTime.now().year -
+              (int.tryParse(widget.birthYear ?? '2000') ?? 2000),
           emergencyContacts: {
             'primary': {
               'name': 'Primary Contact',
-              'phone': (widget.emergencyContacts != null && widget.emergencyContacts!.isNotEmpty) ? widget.emergencyContacts![0] : '',
-              'relation': 'Guardian'
-            }
+              'phone':
+                  (widget.emergencyContacts != null &&
+                      widget.emergencyContacts!.isNotEmpty)
+                  ? widget.emergencyContacts![0]
+                  : '',
+              'relation': 'Guardian',
+            },
           },
           bloodType: widget.bloodType ?? '',
           safetyNotesEn: widget.safetyNotes ?? '',
@@ -121,7 +155,8 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           status: withDevice,
           avatarUrl: avatarUrl,
           deviceCode: withDevice ? deviceCode : '',
-          seoSlug: '${(widget.name ?? 'new-profile').toLowerCase().replaceAll(' ', '-')}-${newProfileId.substring(0, 8)}',
+          seoSlug:
+              '${(widget.name ?? 'new-profile').toLowerCase().replaceAll(' ', '-')}-${newProfileId.substring(0, 8)}',
           metaTitleEn: '',
           metaDescriptionEn: '',
           featuredImageAltEn: '',
@@ -144,36 +179,40 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
 
         // Update Dashboard Tables (Both specialized and generic device logs)
         if (withDevice) {
-           await SupabaseService().client.from('devices').insert({
+          await SupabaseService().client.from('devices').insert({
+            'id': const Uuid().v4(),
+            'device_name': deviceType,
+            'device_code': deviceCode,
+            'type': shortDeviceType,
+            'profile_id': newProfileId,
+            'guardian_id': guardianId,
+            'linekd_profile': widget.name ?? 'New Profile',
+            'status': true,
+            'battery_level': 100,
+            'action': 'connect',
+            'image': avatarUrl.isNotEmpty
+                ? avatarUrl
+                : 'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/default-avatar.png',
+            'created_at': DateTime.now().toIso8601String(),
+          });
+
+          if (deviceType.contains('Qlink')) {
+            await SupabaseService().client.from('bracelets').insert({
               'id': const Uuid().v4(),
-              'device_name': deviceType,
-              'device_code': deviceCode,
-              'type': shortDeviceType,
-              'profile_id': newProfileId,
-              'guardian_id': guardianId,
-              'linekd_profile': widget.name ?? 'New Profile',
-              'status': true,
-              'battery_level': 100,
-              'action': 'connect',
-              'image': avatarUrl.isNotEmpty ? avatarUrl : 'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/default-avatar.png',
+              'bracelet_id_code': deviceCode,
+              'status': 'Active',
+              'assigned_profile_id': newProfileId,
+              'assigned_profile': widget.name ?? 'New Profile',
+              'last_sync': 'Just now',
+              'actions': 'Assign',
+              'image': avatarUrl.isNotEmpty
+                  ? avatarUrl
+                  : 'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/default-avatar.png',
               'created_at': DateTime.now().toIso8601String(),
-           });
+            });
+          }
 
-           if (deviceType.contains('Qlink')) {
-              await SupabaseService().client.from('bracelets').insert({
-                'id': const Uuid().v4(),
-                'bracelet_id_code': deviceCode,
-                'status': 'Active',
-                'assigned_profile_id': newProfileId,
-                'assigned_profile': widget.name ?? 'New Profile',
-                'last_sync': 'Just now',
-                'actions': 'Assign',
-                'image': avatarUrl.isNotEmpty ? avatarUrl : 'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/default-avatar.png',
-                'created_at': DateTime.now().toIso8601String(),
-              });
-           }
-
-           final device = DeviceData(
+          final device = DeviceData(
             deviceType: deviceType,
             code: deviceCode,
             connectedAt: DateTime.now(),
@@ -182,21 +221,23 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
         }
 
         // Synchronize local state for immediate UI feedback
-        AppState().addProfile(ProfileData(
-          id: newProfileId,
-          name: widget.name ?? 'New Profile',
-          relationship: widget.relationship ?? 'Member',
-          imagePath: avatarUrl,
-          birthYear: widget.birthYear ?? '',
-          emergencyContacts: widget.emergencyContacts ?? [],
-          bloodType: widget.bloodType ?? '',
-          allergies: widget.allergies ?? '',
-          condition: widget.condition ?? '',
-        ));
+        AppState().addProfile(
+          ProfileData(
+            id: newProfileId,
+            name: widget.name ?? 'New Profile',
+            relationship: widget.relationship ?? 'Member',
+            imagePath: avatarUrl,
+            birthYear: widget.birthYear ?? '',
+            emergencyContacts: widget.emergencyContacts ?? [],
+            bloodType: widget.bloodType ?? '',
+            allergies: widget.allergies ?? '',
+            condition: widget.condition ?? '',
+          ),
+        );
 
         AppState().markProfilesDirty();
       }
-      
+
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
@@ -208,8 +249,11 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
       }
     } catch (e) {
       if (mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating profile: $e'), backgroundColor: Colors.red),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating profile: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -232,7 +276,9 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
         final hPad = (w * 0.055).clamp(16.0, 28.0);
         final vPad = (short * 0.028).clamp(12.0, 20.0);
         final bottomPad =
-            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.06).clamp(18.0, 28.0);
+            mq.viewInsets.bottom +
+            mq.padding.bottom +
+            (short * 0.06).clamp(18.0, 28.0);
         final gapL = (short * 0.055).clamp(18.0, 28.0);
         final gapM = (short * 0.045).clamp(14.0, 22.0);
         final gapS = (short * 0.02).clamp(6.0, 10.0);
@@ -244,44 +290,50 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           body: SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                return SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - mq.padding.vertical,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildAppBar(),
-                        SizedBox(height: gapL),
-                        _buildBackButton(),
-                        SizedBox(height: gapM),
-                        _buildTitle(),
-                        SizedBox(height: gapS + 8),
-                        _buildProgressBar(),
-                        SizedBox(height: gapS),
-                        _buildStepLabel(),
-                        SizedBox(height: gapL),
-                        const Divider(
-                          color: Color(0xFFE5E7EB),
-                          thickness: 1,
+                return Stack(
+                  children: [
+                    SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight:
+                              constraints.maxHeight - mq.padding.vertical,
                         ),
-                        SizedBox(height: gapL),
-                        _buildInfoCard(),
-                        SizedBox(height: (short * 0.06).clamp(22.0, 32.0)),
-                        _buildDeviceTypeDropdown(),
-                        SizedBox(height: gapL),
-                        _buildCodeField(),
-                        SizedBox(height: (short * 0.08).clamp(28.0, 40.0)),
-                        _buildConnectButton(),
-                        SizedBox(height: (short * 0.032).clamp(12.0, 18.0)),
-                        _buildSkipButton(),
-                        SizedBox(height: (short * 0.03).clamp(8.0, 16.0)),
-                      ],
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildAppBar(),
+                            SizedBox(height: gapL),
+                            _buildBackButton(),
+                            SizedBox(height: gapM),
+                            _buildTitle(),
+                            SizedBox(height: gapS + 8),
+                            _buildProgressBar(),
+                            SizedBox(height: gapS),
+                            _buildStepLabel(),
+                            SizedBox(height: gapL),
+                            const Divider(
+                              color: Color(0xFFE5E7EB),
+                              thickness: 1,
+                            ),
+                            SizedBox(height: gapL),
+                            _buildInfoCard(),
+                            SizedBox(height: (short * 0.06).clamp(22.0, 32.0)),
+                            _buildDeviceTypeDropdown(),
+                            SizedBox(height: gapL),
+                            _buildCodeField(),
+                            SizedBox(height: (short * 0.08).clamp(28.0, 40.0)),
+                            _buildConnectButton(),
+                            SizedBox(height: (short * 0.032).clamp(12.0, 18.0)),
+                            _buildSkipButton(),
+                            SizedBox(height: (short * 0.03).clamp(8.0, 16.0)),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                    if (_isLoading) _buildSyncOverlay(),
+                  ],
                 );
               },
             ),
@@ -391,17 +443,20 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
         color: const Color(0xFFF0FFF4),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFFB4E6C9).withValues(alpha:0.6),
+          color: const Color(0xFFB4E6C9).withValues(alpha: 0.6),
           width: 1.5,
         ),
       ),
       child: Text(
         AppState().tr(
           'Find the activation card inside your Qlink bracelet box. Enter the credentials to link this hardware to the patient profile.',
-          'ابحث عن بطاقة التفعيل داخل صندوق سوار كيولينك الخاص بك. أدخل البيانات لربط هذا الجهاز بملف المريض.'
+          'ابحث عن بطاقة التفعيل داخل صندوق سوار كيولينك الخاص بك. أدخل البيانات لربط هذا الجهاز بملف المريض.',
         ),
         style: TextStyle(
-          fontSize: (MediaQuery.sizeOf(context).width * 0.035).clamp(12.0, 15.0),
+          fontSize: (MediaQuery.sizeOf(context).width * 0.035).clamp(
+            12.0,
+            15.0,
+          ),
           color: Colors.grey.shade700,
           height: 1.6,
         ),
@@ -427,24 +482,20 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
         SizedBox(height: (short * 0.024).clamp(8.0, 12.0)),
         Container(
           height: h,
-          padding: EdgeInsets.symmetric(horizontal: (w * 0.04).clamp(12.0, 18.0)),
+          padding: EdgeInsets.symmetric(
+            horizontal: (w * 0.04).clamp(12.0, 18.0),
+          ),
           decoration: BoxDecoration(
             color: const Color(0xFFF9FAFB),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.grey.shade300,
-              width: 1,
-            ),
+            border: Border.all(color: Colors.grey.shade300, width: 1),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: _selectedDeviceType,
               hint: Text(
                 AppState().tr('Choose Device Type', 'اختر نوع الجهاز'),
-                style: TextStyle(
-                  color: Colors.grey.shade500,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
               ),
               isExpanded: true,
               icon: Icon(
@@ -480,7 +531,10 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          AppState().tr('Enter Code (Inside the bracelet box)', 'أدخل الرمز (يوجد داخل صندوق السوار)'),
+          AppState().tr(
+            'Enter Code (Inside the bracelet box)',
+            'أدخل الرمز (يوجد داخل صندوق السوار)',
+          ),
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
@@ -534,94 +588,135 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
 
           if (_selectedDeviceType == null) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(AppState().tr('Please select a device type', 'الرجاء اختيار نوع الجهاز'))),
+              SnackBar(
+                content: Text(
+                  AppState().tr(
+                    'Please select a device type',
+                    'الرجاء اختيار نوع الجهاز',
+                  ),
+                ),
+              ),
             );
             return;
           }
           if (_codeController.text.isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(AppState().tr('Please enter the bracelet code', 'الرجاء إدخال رمز السوار'))),
+              SnackBar(
+                content: Text(
+                  AppState().tr(
+                    'Please enter the bracelet code',
+                    'الرجاء إدخال رمز السوار',
+                  ),
+                ),
+              ),
             );
             return;
           }
 
           if (widget.targetProfileIndex == null) {
-             _createProfileAndNavigate(withDevice: true);
+            _createProfileAndNavigate(withDevice: true);
           } else {
-             setState(() => _isLoading = true);
-             try {
-                String deviceType = _selectedDeviceType!;
-                String deviceCode = _codeController.text.trim();
-                String shortDeviceType = deviceType.contains('Qlink') ? 'Qlink Bracelet' : 'Smart Watch';
+            setState(() {
+              _isLoading = true;
+              _syncMessage = AppState().tr(
+                'Syncing to Hardware',
+                'مزامنة إلى الجهاز',
+              );
+              _syncSubMessage = AppState().tr(
+                'Encrypting data into bracelet\'s hardware ID',
+                'تشفير البيانات في معرف الجهاز للسوار',
+              );
+            });
+            try {
+              String deviceType = _selectedDeviceType!;
+              String deviceCode = _codeController.text.trim();
+              String shortDeviceType = deviceType.contains('Qlink')
+                  ? 'Qlink Bracelet'
+                  : 'Smart Watch';
 
-                final device = DeviceData(
-                  deviceType: deviceType,
-                  code: deviceCode,
-                  connectedAt: DateTime.now(),
+              final device = DeviceData(
+                deviceType: deviceType,
+                code: deviceCode,
+                connectedAt: DateTime.now(),
+              );
+
+              if (widget.targetProfileIndex != null &&
+                  widget.targetProfileIndex! < AppState().profileCount) {
+                AppState().addDeviceToProfile(
+                  widget.targetProfileIndex!,
+                  device,
                 );
-                
-                if (widget.targetProfileIndex != null && 
-                    widget.targetProfileIndex! < AppState().profileCount) {
-                  AppState().addDeviceToProfile(widget.targetProfileIndex!, device);
+              }
+
+              final profileId = widget.targetProfileId;
+              if (profileId != null && profileId.isNotEmpty) {
+                final guardianId =
+                    SupabaseService().client.auth.currentUser?.id;
+                if (guardianId == null) {
+                  throw Exception('Not logged in. Please sign in again.');
                 }
 
-                final profileId = widget.targetProfileId;
-                if (profileId != null && profileId.isNotEmpty) {
-                  final guardianId = SupabaseService().client.auth.currentUser?.id;
-                  if (guardianId == null) {
-                    throw Exception('Not logged in. Please sign in again.');
-                  }
-                  
-                  await SupabaseService().client.from('patient_profiles')
-                    .update({'status': true}).eq('id', profileId);
+                await SupabaseService().client
+                    .from('patient_profiles')
+                    .update({'status': true})
+                    .eq('id', profileId);
 
-                  String linkedName = widget.targetProfileIndex! < AppState().profileCount ? AppState().profiles[widget.targetProfileIndex!].name : 'Unknown';
+                String linkedName =
+                    widget.targetProfileIndex! < AppState().profileCount
+                    ? AppState().profiles[widget.targetProfileIndex!].name
+                    : 'Unknown';
 
-                  await SupabaseService().client.from('devices').insert({
+                await SupabaseService().client.from('devices').insert({
+                  'id': const Uuid().v4(),
+                  'device_name': deviceType,
+                  'device_code': deviceCode,
+                  'type': shortDeviceType,
+                  'profile_id': profileId,
+                  'guardian_id': guardianId,
+                  'linekd_profile': linkedName,
+                  'status': true,
+                  'battery_level': 100,
+                  'action': 'connect',
+                  'image':
+                      'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/default-avatar.png',
+                  'created_at': DateTime.now().toIso8601String(),
+                });
+
+                if (deviceType.contains('Qlink')) {
+                  await SupabaseService().client.from('bracelets').insert({
                     'id': const Uuid().v4(),
-                    'device_name': deviceType,
-                    'device_code': deviceCode,
-                    'type': shortDeviceType,
-                    'profile_id': profileId,
-                    'guardian_id': guardianId,
-                    'linekd_profile': linkedName,
-                    'status': true,
-                    'battery_level': 100,
-                    'action': 'connect',
-                    'image': 'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/default-avatar.png',
+                    'bracelet_id_code': deviceCode,
+                    'status': 'Active',
+                    'assigned_profile_id': profileId,
+                    'assigned_profile': linkedName,
+                    'last_sync': 'Just now',
+                    'actions': 'Assign',
+                    'image':
+                        'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/default-avatar.png',
                     'created_at': DateTime.now().toIso8601String(),
                   });
-
-                  if (deviceType.contains('Qlink')) {
-                    await SupabaseService().client.from('bracelets').insert({
-                      'id': const Uuid().v4(),
-                      'bracelet_id_code': deviceCode,
-                      'status': 'Active',
-                      'assigned_profile_id': profileId,
-                      'assigned_profile': linkedName,
-                      'last_sync': 'Just now',
-                      'actions': 'Assign',
-                      'image': 'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/default-avatar.png',
-                      'created_at': DateTime.now().toIso8601String(),
-                    });
-                  }
                 }
+              }
 
-                AppState().markProfilesDirty();
+              AppState().markProfilesDirty();
 
-                if (!mounted) return;
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (_) => const MainPage(),
-                    settings: const RouteSettings(name: 'MainPage'),
-                  ),
-                  (route) => false,
-                );
-             } catch (e) {
-                 if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-             } finally {
-                 if (mounted) setState(() => _isLoading = false);
-             }
+              if (!mounted) return;
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (_) => const MainPage(),
+                  settings: const RouteSettings(name: 'MainPage'),
+                ),
+                (route) => false,
+              );
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Error: $e')));
+              }
+            } finally {
+              if (mounted) setState(() => _isLoading = false);
+            }
           }
         },
         borderRadius: BorderRadius.circular(27),
@@ -642,7 +737,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
                 borderRadius: BorderRadius.circular(btnH * 0.5),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF0066CC).withValues(alpha:0.3),
+                    color: const Color(0xFF0066CC).withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -655,11 +750,17 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
                       ? SizedBox(
                           width: (short * 0.055).clamp(18.0, 24.0),
                           height: (short * 0.055).clamp(18.0, 24.0),
-                          child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
                       : Flexible(
                           child: Text(
-                            AppState().tr('Connect the Bracelet', 'توصيل السوار'),
+                            AppState().tr(
+                              'Connect the Bracelet',
+                              'توصيل السوار',
+                            ),
                             textAlign: TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -687,7 +788,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
         if (widget.targetProfileIndex == null) {
           _createProfileAndNavigate(withDevice: false);
         } else {
-           Navigator.pop(context); 
+          Navigator.pop(context);
         }
       },
       child: LayoutBuilder(
@@ -701,10 +802,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(btnH * 0.5),
-              border: Border.all(
-                color: const Color(0xFFEF4444),
-                width: 1.5,
-              ),
+              border: Border.all(color: const Color(0xFFEF4444), width: 1.5),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -713,11 +811,17 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
                     ? SizedBox(
                         width: (short * 0.055).clamp(18.0, 24.0),
                         height: (short * 0.055).clamp(18.0, 24.0),
-                        child: const CircularProgressIndicator(color: Color(0xFFEF4444), strokeWidth: 2),
+                        child: const CircularProgressIndicator(
+                          color: Color(0xFFEF4444),
+                          strokeWidth: 2,
+                        ),
                       )
                     : Flexible(
                         child: Text(
-                          AppState().tr('Skip this step for now', 'تخطي هذه الخطوة الآن'),
+                          AppState().tr(
+                            'Skip this step for now',
+                            'تخطي هذه الخطوة الآن',
+                          ),
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -732,6 +836,67 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildSyncOverlay() {
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final logoW = (w * 0.44).clamp(140.0, 200.0);
+
+    return Positioned.fill(
+      child: Container(
+        color: const Color(0xFFFFFFFF).withValues(alpha: 0.96),
+        padding: EdgeInsets.symmetric(horizontal: (w * 0.08).clamp(24.0, 36.0)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/images/qlink_logo.png', width: logoW),
+            SizedBox(height: (short * 0.06).clamp(18.0, 28.0)),
+            Text(
+              _syncMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: (w * 0.065).clamp(20.0, 28.0),
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF1E3A8A),
+              ),
+            ),
+            SizedBox(height: (short * 0.03).clamp(10.0, 18.0)),
+            Text(
+              _syncSubMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: (w * 0.038).clamp(13.0, 16.0),
+                color: Colors.grey.shade600,
+                height: 1.6,
+              ),
+            ),
+            SizedBox(height: (short * 0.08).clamp(24.0, 40.0)),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: LinearProgressIndicator(
+                minHeight: (short * 0.02).clamp(8.0, 12.0),
+                value: null,
+                backgroundColor: const Color(0xFFEBF2FF),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  Color(0xFF1E3A8A),
+                ),
+              ),
+            ),
+            SizedBox(height: (short * 0.04).clamp(16.0, 24.0)),
+            Text(
+              AppState().tr('Loading..', 'جاري التحميل..'),
+              style: TextStyle(
+                fontSize: (w * 0.038).clamp(13.0, 16.0),
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
