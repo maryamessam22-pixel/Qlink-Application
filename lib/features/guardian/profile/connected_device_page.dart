@@ -17,14 +17,30 @@ class ConnectedDevicePage extends StatelessWidget {
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final vPad = (short * 0.028).clamp(12.0, 20.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.26).clamp(80.0, 112.0);
+        final imgOuter = (short * 0.38).clamp(120.0, 168.0);
+        final imgInner = (imgOuter * 0.62).clamp(72.0, 110.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
+          extendBody: true,
           backgroundColor: const Color(0xFFF7F9FC),
           body: SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - mq.padding.vertical,
+                    ),
                     child: Column(
                       children: [
                         // Header
@@ -34,9 +50,19 @@ class ConnectedDevicePage extends StatelessWidget {
                               onTap: () => Navigator.pop(context),
                               child: Row(
                                 children: [
-                                  Icon(Icons.arrow_back, color: Colors.grey.shade600, size: 20),
-                                  const SizedBox(width: 4),
-                                  Text(appState.tr('Back', 'رجوع'), style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                                  Icon(
+                                    Icons.arrow_back,
+                                    color: Colors.grey.shade600,
+                                    size: (short * 0.052).clamp(18.0, 22.0),
+                                  ),
+                                  SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
+                                  Text(
+                                    appState.tr('Back', 'رجوع'),
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: (w * 0.04).clamp(14.0, 17.0),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -45,15 +71,15 @@ class ConnectedDevicePage extends StatelessWidget {
                           ],
                         ),
 
-                        const SizedBox(height: 32),
+                        SizedBox(height: (short * 0.07).clamp(24.0, 36.0)),
 
                         // Device Image & Status
                         Stack(
                           alignment: Alignment.bottomRight,
                           children: [
                             Container(
-                              width: 150,
-                              height: 150,
+                              width: imgOuter,
+                              height: imgOuter,
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 border: Border.all(color: Colors.grey.shade100, width: 2),
@@ -69,8 +95,12 @@ class ConnectedDevicePage extends StatelessWidget {
                               child: Center(
                                 child: Image.asset(
                                   'assets/images/pulse.png',
-                                  width: 100,
-                                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.watch_outlined, size: 60, color: Color(0xFF273469)),
+                                  width: imgInner,
+                                  errorBuilder: (context, error, stackTrace) => Icon(
+                                    Icons.watch_outlined,
+                                    size: (imgInner * 0.55).clamp(44.0, 64.0),
+                                    color: const Color(0xFF273469),
+                                  ),
                                 ),
                               ),
                             ),
@@ -88,13 +118,14 @@ class ConnectedDevicePage extends StatelessWidget {
                           ],
                         ),
 
-                        const SizedBox(height: 20),
+                        SizedBox(height: (short * 0.045).clamp(14.0, 22.0)),
                         Text(
                           profile.hasDevice ? profile.devices.first.deviceType : 'Unknown Device',
-                          style: const TextStyle(
-                            fontSize: 22,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: (w * 0.055).clamp(18.0, 24.0),
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF1E3A8A),
+                            color: const Color(0xFF1E3A8A),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -280,12 +311,12 @@ class ConnectedDevicePage extends StatelessWidget {
                           ),
                         ),
 
-                        const SizedBox(height: 100),
+                        SizedBox(height: (short * 0.03).clamp(8.0, 16.0)),
                       ],
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
           bottomNavigationBar: const BottomNavWidget(),

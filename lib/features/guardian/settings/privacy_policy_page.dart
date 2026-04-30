@@ -10,36 +10,57 @@ class PrivacyPolicyPage extends StatelessWidget {
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.06).clamp(16.0, 28.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: const Color(0xFFF7F9FC),
-          body: Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/bg.png'),
-                fit: BoxFit.cover,
-                opacity: 0.1,
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/bg.png'),
+                        fit: BoxFit.cover,
+                        opacity: 0.1,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+              SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: (w * 0.035).clamp(8.0, 16.0),
+                      vertical: (short * 0.012).clamp(6.0, 10.0),
+                    ),
                     child: Row(
                       children: [
                         IconButton(
                           onPressed: () => Navigator.pop(context),
                           icon: const Icon(Icons.arrow_back, color: Color(0xFF273469)),
                         ),
-                        Text(
-                          appState.tr('Privacy Policy', 'سياسة الخصوصية'),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF273469),
+                        Expanded(
+                          child: Text(
+                            appState.tr('Privacy Policy', 'سياسة الخصوصية'),
+                            style: TextStyle(
+                              fontSize: (w * 0.05).clamp(17.0, 22.0),
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF273469),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -48,23 +69,27 @@ class PrivacyPolicyPage extends StatelessWidget {
                   const Divider(color: Color(0xFFF3F4F6), thickness: 1),
                   Expanded(
                     child: ListView(
-                      padding: const EdgeInsets.all(24),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(hPad, (short * 0.02).clamp(8.0, 16.0), hPad, bottomPad),
                       children: [
                         _buildSection(
+                          context,
                           appState.tr('Data Collection', 'جمع البيانات'),
                           appState.tr(
                               'QR Guard collects only essential medical and emergency contact information necessary for emergency response.',
                               'يجمع QR Guard فقط المعلومات الطبية وجهات اتصال الطوارئ الضرورية للاستجابة لحالات الطوارئ.'),
                         ),
-                        const SizedBox(height: 32),
+                        SizedBox(height: (short * 0.07).clamp(22.0, 36.0)),
                         _buildSection(
+                          context,
                           appState.tr('Security', 'الأمان'),
                           appState.tr(
                               'All data is encrypted using industry-standard 256-bit encryption.',
                               'يتم تشفير جميع البيانات باستخدام تشفير 256 بت القياسي في الصناعة.'),
                         ),
-                        const SizedBox(height: 32),
+                        SizedBox(height: (short * 0.07).clamp(22.0, 36.0)),
                         _buildSection(
+                          context,
                           appState.tr('Data Sharing', 'مشاركة البيانات'),
                           appState.tr(
                               'We do not sell your personal data. It is only shared with authorized medical personnel during an active emergency scan.',
@@ -76,30 +101,33 @@ class PrivacyPolicyPage extends StatelessWidget {
                 ],
               ),
             ),
+            ],
           ),
         );
       },
     );
   }
 
-  Widget _buildSection(String title, String content) {
+  Widget _buildSection(BuildContext context, String title, String content) {
+    final w = MediaQuery.sizeOf(context).width;
+    final short = MediaQuery.sizeOf(context).shortestSide;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 18,
+          style: TextStyle(
+            fontSize: (w * 0.045).clamp(16.0, 19.0),
             fontWeight: FontWeight.bold,
-            color: Color(0xFF273469),
+            color: const Color(0xFF273469),
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: (short * 0.03).clamp(8.0, 14.0)),
         Text(
           content,
-          style: const TextStyle(
-            fontSize: 15,
-            color: Color(0xFF4B5563),
+          style: TextStyle(
+            fontSize: (w * 0.038).clamp(13.0, 16.0),
+            color: const Color(0xFF4B5563),
             height: 1.6,
           ),
         ),

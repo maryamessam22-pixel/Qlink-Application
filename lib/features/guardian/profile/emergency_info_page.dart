@@ -176,14 +176,28 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final vPad = (short * 0.028).clamp(12.0, 20.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.26).clamp(80.0, 112.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
+          extendBody: true,
           backgroundColor: const Color(0xFFF7F9FC),
           body: SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - mq.padding.vertical,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -200,11 +214,18 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                               },
                               child: Row(
                                 children: [
-                                  Icon(Icons.arrow_back, color: Colors.grey.shade600, size: 20),
-                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.arrow_back,
+                                    color: Colors.grey.shade600,
+                                    size: (short * 0.052).clamp(18.0, 22.0),
+                                  ),
+                                  SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
                                   Text(
                                     appState.tr('Back', 'رجوع'),
-                                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: (w * 0.04).clamp(14.0, 17.0),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -230,9 +251,9 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                                   )
                                 : Text(
                                     _isEditing ? appState.tr('Save', 'حفظ') : appState.tr('Edit', 'تعديل'),
-                                    style: const TextStyle(
-                                      color: Color(0xFF1B64F2),
-                                      fontSize: 16,
+                                    style: TextStyle(
+                                      color: const Color(0xFF1B64F2),
+                                      fontSize: (w * 0.04).clamp(14.0, 17.0),
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -243,7 +264,11 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                                 onTap: _cancelEdits,
                                 child: Text(
                                   appState.tr('Cancel', 'إلغاء'),
-                                  style: TextStyle(color: Colors.red.shade600, fontSize: 16, fontWeight: FontWeight.w600),
+                                  style: TextStyle(
+                                    color: Colors.red.shade600,
+                                    fontSize: (w * 0.04).clamp(14.0, 17.0),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ],
@@ -400,12 +425,12 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                           LucideIcons.lock,
                         ),
 
-                        const SizedBox(height: 100),
+                        SizedBox(height: (short * 0.03).clamp(8.0, 16.0)),
                       ],
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
           bottomNavigationBar: const BottomNavWidget(),
@@ -645,22 +670,52 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
   Widget _buildLargeButton(String label, IconData icon, {VoidCallback? onPressed}) {
     return GestureDetector(
       onTap: onPressed ?? () {},
-      child: Container(
-        width: double.infinity,
-        height: 60,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Color(0xFF0066CC), Color(0xFF273469)], begin: Alignment.centerLeft, end: Alignment.centerRight),
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [BoxShadow(color: const Color(0xFF0066CC).withValues(alpha: 0.2), blurRadius: 12, offset: const Offset(0, 4))],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white, size: 22),
-            const SizedBox(width: 12),
-            Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: 0.5)),
-          ],
-        ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final short = MediaQuery.sizeOf(context).shortestSide;
+          final w = MediaQuery.sizeOf(context).width;
+          final btnH = (short * 0.15).clamp(52.0, 64.0);
+          return Container(
+            width: double.infinity,
+            height: btnH,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0066CC), Color(0xFF273469)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(btnH * 0.5),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0066CC).withValues(alpha: 0.2),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: Colors.white, size: (short * 0.055).clamp(20.0, 26.0)),
+                SizedBox(width: (w * 0.03).clamp(8.0, 14.0)),
+                Flexible(
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: (w * 0.04).clamp(14.0, 17.0),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

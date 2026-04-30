@@ -47,119 +47,151 @@ class _LogoutLoadingPageState extends State<LogoutLoadingPage> with SingleTicker
   Widget build(BuildContext context) {
     final appState = AppState();
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // Animated Premium Blurred Background
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return Stack(
-                children: [
-                  Positioned(
-                    top: -50 + (20 * _controller.value),
-                    left: -100 + (10 * _controller.value),
-                    child: Container(
-                      width: 450,
-                      height: 450,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFF1E64F2).withValues(alpha: 0.3),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final mq = MediaQuery.of(context);
+          final w = constraints.maxWidth;
+          final h = constraints.maxHeight;
+          final longSide = w > h ? w : h;
+          final shortSide = w < h ? w : h;
+          final dLarge = (longSide * 0.92).clamp(280.0, 520.0);
+          final dMed = (longSide * 0.68).clamp(220.0, 400.0);
+          final blurSigma = (shortSide * 0.2).clamp(56.0, 96.0);
+          final logoH = (shortSide * 0.17).clamp(52.0, 80.0);
+          final taglineFs = (w * 0.035).clamp(12.0, 15.0);
+          final logoutFs = (w * 0.05).clamp(17.0, 22.0);
+          final spin = (shortSide * 0.075).clamp(26.0, 36.0);
+          final gap1 = (shortSide * 0.018).clamp(6.0, 12.0);
+          final gap2 = (h * 0.09).clamp(40.0, 96.0);
+          final gap3 = (shortSide * 0.065).clamp(22.0, 36.0);
+
+          return Stack(
+            children: [
+              AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  final v = _controller.value;
+                  return Stack(
+                    children: [
+                      Positioned(
+                        top: -dLarge * 0.14 + (dLarge * 0.045 * v),
+                        left: -dLarge * 0.24 + (dLarge * 0.022 * v),
+                        child: Container(
+                          width: dLarge,
+                          height: dLarge,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF1E64F2).withValues(alpha: 0.3),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: -dLarge * 0.22 + (dLarge * 0.06 * v),
+                        right: -dLarge * 0.22 - (dLarge * 0.04 * v),
+                        child: Container(
+                          width: dLarge * 1.08,
+                          height: dLarge * 1.08,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFFD7546D).withValues(alpha: 0.25),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: h * 0.22 - (h * 0.08 * v),
+                        right: -dMed * 0.18 + (dMed * 0.1 * v),
+                        child: Container(
+                          width: dMed,
+                          height: dMed,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF1B64F2).withValues(alpha: 0.2),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+                  child: Container(color: Colors.white.withValues(alpha: 0.4)),
+                ),
+              ),
+              SafeArea(
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.only(
+                    bottom: mq.padding.bottom + mq.viewInsets.bottom + 16,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: h - mq.padding.vertical),
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/images/qlink_logo.png',
+                              height: logoH,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) => FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  appState.qlink,
+                                  style: TextStyle(
+                                    fontSize: (logoutFs * 2.8).clamp(40.0, 68.0),
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF1E3A8A),
+                                    letterSpacing: -2,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: gap1),
+                            Text(
+                              appState.tr('Smart Safety Ecosystem', 'نظام السلامة الذكي'),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: taglineFs,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF558ABA),
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            SizedBox(height: gap2),
+                            Text(
+                              appState.tr('Logging out', 'تسجيل الخروج'),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: logoutFs,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.redAccent,
+                              ),
+                            ),
+                            SizedBox(height: gap3),
+                            SizedBox(
+                              width: spin,
+                              height: spin,
+                              child: const CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E3A8A)),
+                                strokeWidth: 3,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                  Positioned(
-                    bottom: -100 + (30 * _controller.value),
-                    right: -100 - (20 * _controller.value),
-                    child: Container(
-                      width: 500,
-                      height: 500,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFD7546D).withValues(alpha: 0.25),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 200 - (40 * _controller.value),
-                    right: -50 + (30 * _controller.value),
-                    child: Container(
-                      width: 300,
-                      height: 300,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFF1B64F2).withValues(alpha: 0.2),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-          
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 90, sigmaY: 90),
-              child: Container(color: Colors.white.withValues(alpha: 0.4)),
-            ),
-          ),
-          
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Logo and Branding
-                Image.asset(
-                  'assets/images/qlink_logo.png',
-                  height: 65,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => Text(
-                    appState.qlink,
-                    style: const TextStyle(
-                      fontSize: 64,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E3A8A),
-                      letterSpacing: -2,
-                    ),
-                  ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  appState.tr('Smart Safety Ecosystem', 'نظام السلامة الذكي'),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF558ABA),
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                
-                const SizedBox(height: 80),
-                
-                Text(
-                  appState.tr('Logging out', 'تسجيل الخروج'),
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.redAccent,
-                  ),
-                ),
-                
-                const SizedBox(height: 32),
-                
-                // Modern Loading indicator
-                const SizedBox(
-                  width: 30,
-                  height: 30,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E3A8A)),
-                    strokeWidth: 3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -115,13 +115,14 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
       builder: (context, _) {
         final appState = AppState();
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: const Color(0xFFF7F9FC),
           body: SafeArea(
             child: Column(
               children: [
-                _buildHeader(appState),
+                _buildHeader(context, appState),
                 Expanded(
-                  child: _buildCurrentStep(appState),
+                  child: _buildCurrentStep(context, appState),
                 ),
               ],
             ),
@@ -131,14 +132,22 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
     );
   }
 
-  Widget _buildHeader(AppState appState) {
+  Widget _buildHeader(BuildContext context, AppState appState) {
     String title = '';
     if (_currentStep == 1) title = appState.tr('Geofence Setup', 'إعداد السياج الجغرافي');
     if (_currentStep == 2) title = appState.tr('Define Zone', 'تحديد المنطقة');
     if (_currentStep == 3) title = appState.tr('Setup Complete', 'اكتمل الإعداد');
 
+    final mq = MediaQuery.of(context);
+    final w = mq.size.width;
+    final short = mq.size.shortestSide;
+    final hPad = (w * 0.04).clamp(12.0, 20.0);
+    final vPad = (short * 0.018).clamp(6.0, 12.0);
+    final titleFs = (w * 0.048).clamp(16.0, 22.0);
+    final trail = (w * 0.02).clamp(6.0, 12.0);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
       child: Row(
         children: [
           IconButton(
@@ -151,42 +160,56 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
             },
             icon: const Icon(Icons.arrow_back, color: Color(0xFF273469)),
           ),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF273469),
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: titleFs,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF273469),
+              ),
             ),
           ),
-          const Spacer(),
           const LanguageToggle(),
-          const SizedBox(width: 8),
+          SizedBox(width: trail),
         ],
       ),
     );
   }
 
-  Widget _buildCurrentStep(AppState appState) {
+  Widget _buildCurrentStep(BuildContext context, AppState appState) {
     switch (_currentStep) {
       case 1:
-        return _buildMemberSelection(appState);
+        return _buildMemberSelection(context, appState);
       case 2:
-        return _buildDefineZone(appState);
+        return _buildDefineZone(context, appState);
       case 3:
-        return _buildSuccess(appState);
+        return _buildSuccess(context, appState);
       default:
         return Container();
     }
   }
 
-  Widget _buildMemberSelection(AppState appState) {
+  Widget _buildMemberSelection(BuildContext context, AppState appState) {
+    final mq = MediaQuery.of(context);
+    final w = mq.size.width;
+    final short = mq.size.shortestSide;
+    final pad = (w * 0.055).clamp(16.0, 28.0);
+
     return FutureBuilder<List<PatientProfile>>(
       future: _profilesFuture,
       builder: (context, snapshot) {
         final profiles = snapshot.data ?? _profiles;
         return ListView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.fromLTRB(
+            pad,
+            pad,
+            pad,
+            pad + mq.viewInsets.bottom + mq.padding.bottom,
+          ),
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -228,9 +251,9 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
             ),
           )
         else
-          ...profiles.map((profile) => _buildMemberCard(appState, profile)),
+          ...profiles.map((profile) => _buildMemberCard(context, appState, profile)),
 
-        _buildAddMemberCard(appState),
+        _buildAddMemberCard(context, appState),
         
         const SizedBox(height: 40),
         ElevatedButton(
@@ -238,17 +261,28 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF1B64F2),
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 18),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+            padding: EdgeInsets.symmetric(vertical: (short * 0.045).clamp(14.0, 20.0)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular((short * 0.08).clamp(22.0, 32.0)),
+            ),
             elevation: 0,
             disabledBackgroundColor: Colors.grey.shade300,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(appState.tr('Continue to Map', 'المتابعة إلى الخريطة'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward, size: 20),
+              Flexible(
+                child: Text(
+                  appState.tr('Continue to Map', 'المتابعة إلى الخريطة'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: (w * 0.04).clamp(14.0, 17.0),
+                  ),
+                ),
+              ),
+              SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
+              Icon(Icons.arrow_forward, size: (short * 0.05).clamp(18.0, 22.0)),
             ],
           ),
         ),
@@ -258,19 +292,27 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
     );
   }
 
-  Widget _buildMemberCard(AppState appState, PatientProfile profile) {
-    bool isSelected = _selectedMember?.id == profile.id;
+  Widget _buildMemberCard(BuildContext context, AppState appState, PatientProfile profile) {
+    final isSelected = _selectedMember?.id == profile.id;
+    final mq = MediaQuery.of(context);
+    final w = mq.size.width;
+    final short = mq.size.shortestSide;
+    final avR = (short * 0.078).clamp(24.0, 32.0);
+    final cardPad = (short * 0.04).clamp(12.0, 18.0);
+    final nameFs = (w * 0.042).clamp(15.0, 18.0);
+    final subFs = (w * 0.034).clamp(11.0, 14.0);
+
     return GestureDetector(
       onTap: () => setState(() {
         _selectedMember = profile;
         _zoneCenter = null;
       }),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
+        margin: EdgeInsets.only(bottom: (short * 0.04).clamp(12.0, 18.0)),
+        padding: EdgeInsets.all(cardPad),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular((short * 0.05).clamp(16.0, 22.0)),
           border: Border.all(
             color: isSelected ? const Color(0xFF1B64F2) : Colors.transparent,
             width: 2,
@@ -278,15 +320,15 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: (short * 0.024).clamp(6.0, 12.0),
+              offset: Offset(0, (short * 0.01).clamp(3.0, 6.0)),
             ),
           ],
         ),
         child: Row(
           children: [
             CircleAvatar(
-              radius: 30,
+              radius: avR,
               backgroundImage: profile.avatarUrl.trim().isNotEmpty
                   ? getUserAvatarProvider(profile.avatarUrl)
                   : null,
@@ -295,34 +337,42 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
                       profile.profileName.isNotEmpty
                           ? profile.profileName[0].toUpperCase()
                           : '?',
+                      style: TextStyle(fontSize: avR * 0.85, fontWeight: FontWeight.bold),
                     )
                   : null,
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: (w * 0.04).clamp(10.0, 18.0)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(profile.profileName, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
-                  const SizedBox(height: 4),
+                  Text(
+                    profile.profileName,
+                    style: TextStyle(
+                      fontSize: nameFs,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF1E3A8A),
+                    ),
+                  ),
+                  SizedBox(height: (short * 0.01).clamp(3.0, 6.0)),
                   Text(
                     profile.status
                         ? appState.tr('Device connected', 'الجهاز متصل')
                         : appState.tr('No connected device yet', 'لا يوجد جهاز متصل بعد'),
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                    style: TextStyle(fontSize: subFs, color: Colors.grey.shade500),
                   ),
                 ],
               ),
             ),
             if (isSelected)
-              const Icon(Icons.check_circle, color: Color(0xFF1B64F2), size: 28),
+              Icon(Icons.check_circle, color: const Color(0xFF1B64F2), size: (short * 0.07).clamp(24.0, 30.0)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAddMemberCard(AppState appState) {
+  Widget _buildAddMemberCard(BuildContext context, AppState appState) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -335,60 +385,95 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
         });
       },
       child: DottedBorderSimulation(
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(color: const Color(0xFFF1F5F9), shape: BoxShape.circle),
-                child: const Icon(LucideIcons.userPlus, color: Color(0xFF64748B)),
-              ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        child: Builder(
+          builder: (ctx) {
+            final short = MediaQuery.sizeOf(ctx).shortestSide;
+            final w = MediaQuery.sizeOf(ctx).width;
+            final box = (short * 0.13).clamp(44.0, 56.0);
+            final iconSz = (box * 0.44).clamp(20.0, 26.0);
+            return Container(
+              padding: EdgeInsets.all((short * 0.05).clamp(14.0, 22.0)),
+              child: Row(
                 children: [
-                  Text(appState.tr('Add New Member', 'إضافة عضو جديد'), style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569))),
-                  Text(appState.tr('Register a new device', 'تسجيل جهاز جديد'), style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                  Container(
+                    width: box,
+                    height: box,
+                    decoration: const BoxDecoration(color: Color(0xFFF1F5F9), shape: BoxShape.circle),
+                    child: Icon(LucideIcons.userPlus, color: const Color(0xFF64748B), size: iconSz),
+                  ),
+                  SizedBox(width: (w * 0.04).clamp(12.0, 18.0)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          appState.tr('Add New Member', 'إضافة عضو جديد'),
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                        ),
+                        Text(
+                          appState.tr('Register a new device', 'تسجيل جهاز جديد'),
+                          style: TextStyle(fontSize: (w * 0.032).clamp(11.0, 13.0), color: Colors.grey.shade500),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildDefineZone(AppState appState) {
+  Widget _buildDefineZone(BuildContext context, AppState appState) {
     final center = _effectiveZoneCenter();
     final selected = _selectedMember;
     final hasLocation = selected != null && _locations.containsKey(selected.id);
+    final mq = MediaQuery.of(context);
+    final h = mq.size.height;
+    final w = mq.size.width;
+    final short = mq.size.shortestSide;
+    final mapH = (h * 0.30).clamp(200.0, 320.0);
+    final listPad = (w * 0.055).clamp(16.0, 28.0);
+    final markerExtent = (short * 0.21).clamp(64.0, 96.0);
+
     return Column(
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.fromLTRB(
+              listPad,
+              listPad,
+              listPad,
+              listPad + mq.viewInsets.bottom + mq.padding.bottom,
+            ),
+            physics: const AlwaysScrollableScrollPhysics(),
             children: [
-              const Center(
+              Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircleAvatar(radius: 4, backgroundColor: Color(0xFFE5E7EB)),
-                    SizedBox(width: 8),
-                    CircleAvatar(radius: 4, backgroundColor: Color(0xFF1B64F2)),
-                    SizedBox(width: 8),
-                    CircleAvatar(radius: 4, backgroundColor: Color(0xFFE5E7EB)),
+                    CircleAvatar(radius: (short * 0.01).clamp(3.0, 5.0), backgroundColor: const Color(0xFFE5E7EB)),
+                    SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
+                    CircleAvatar(radius: (short * 0.01).clamp(3.0, 5.0), backgroundColor: const Color(0xFF1B64F2)),
+                    SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
+                    CircleAvatar(radius: (short * 0.01).clamp(3.0, 5.0), backgroundColor: const Color(0xFFE5E7EB)),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: (short * 0.055).clamp(16.0, 28.0)),
               // Map Preview
               Container(
-                height: 240,
+                height: mapH,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(25),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.1), blurRadius: 20)],
+                  borderRadius: BorderRadius.circular((short * 0.06).clamp(18.0, 28.0)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: (short * 0.05).clamp(12.0, 22.0),
+                    ),
+                  ],
                 ),
                 clipBehavior: Clip.hardEdge,
                 child: Stack(
@@ -419,13 +504,13 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
                         ),
                         MarkerLayer(
                           markers: [
-                            // Show ONLY the selected member at the center
                             if (_selectedMember != null)
                               Marker(
                                 point: center,
-                                width: 80,
-                                height: 80,
+                                width: markerExtent,
+                                height: markerExtent,
                                 child: _buildProfileMarker(
+                                  context,
                                   name: _selectedMember!.profileName,
                                   imagePath: _selectedMember!.avatarUrl,
                                   hasStatusDot: true,
@@ -435,29 +520,34 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
                         ),
                       ],
                     ),
-                    // Zoom Controls
                     Positioned(
-                      right: 12,
-                      top: 12,
+                      right: (w * 0.03).clamp(8.0, 16.0),
+                      top: (w * 0.03).clamp(8.0, 16.0),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildMapToolButton(Icons.add, () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom + 1)),
-                          const SizedBox(height: 8),
-                          _buildMapToolButton(Icons.remove, () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom - 1)),
+                          _buildMapToolButton(context, Icons.add, () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom + 1)),
+                          SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
+                          _buildMapToolButton(context, Icons.remove, () => _mapController.move(_mapController.camera.center, _mapController.camera.zoom - 1)),
                         ],
                       ),
                     ),
-                    // Layers Toggle Icon (Static)
                     Positioned(
-                      right: 12,
-                      bottom: 12,
-                      child: _buildMapToolButton(Icons.layers, () {}),
+                      right: (w * 0.03).clamp(8.0, 16.0),
+                      bottom: (w * 0.03).clamp(8.0, 16.0),
+                      child: _buildMapToolButton(context, Icons.layers, () {}),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 12),
-              Center(child: Text(appState.tr('Drag the circle to reposition or use the slider below', 'اسحب الدائرة لتغيير موقعها أو استخدم الشريط أدناه'), style: TextStyle(fontSize: 12, color: Colors.grey.shade500))),
+              Center(
+                child: Text(
+                  appState.tr('Drag the circle to reposition or use the slider below', 'اسحب الدائرة لتغيير موقعها أو استخدم الشريط أدناه'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: (w * 0.03).clamp(10.0, 13.0), color: Colors.grey.shade500),
+                ),
+              ),
               const SizedBox(height: 16),
               if (selected != null)
                 Container(
@@ -598,17 +688,28 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1E3A8A),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  padding: EdgeInsets.symmetric(vertical: (short * 0.045).clamp(14.0, 20.0)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular((short * 0.08).clamp(22.0, 32.0)),
+                  ),
                   elevation: 0,
                   disabledBackgroundColor: Colors.grey.shade300,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(LucideIcons.save, size: 20),
-                    const SizedBox(width: 8),
-                    Text(appState.tr('Save Zone', 'حفظ المنطقة'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Icon(LucideIcons.save, size: (short * 0.05).clamp(18.0, 22.0)),
+                    SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
+                    Flexible(
+                      child: Text(
+                        appState.tr('Save Zone', 'حفظ المنطقة'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: (w * 0.04).clamp(14.0, 17.0),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -621,51 +722,68 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
     );
   }
 
-  Widget _buildSuccess(AppState appState) {
+  Widget _buildSuccess(BuildContext context, AppState appState) {
     final center = _selectedMemberCenter();
+    final mq = MediaQuery.of(context);
+    final h = mq.size.height;
+    final w = mq.size.width;
+    final short = mq.size.shortestSide;
+    final pad = (w * 0.055).clamp(16.0, 28.0);
+    final previewH = (h * 0.22).clamp(150.0, 240.0);
+    final markerExtent = (short * 0.16).clamp(52.0, 72.0);
+    final successIcon = (short * 0.18).clamp(52.0, 72.0);
+    final titleFs = (w * 0.058).clamp(18.0, 26.0);
+    final bodyFs = (w * 0.038).clamp(13.0, 16.0);
+
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.fromLTRB(
+        pad,
+        pad,
+        pad,
+        pad + mq.viewInsets.bottom + mq.padding.bottom,
+      ),
+      physics: const AlwaysScrollableScrollPhysics(),
       children: [
-        const Center(
+        Center(
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircleAvatar(radius: 4, backgroundColor: Color(0xFFE5E7EB)),
-              SizedBox(width: 8),
-              CircleAvatar(radius: 4, backgroundColor: Color(0xFFE5E7EB)),
-              SizedBox(width: 8),
-              CircleAvatar(radius: 4, backgroundColor: Color(0xFF1B64F2)),
+              CircleAvatar(radius: (short * 0.01).clamp(3.0, 5.0), backgroundColor: const Color(0xFFE5E7EB)),
+              SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
+              CircleAvatar(radius: (short * 0.01).clamp(3.0, 5.0), backgroundColor: const Color(0xFFE5E7EB)),
+              SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
+              CircleAvatar(radius: (short * 0.01).clamp(3.0, 5.0), backgroundColor: const Color(0xFF1B64F2)),
             ],
           ),
         ),
-        const SizedBox(height: 48),
+        SizedBox(height: (short * 0.12).clamp(32.0, 52.0)),
         Center(
           child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: const Color(0xFFD1FAE5), shape: BoxShape.circle),
-            child: const Icon(Icons.check_circle, color: Color(0xFF059669), size: 64),
+            padding: EdgeInsets.all((short * 0.05).clamp(14.0, 22.0)),
+            decoration: const BoxDecoration(color: Color(0xFFD1FAE5), shape: BoxShape.circle),
+            child: Icon(Icons.check_circle, color: const Color(0xFF059669), size: successIcon),
           ),
         ),
-        const SizedBox(height: 32),
+        SizedBox(height: (short * 0.08).clamp(24.0, 36.0)),
         Text(
           appState.tr('Safe Zone Created Successfully!', 'تم إنشاء المنطقة الآمنة بنجاح!'),
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1E3A8A)),
+          style: TextStyle(fontSize: titleFs, fontWeight: FontWeight.w900, color: const Color(0xFF1E3A8A)),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: (short * 0.03).clamp(8.0, 14.0)),
         Text(
           appState.tr('The tracker will now notify you when the device enters or leaves this area.', 'سيقوم المتتبع الآن بتنبيهك عندما يدخل الجهاز هذا المكان أو يغادره.'),
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+          style: TextStyle(fontSize: bodyFs, color: Colors.grey.shade500),
         ),
-        const SizedBox(height: 40),
-        
-        // Final Preview Map
+        SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
         Container(
-          height: 180,
+          height: previewH,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10)],
+            borderRadius: BorderRadius.circular((short * 0.05).clamp(16.0, 22.0)),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: (short * 0.025).clamp(6.0, 12.0)),
+            ],
           ),
           clipBehavior: Clip.hardEdge,
           child: FlutterMap(
@@ -696,9 +814,10 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
                   if (_selectedMember != null)
                     Marker(
                       point: center,
-                      width: 60,
-                      height: 60,
+                      width: markerExtent,
+                      height: markerExtent,
                       child: _buildProfileMarker(
+                        context,
                         name: _selectedMember!.profileName,
                         imagePath: _selectedMember!.avatarUrl,
                         hasStatusDot: true,
@@ -709,9 +828,15 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
             ],
           ),
         ),
-        
-        const SizedBox(height: 40),
-        Text(appState.tr('Zone Details', 'تفاصيل المنطقة'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+        SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
+        Text(
+          appState.tr('Zone Details', 'تفاصيل المنطقة'),
+          style: TextStyle(
+            fontSize: (w * 0.045).clamp(16.0, 19.0),
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF1E3A8A),
+          ),
+        ),
         const SizedBox(height: 16),
         _buildDetailTile(
           LucideIcons.user,
@@ -721,21 +846,32 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
         _buildDetailTile(LucideIcons.home, appState.tr('Zone Name', 'اسم المنطقة'), _zoneNameController.text),
         _buildDetailTile(LucideIcons.bell, appState.tr('Notifications', 'التنبيهات'), appState.tr('Entry & Exit Alerts Enabled', 'تم تفعيل تنبيهات الدخول والخروج')),
         
-        const SizedBox(height: 40),
+        SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
         ElevatedButton(
           onPressed: () => Navigator.pop(context),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF1B64F2),
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 18),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+            padding: EdgeInsets.symmetric(vertical: (short * 0.045).clamp(14.0, 20.0)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular((short * 0.08).clamp(22.0, 32.0)),
+            ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(LucideIcons.map, size: 20),
-              const SizedBox(width: 8),
-              Text(appState.tr('Back to Map', 'العودة إلى الخريطة'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Icon(LucideIcons.map, size: (short * 0.05).clamp(18.0, 22.0)),
+              SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
+              Flexible(
+                child: Text(
+                  appState.tr('Back to Map', 'العودة إلى الخريطة'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: (w * 0.04).clamp(14.0, 17.0),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -792,27 +928,45 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
     );
   }
 
-  Widget _buildMapToolButton(IconData icon, VoidCallback onTap) {
+  Widget _buildMapToolButton(BuildContext context, IconData icon, VoidCallback onTap) {
+    final short = MediaQuery.sizeOf(context).shortestSide;
+    final side = (short * 0.092).clamp(32.0, 42.0);
+    final iconSz = (side * 0.52).clamp(17.0, 22.0);
+    final radius = (short * 0.02).clamp(6.0, 10.0);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 36,
-        height: 36,
+        width: side,
+        height: side,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)],
+          borderRadius: BorderRadius.circular(radius),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: (short * 0.012).clamp(3.0, 6.0),
+            ),
+          ],
         ),
-        child: Icon(icon, color: const Color(0xFF1E3A8A), size: 20),
+        child: Icon(icon, color: const Color(0xFF1E3A8A), size: iconSz),
       ),
     );
   }
 
-  Widget _buildProfileMarker({
+  Widget _buildProfileMarker(
+    BuildContext context, {
     required String name,
     required String imagePath,
     bool hasStatusDot = false,
   }) {
+    final short = MediaQuery.sizeOf(context).shortestSide;
+    final outer = (short * 0.11).clamp(36.0, 50.0);
+    final borderW = (short * 0.005).clamp(1.5, 2.5);
+    final innerR = (outer * 0.42).clamp(14.0, 20.0);
+    final dot = (short * 0.026).clamp(8.0, 12.0);
+    final nameFs = (short * 0.022).clamp(7.0, 10.0);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -820,20 +974,29 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
           clipBehavior: Clip.none,
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: outer,
+              height: outer,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)],
+                border: Border.all(color: Colors.white, width: borderW),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: (short * 0.012).clamp(3.0, 6.0)),
+                ],
               ),
               child: CircleAvatar(
-                radius: 20,
+                radius: innerR,
                 backgroundImage: imagePath.trim().isNotEmpty
                     ? getUserAvatarProvider(imagePath)
                     : null,
                 child: imagePath.trim().isEmpty
-                    ? Text(name.isNotEmpty ? name[0].toUpperCase() : '?')
+                    ? Text(
+                        name.isNotEmpty ? name[0].toUpperCase() : '?',
+                        style: TextStyle(
+                          fontSize: innerR * 0.85,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      )
                     : null,
               ),
             ),
@@ -842,27 +1005,34 @@ class _GeofenceSetupPageState extends State<GeofenceSetupPage> {
                 right: 0,
                 bottom: 0,
                 child: Container(
-                  width: 10,
-                  height: 10,
+                  width: dot,
+                  height: dot,
                   decoration: BoxDecoration(
                     color: const Color(0xFF22C55E),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(color: Colors.white, width: (dot * 0.18).clamp(1.5, 2.5)),
                   ),
                 ),
               ),
           ],
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: (short * 0.01).clamp(2.0, 6.0)),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+          padding: EdgeInsets.symmetric(
+            horizontal: (short * 0.012).clamp(3.0, 6.0),
+            vertical: 1,
+          ),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular((short * 0.022).clamp(6.0, 10.0)),
           ),
           child: Text(
             name,
-            style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
+            style: TextStyle(
+              fontSize: nameFs,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF1E3A8A),
+            ),
           ),
         ),
       ],

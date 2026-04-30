@@ -47,81 +47,114 @@ class _SplashPageState extends State<SplashPage> {
       animation: appState,
       builder: (context, _) {
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
-          body: Stack(
-            children: [
-              // Background Gradients
-              Positioned(
-                top: -100,
-                left: -100,
-                child: Container(
-                  width: 400,
-                  height: 400,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFFB81428).withValues(alpha: 0.9),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: -100,
-                right: -100,
-                child: Container(
-                  width: 400,
-                  height: 400,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFF015CB7).withValues(alpha: 0.9),
-                  ),
-                ),
-              ),
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              final mq = MediaQuery.of(context);
+              final w = constraints.maxWidth;
+              final h = constraints.maxHeight;
+              final longSide = w > h ? w : h;
+              final shortSide = w < h ? w : h;
+              final blob = (longSide * 0.82).clamp(260.0, 480.0);
+              final blurSigma = (shortSide * 0.18).clamp(48.0, 88.0);
+              final logoW = (w * 0.52).clamp(160.0, 260.0);
+              final titleFs = (w * 0.048).clamp(16.0, 22.0);
+              final spin = (shortSide * 0.075).clamp(26.0, 36.0);
+              final padBottom = mq.padding.bottom + mq.viewInsets.bottom + 16;
 
-              // Blur Effect
-              Positioned.fill(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-                  child: Container(color: Colors.white.withValues(alpha: 0.3)),
-                ),
-              ),
-
-              // Content
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Logo Image
-                    Image.asset(
-                      'assets/images/qlink_logo.png',
-                      width: 200, // Adjust width as needed
-                      fit: BoxFit.contain,
-                    ),
-                    const SizedBox(height: 30),
-                    Text(
-                      appState.smartSafetyEcosystem,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontFamily: 'Century Gothic',
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E3A8A),
+              return Stack(
+                children: [
+                  Positioned(
+                    top: -blob * 0.28,
+                    left: -blob * 0.28,
+                    child: Container(
+                      width: blob,
+                      height: blob,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFB81428).withValues(alpha: 0.9),
                       ),
                     ),
-                    const SizedBox(height: 50),
-                    // Loading Indicator
-                    const SizedBox(
-                      width: 30,
-                      height: 30,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Color(0xFF1E3A8A),
+                  ),
+                  Positioned(
+                    bottom: -blob * 0.28,
+                    right: -blob * 0.28,
+                    child: Container(
+                      width: blob,
+                      height: blob,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF015CB7).withValues(alpha: 0.9),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+                      child: Container(color: Colors.white.withValues(alpha: 0.3)),
+                    ),
+                  ),
+                  SafeArea(
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(20, 12, 20, padBottom),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: h - mq.padding.vertical - 8),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/images/qlink_logo.png',
+                                width: logoW,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      appState.qlink,
+                                      style: TextStyle(
+                                        fontFamily: 'Century Gothic',
+                                        fontSize: (titleFs * 1.6).clamp(28.0, 40.0),
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF1E3A8A),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              SizedBox(height: (shortSide * 0.055).clamp(18.0, 36.0)),
+                              Text(
+                                appState.smartSafetyEcosystem,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Century Gothic',
+                                  fontSize: titleFs,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF1E3A8A),
+                                ),
+                              ),
+                              SizedBox(height: (shortSide * 0.08).clamp(28.0, 56.0)),
+                              SizedBox(
+                                width: spin,
+                                height: spin,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFF1E3A8A),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                ],
+              );
+            },
           ),
         );
       },

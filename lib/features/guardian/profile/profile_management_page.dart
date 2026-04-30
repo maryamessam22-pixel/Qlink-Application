@@ -164,16 +164,28 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final vPad = (short * 0.028).clamp(12.0, 20.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.26).clamp(80.0, 112.0);
+        final avatarBox = (short * 0.28).clamp(96.0, 120.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
+          extendBody: true,
           backgroundColor: const Color(0xFFF7F9FC),
           body: SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 20,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - mq.padding.vertical,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -188,14 +200,14 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
                                   Icon(
                                     Icons.arrow_back,
                                     color: Colors.grey.shade600,
-                                    size: 20,
+                                    size: (short * 0.052).clamp(18.0, 22.0),
                                   ),
-                                  const SizedBox(width: 4),
+                                  SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
                                   Text(
                                     appState.tr('Back', 'رجوع'),
                                     style: TextStyle(
                                       color: Colors.grey.shade600,
-                                      fontSize: 16,
+                                      fontSize: (w * 0.04).clamp(14.0, 17.0),
                                     ),
                                   ),
                                 ],
@@ -205,7 +217,7 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
                             const LanguageToggle(),
                           ],
                         ),
-                        const SizedBox(height: 32),
+                        SizedBox(height: (short * 0.07).clamp(24.0, 36.0)),
 
                         // Profile Header
                         Center(
@@ -214,8 +226,8 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
                               Stack(
                                 children: [
                                   Container(
-                                    width: 110,
-                                    height: 110,
+                                    width: avatarBox,
+                                    height: avatarBox,
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF273469),
                                       borderRadius: BorderRadius.circular(22),
@@ -241,12 +253,16 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
                                       child: GestureDetector(
                                         onTap: _pickProfileImage,
                                         child: Container(
-                                          padding: const EdgeInsets.all(8),
+                                          padding: EdgeInsets.all((short * 0.02).clamp(6.0, 10.0)),
                                           decoration: const BoxDecoration(
                                             color: Color(0xFF1B64F2),
                                             shape: BoxShape.circle,
                                           ),
-                                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                                          child: Icon(
+                                            Icons.camera_alt,
+                                            color: Colors.white,
+                                            size: (short * 0.045).clamp(16.0, 20.0),
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -635,12 +651,12 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 100),
+                        SizedBox(height: (short * 0.03).clamp(8.0, 16.0)),
                       ],
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
           bottomNavigationBar: const BottomNavWidget(),

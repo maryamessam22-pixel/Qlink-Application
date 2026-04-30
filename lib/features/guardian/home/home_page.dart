@@ -54,27 +54,32 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (dialogCtx) {
         return StatefulBuilder(
-          builder: (context, setDialogState) => AlertDialog(
+          builder: (context, setDialogState) {
+            final kb = MediaQuery.viewInsetsOf(context).bottom;
+            return AlertDialog(
             title: Text(appState.tr('Link Existing Wearer', 'ربط مستخدم Wearer موجود')),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  appState.tr(
-                    'Enter wearer account email to send a link request.',
-                    'أدخل بريد حساب الـ Wearer لإرسال طلب الربط.',
+            content: SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: kb),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    appState.tr(
+                      'Enter wearer account email to send a link request.',
+                      'أدخل بريد حساب الـ Wearer لإرسال طلب الربط.',
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: controller,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    hintText: appState.tr('wearer@email.com', 'wearer@email.com'),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: controller,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      hintText: appState.tr('wearer@email.com', 'wearer@email.com'),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -131,36 +136,50 @@ class _HomePageState extends State<HomePage> {
                     : Text(appState.tr('Send Request', 'إرسال الطلب')),
               ),
             ],
-          ),
+          );
+          },
         );
       },
     );
   }
 
-  Widget _buildInitials(String name) {
+  Widget _buildInitials(String name, double fontSize) {
     return Text(
       name.isNotEmpty ? name[0].toUpperCase() : '?',
-      style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: fontSize,
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 
-  Widget _buildProfileAvatar(PatientProfile profile) {
+  Widget _buildProfileAvatar(BuildContext context, PatientProfile profile) {
+    final short = MediaQuery.sizeOf(context).shortestSide;
+    final side = (short * 0.15).clamp(48.0, 68.0);
+    final initialsFs = (side * 0.38).clamp(17.0, 26.0);
     final url = profile.avatarUrl;
-    if (url.isEmpty) return _buildInitials(profile.profileName);
+    if (url.isEmpty) return _buildInitials(profile.profileName, initialsFs);
 
     if (url.startsWith('assets')) {
       return SizedBox(
-        width: 60, height: 60,
-        child: Image.asset(url, fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildInitials(profile.profileName),
+        width: side,
+        height: side,
+        child: Image.asset(
+          url,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _buildInitials(profile.profileName, initialsFs),
         ),
       );
     }
 
     return SizedBox(
-      width: 60, height: 60,
-      child: Image.network(url, fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildInitials(profile.profileName),
+      width: side,
+      height: side,
+      child: Image.network(
+        url,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _buildInitials(profile.profileName, initialsFs),
       ),
     );
   }
@@ -168,6 +187,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Colors.transparent,
       body: Container(
         width: double.infinity,
@@ -182,66 +202,73 @@ class _HomePageState extends State<HomePage> {
         child: AnimatedBuilder(
           animation: AppState(),
           builder: (context, _) {
+            final mq = MediaQuery.of(context);
+            final w = mq.size.width;
+            final short = mq.size.shortestSide;
+            final hPad = (w * 0.05).clamp(16.0, 24.0);
+            final vPad = (short * 0.035).clamp(12.0, 20.0);
+            final scrollBottom =
+                mq.viewInsets.bottom + mq.padding.bottom + (short * 0.26).clamp(80.0, 112.0);
+            final welcomeFs = (w * 0.058).clamp(18.0, 26.0);
+            final taglineFs = (w * 0.036).clamp(12.0, 15.0);
+            final cardPad = (short * 0.04).clamp(12.0, 18.0);
+            final cardRadius = (short * 0.04).clamp(14.0, 18.0);
+            final statNumFs = (w * 0.058).clamp(20.0, 26.0);
+            final statLabelFs = (w * 0.034).clamp(11.0, 14.0);
+
             return SafeArea(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-              horizontal: 20.0,
-              vertical: 16.0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Custom App Bar Header
-                HeaderWidget(),
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, scrollBottom),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const HeaderWidget(),
+                    FutureBuilder<List<PatientProfile>>(
+                      future: _profilesFuture,
+                      builder: (context, snapshot) {
+                        final appState = AppState();
+                        final profiles = snapshot.data ?? [];
+                        final actualProfileCount = profiles.length;
+                        final activeDeviceCount = profiles
+                            .where((p) => p.status)
+                            .length;
 
-                // Dynamic Stats and Status
-                FutureBuilder<List<PatientProfile>>(
-                future: _profilesFuture,
-                  builder: (context, snapshot) {
-                    final appState = AppState();
-                    final profiles = snapshot.data ?? [];
-                    final actualProfileCount = profiles.length;
-                    final activeDeviceCount = profiles
-                        .where((p) => p.status)
-                        .length;
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Welcome Text
-                        Text(
-                          appState.tr(
-                            'Hello, ${appState.currentUser.name}',
-                            'مرحباً، ${appState.currentUser.name}',
-                          ),
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E3A8A),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          appState.tr(
-                            'Your Safety Circle Command Center',
-                            'مركز قيادة دائرة الأمان الخاصة بك',
-                          ),
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF6B7280),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        Row(
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE6F0FE),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
+                            Text(
+                              appState.tr(
+                                'Hello, ${appState.currentUser.name}',
+                                'مرحباً، ${appState.currentUser.name}',
+                              ),
+                              style: TextStyle(
+                                fontSize: welcomeFs,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1E3A8A),
+                              ),
+                            ),
+                            SizedBox(height: (short * 0.015).clamp(4.0, 8.0)),
+                            Text(
+                              appState.tr(
+                                'Your Safety Circle Command Center',
+                                'مركز قيادة دائرة الأمان الخاصة بك',
+                              ),
+                              style: TextStyle(
+                                fontSize: taglineFs,
+                                color: const Color(0xFF6B7280),
+                              ),
+                            ),
+                            SizedBox(height: (short * 0.055).clamp(18.0, 28.0)),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    padding: EdgeInsets.all(cardPad),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE6F0FE),
+                                      borderRadius: BorderRadius.circular(cardRadius),
+                                    ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -282,7 +309,7 @@ class _HomePageState extends State<HomePage> {
                                                   : 'غير متصل',
                                             ),
                                             style: TextStyle(
-                                              fontSize: 10,
+                                              fontSize: (w * 0.026).clamp(9.0, 11.0),
                                               fontWeight: FontWeight.bold,
                                               color: activeDeviceCount > 0
                                                   ? Colors.white
@@ -292,13 +319,13 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 16),
+                                    SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                                     Text(
                                       '$activeDeviceCount',
-                                      style: const TextStyle(
-                                        fontSize: 24,
+                                      style: TextStyle(
+                                        fontSize: statNumFs,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1B64F2),
+                                        color: const Color(0xFF1B64F2),
                                       ),
                                     ),
                                     Text(
@@ -306,22 +333,22 @@ class _HomePageState extends State<HomePage> {
                                         'Active Devices',
                                         'أجهزة نشطة',
                                       ),
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        color: Color(0xFF1B64F2),
+                                      style: TextStyle(
+                                        fontSize: statLabelFs,
+                                        color: const Color(0xFF1B64F2),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            SizedBox(width: (w * 0.04).clamp(12.0, 18.0)),
                             Expanded(
                               child: Container(
-                                padding: const EdgeInsets.all(16),
+                                padding: EdgeInsets.all(cardPad),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFE2F8EE),
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(cardRadius),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,13 +363,13 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 16),
+                                    SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                                     Text(
                                       '$actualProfileCount',
-                                      style: const TextStyle(
-                                        fontSize: 24,
+                                      style: TextStyle(
+                                        fontSize: statNumFs,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0E9F6E),
+                                        color: const Color(0xFF0E9F6E),
                                       ),
                                     ),
                                     Text(
@@ -350,9 +377,9 @@ class _HomePageState extends State<HomePage> {
                                         'Protected Members',
                                         'الأعضاء المحميون',
                                       ),
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        color: Color(0xFF0E9F6E),
+                                      style: TextStyle(
+                                        fontSize: statLabelFs,
+                                        color: const Color(0xFF0E9F6E),
                                       ),
                                     ),
                                   ],
@@ -361,11 +388,9 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-
-                        // System Status
+                        SizedBox(height: (short * 0.05).clamp(16.0, 24.0)),
                         Container(
-                          padding: const EdgeInsets.all(16),
+                          padding: EdgeInsets.all(cardPad),
                           decoration: BoxDecoration(
                             color: activeDeviceCount > 0
                                 ? const Color(0xFFDEF7EC)
@@ -375,18 +400,19 @@ class _HomePageState extends State<HomePage> {
                                   ? const Color(0xFF84E1BC)
                                   : const Color(0xFFB4E6C9),
                             ),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular((short * 0.032).clamp(10.0, 14.0)),
                           ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Icon(
                                 Icons.check_circle,
+                                size: (short * 0.055).clamp(20.0, 26.0),
                                 color: activeDeviceCount > 0
                                     ? const Color(0xFF0E9F6E)
                                     : const Color(0xFF0E9F6E),
                               ),
-                              const SizedBox(width: 12),
+                              SizedBox(width: (w * 0.03).clamp(8.0, 14.0)),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -413,7 +439,7 @@ class _HomePageState extends State<HomePage> {
                                               'لا توجد أجهزة متصلة حتى الآن. لم يتم رصد أي تنبيهات.',
                                             ),
                                       style: TextStyle(
-                                        fontSize: 13,
+                                        fontSize: statLabelFs,
                                         color: Colors.grey.shade700,
                                       ),
                                     ),
@@ -427,17 +453,16 @@ class _HomePageState extends State<HomePage> {
                     );
                   },
                 ),
-                const SizedBox(height: 24),
-
-                // Dynamic Protected Member Section
+                SizedBox(height: (short * 0.06).clamp(20.0, 28.0)),
                 FutureBuilder<List<PatientProfile>>(
                   future: _profilesFuture,
                   builder: (context, snapshot) {
                     final appState = AppState();
                     final profiles = snapshot.data ?? [];
                     if (profiles.isEmpty &&
-                        snapshot.connectionState != ConnectionState.waiting)
+                        snapshot.connectionState != ConnectionState.waiting) {
                       return const SizedBox.shrink();
+                    }
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -445,12 +470,14 @@ class _HomePageState extends State<HomePage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              appState.tr('Protected Member', 'العضو المحمي'),
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E3A8A),
+                            Flexible(
+                              child: Text(
+                                appState.tr('Protected Member', 'العضو المحمي'),
+                                style: TextStyle(
+                                  fontSize: (w * 0.045).clamp(16.0, 19.0),
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF1E3A8A),
+                                ),
                               ),
                             ),
                             TextButton(
@@ -473,7 +500,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: (short * 0.03).clamp(10.0, 14.0)),
                         if (snapshot.connectionState == ConnectionState.waiting)
                           const Center(child: CircularProgressIndicator())
                         else
@@ -484,7 +511,7 @@ class _HomePageState extends State<HomePage> {
                               entry.value,
                             );
                           }),
-                        const SizedBox(height: 24),
+                        SizedBox(height: (short * 0.06).clamp(18.0, 28.0)),
                       ],
                     );
                   },
@@ -849,12 +876,14 @@ class _HomePageState extends State<HomePage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              appState.tr('Recent Activity', 'النشاط الأخير'),
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E3A8A),
+                            Flexible(
+                              child: Text(
+                                appState.tr('Recent Activity', 'النشاط الأخير'),
+                                style: TextStyle(
+                                  fontSize: (w * 0.045).clamp(16.0, 19.0),
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF1E3A8A),
+                                ),
                               ),
                             ),
                             TextButton(
@@ -877,17 +906,14 @@ class _HomePageState extends State<HomePage> {
                         if (snapshot.connectionState == ConnectionState.waiting)
                           const Center(child: CircularProgressIndicator())
                         else if (!hasActiveDevice)
-                          _buildEmptyActivity()
+                          _buildEmptyActivity(context)
                         else
-                          _buildRealActivity(profiles),
+                          _buildRealActivity(context, profiles),
                       ],
                     );
                   },
                 ),
-                const SizedBox(height: 40),
-
-                // Padding to allow scrolling over the bottom nav bar
-                const SizedBox(height: 120),
+                SizedBox(height: (short * 0.05).clamp(16.0, 28.0)),
               ],
             ),
           ),
@@ -954,17 +980,25 @@ class _HomePageState extends State<HomePage> {
     PatientProfile profile,
   ) {
     final appState = AppState();
+    final mq = MediaQuery.of(context);
+    final w = mq.size.width;
+    final short = mq.size.shortestSide;
+    final avatarOuter = (short * 0.15).clamp(52.0, 68.0);
+    final cardPad = (short * 0.048).clamp(14.0, 22.0);
+    final nameFs = (w * 0.045).clamp(15.0, 19.0);
+    final marginB = (short * 0.04).clamp(12.0, 18.0);
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
+      margin: EdgeInsets.only(bottom: marginB),
+      padding: EdgeInsets.all(cardPad),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular((short * 0.04).clamp(14.0, 18.0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: (short * 0.025).clamp(8.0, 12.0),
+            offset: Offset(0, (short * 0.012).clamp(3.0, 6.0)),
           ),
         ],
       ),
@@ -973,31 +1007,33 @@ class _HomePageState extends State<HomePage> {
           Row(
             children: [
               Container(
-                width: 60,
-                height: 60,
+                width: avatarOuter,
+                height: avatarOuter,
                 decoration: BoxDecoration(
                   color: const Color(0xFF273469),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular((short * 0.032).clamp(10.0, 14.0)),
                 ),
                 alignment: Alignment.center,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: _buildProfileAvatar(profile),
+                  borderRadius: BorderRadius.circular((short * 0.032).clamp(10.0, 14.0)),
+                  child: _buildProfileAvatar(context, profile),
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: (w * 0.04).clamp(10.0, 18.0)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Text(
-                          profile.profileName,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E3A8A),
+                        Flexible(
+                          child: Text(
+                            profile.profileName,
+                            style: TextStyle(
+                              fontSize: nameFs,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF1E3A8A),
+                            ),
                           ),
                         ),
                         if (profile.status) ...[
@@ -1032,17 +1068,17 @@ class _HomePageState extends State<HomePage> {
               GestureDetector(
                 onTap: () => _showDeleteProfileConfirm(context, index, profile),
                 child: Container(
-                  padding: const EdgeInsets.all(6),
+                  padding: EdgeInsets.all((short * 0.016).clamp(4.0, 8.0)),
                   decoration: BoxDecoration(
                     color: Colors.red.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                  child: Icon(Icons.delete_outline, color: Colors.red, size: (short * 0.055).clamp(18.0, 24.0)),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: (short * 0.05).clamp(14.0, 22.0)),
           Row(
             children: [
               Expanded(
@@ -1130,41 +1166,43 @@ class _HomePageState extends State<HomePage> {
                     });
                   },
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: (short * 0.032).clamp(10.0, 14.0)),
                     side: const BorderSide(color: Color(0xFFF3F4F6)),
                     backgroundColor: const Color(0xFFF9FAFB),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular((short * 0.022).clamp(6.0, 10.0)),
                     ),
                   ),
                   child: Text(
                     AppState().tr('View Profile', 'عرض الملف'),
-                    style: const TextStyle(
-                      color: Color(0xFF1B64F2),
+                    style: TextStyle(
+                      fontSize: (w * 0.032).clamp(11.0, 14.0),
+                      color: const Color(0xFF1B64F2),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: (w * 0.03).clamp(8.0, 14.0)),
               Expanded(
                 child: profile.status
                     ? OutlinedButton.icon(
                         onPressed: () {},
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.check_circle,
                           color: Colors.purple,
-                          size: 18,
+                          size: (short * 0.048).clamp(16.0, 20.0),
                         ),
                         label: Text(
                           AppState().tr('Added Device', 'جهاز مضاف'),
-                          style: const TextStyle(
+                          style: TextStyle(
+                            fontSize: (w * 0.032).clamp(11.0, 14.0),
                             color: Colors.purple,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: EdgeInsets.symmetric(vertical: (short * 0.032).clamp(10.0, 14.0)),
                           side: BorderSide(
                             color: Colors.purple.withValues(alpha: 0.1),
                           ),
@@ -1172,7 +1210,7 @@ class _HomePageState extends State<HomePage> {
                             alpha: 0.05,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular((short * 0.022).clamp(6.0, 10.0)),
                           ),
                         ),
                       )
@@ -1190,7 +1228,7 @@ class _HomePageState extends State<HomePage> {
                           );
                         },
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: EdgeInsets.symmetric(vertical: (short * 0.032).clamp(10.0, 14.0)),
                           side: BorderSide(
                             color: Colors.purple.withValues(alpha: 0.1),
                           ),
@@ -1198,12 +1236,13 @@ class _HomePageState extends State<HomePage> {
                             alpha: 0.05,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular((short * 0.022).clamp(6.0, 10.0)),
                           ),
                         ),
                         child: Text(
                           AppState().tr('+ Add Device', '+ إضافة جهاز'),
-                          style: const TextStyle(
+                          style: TextStyle(
+                            fontSize: (w * 0.032).clamp(11.0, 14.0),
                             color: Colors.purple,
                             fontWeight: FontWeight.w600,
                           ),
@@ -1212,12 +1251,12 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: (short * 0.03).clamp(8.0, 14.0)),
           Row(
             children: [
               Text(
                 appState.tr('Last update: Today', 'آخر تحديث: اليوم'),
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: (w * 0.028).clamp(10.0, 12.0), color: Colors.grey.shade500),
               ),
             ],
           ),
@@ -1226,25 +1265,32 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildEmptyActivity() {
+  Widget _buildEmptyActivity(BuildContext context) {
+    final short = MediaQuery.sizeOf(context).shortestSide;
+    final vPad = (short * 0.11).clamp(28.0, 48.0);
+    final iconSz = (short * 0.1).clamp(32.0, 44.0);
+
     return DottedBorder(
       options: RoundedRectDottedBorderOptions(
         color: Colors.grey.shade300,
         strokeWidth: 1.5,
         dashPattern: const [8, 4],
-        radius: const Radius.circular(12),
+        radius: Radius.circular((short * 0.032).clamp(10.0, 14.0)),
       ),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 40),
+        padding: EdgeInsets.symmetric(vertical: vPad),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.history, size: 40, color: Colors.grey.shade400),
-            const SizedBox(height: 12),
+            Icon(Icons.history, size: iconSz, color: Colors.grey.shade400),
+            SizedBox(height: (short * 0.03).clamp(8.0, 14.0)),
             Text(
               AppState().tr('No activity yet', 'لا يوجد نشاط بعد'),
-              style: TextStyle(color: Colors.grey.shade500),
+              style: TextStyle(
+                fontSize: (MediaQuery.sizeOf(context).width * 0.034).clamp(12.0, 14.0),
+                color: Colors.grey.shade500,
+              ),
             ),
           ],
         ),
@@ -1252,12 +1298,18 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildRealActivity(List<PatientProfile> profiles) {
+  Widget _buildRealActivity(BuildContext context, List<PatientProfile> profiles) {
     final firstName = profiles.isNotEmpty ? profiles.first.profileName : '—';
     final appState = AppState();
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final bannerH = (mq.size.height * 0.19).clamp(120.0, 200.0);
+
     return Column(
       children: [
         _buildActivityRow(
+          context,
           icon: Icons.error_outline,
           color: Colors.red,
           title: appState.tr('Emergency', 'طوارئ'),
@@ -1265,8 +1317,9 @@ class _HomePageState extends State<HomePage> {
           details: firstName,
           time: '',
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: (short * 0.03).clamp(10.0, 14.0)),
         _buildActivityRow(
+          context,
           icon: Icons.location_on_outlined,
           color: Colors.green,
           title: appState.tr('Safe Zone', 'منطقة آمنة'),
@@ -1274,14 +1327,14 @@ class _HomePageState extends State<HomePage> {
           details: firstName,
           time: '',
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
         ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular((short * 0.04).clamp(14.0, 18.0)),
           child: Stack(
             children: [
               Image.asset(
                 'assets/images/home_bg.png',
-                height: 150,
+                height: bannerH,
                 width: double.infinity,
                 fit: BoxFit.cover,
               ),
@@ -1290,38 +1343,38 @@ class _HomePageState extends State<HomePage> {
                 builder: (context, _) {
                   final appState = AppState();
                   return Container(
-                    height: 150,
+                    height: bannerH,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.1),
                     ),
                     child: Center(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: (w * 0.03).clamp(10.0, 14.0),
+                          vertical: (short * 0.016).clamp(4.0, 8.0),
                         ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF1B64F2),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular((short * 0.055).clamp(16.0, 22.0)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.person_pin_circle,
                               color: Colors.white,
-                              size: 16,
+                              size: (short * 0.042).clamp(14.0, 18.0),
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
                             Text(
                               appState.tr(
                                 '1 active pin near you',
                                 'دبوس نشط واحد بالقرب منك',
                               ),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 11,
+                                fontSize: (w * 0.028).clamp(10.0, 12.0),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -1339,7 +1392,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildActivityRow({
+  Widget _buildActivityRow(
+    BuildContext context, {
     required IconData icon,
     required Color color,
     required String title,
@@ -1347,16 +1401,22 @@ class _HomePageState extends State<HomePage> {
     required String details,
     required String time,
   }) {
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final pad = (short * 0.04).clamp(12.0, 18.0);
+    final iconSz = (short * 0.055).clamp(20.0, 26.0);
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(pad),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular((short * 0.04).clamp(14.0, 18.0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            blurRadius: (short * 0.025).clamp(6.0, 12.0),
+            offset: Offset(0, (short * 0.006).clamp(1.0, 3.0)),
           ),
         ],
       ),
@@ -1364,14 +1424,14 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all((short * 0.028).clamp(8.0, 12.0)),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular((short * 0.028).clamp(8.0, 12.0)),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: color, size: iconSz),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: (w * 0.04).clamp(10.0, 18.0)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1384,31 +1444,34 @@ class _HomePageState extends State<HomePage> {
                       style: TextStyle(
                         color: color,
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: (w * 0.036).clamp(12.0, 15.0),
                       ),
                     ),
                     Text(
                       time,
                       style: TextStyle(
                         color: Colors.grey.shade400,
-                        fontSize: 11,
+                        fontSize: (w * 0.028).clamp(10.0, 12.0),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: (short * 0.01).clamp(3.0, 6.0)),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: Color(0xFF1F2937),
+                    fontSize: (w * 0.034).clamp(11.0, 14.0),
+                    color: const Color(0xFF1F2937),
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: (short * 0.006).clamp(2.0, 4.0)),
                 Text(
                   details,
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                  style: TextStyle(
+                    color: Colors.grey.shade500,
+                    fontSize: (w * 0.032).clamp(11.0, 13.0),
+                  ),
                 ),
               ],
             ),

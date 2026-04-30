@@ -135,24 +135,37 @@ class _NotificationsPageState extends State<NotificationsPage> {
   @override
   Widget build(BuildContext context) {
     final appState = AppState();
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final hPad = (w * 0.04).clamp(12.0, 20.0);
+    final listBottom = mq.viewInsets.bottom + mq.padding.bottom + (short * 0.04).clamp(12.0, 24.0);
+    final titleFs = (short * 0.048).clamp(16.0, 20.0);
+    final backIcon = (short * 0.065).clamp(22.0, 28.0);
+
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1E3A8A)),
+          icon: Icon(Icons.arrow_back, color: const Color(0xFF1E3A8A), size: backIcon),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           appState.tr('Notifications', 'الإشعارات'),
-          style: const TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.w700),
+          style: TextStyle(
+            color: const Color(0xFF1E3A8A),
+            fontWeight: FontWeight.w700,
+            fontSize: titleFs,
+          ),
         ),
         actions: [
           if (!_loading && _notifications.isNotEmpty)
             TextButton.icon(
               onPressed: _clearAllConfirmed,
-              icon: const Icon(Icons.delete_sweep_outlined, color: Color(0xFFB91C1C), size: 20),
+              icon: Icon(Icons.delete_sweep_outlined, color: const Color(0xFFB91C1C), size: (short * 0.052).clamp(18.0, 22.0)),
               label: Text(
                 appState.tr('Clear all', 'مسح الكل'),
                 style: const TextStyle(color: Color(0xFFB91C1C), fontWeight: FontWeight.w600),
@@ -166,18 +179,36 @@ class _NotificationsPageState extends State<NotificationsPage> {
               ? ((AppState().currentUser.role.toLowerCase() == 'wearer' &&
                       _pendingWearerRequests.isNotEmpty)
                   ? _buildWearerRequestsOnlyState()
-                  : Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.notifications_none, size: 64, color: Colors.grey),
-                          const SizedBox(height: 12),
-                          Text(
-                            appState.tr('No notifications yet', 'لا توجد إشعارات بعد'),
-                            style: const TextStyle(color: Colors.grey, fontSize: 16),
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        final iconEmpty = (short * 0.16).clamp(48.0, 72.0);
+                        return SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                            child: Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(horizontal: hPad, vertical: 24),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.notifications_none, size: iconEmpty, color: Colors.grey),
+                                    SizedBox(height: (short * 0.032).clamp(10.0, 14.0)),
+                                    Text(
+                                      appState.tr('No notifications yet', 'لا توجد إشعارات بعد'),
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: (short * 0.04).clamp(14.0, 17.0),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     ))
               : RefreshIndicator(
                   onRefresh: () async {
@@ -185,12 +216,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     await _loadWearerRequests();
                   },
                   child: ListView(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.fromLTRB(hPad, hPad, hPad, listBottom),
                     children: [
                       if (AppState().currentUser.role.toLowerCase() == 'wearer' &&
                           _pendingWearerRequests.isNotEmpty) ...[
                         _buildWearerRequestsSection(),
-                        const SizedBox(height: 12),
+                        SizedBox(height: (short * 0.032).clamp(10.0, 14.0)),
                       ],
                       ..._notifications.asMap().entries.map((entry) {
                         final index = entry.key;
@@ -209,24 +240,40 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         color: isRead ? Colors.white : const Color(0xFFEFF6FF),
                         child: ListTile(
                           leading: Container(
-                            width: 42, height: 42,
+                            width: (short * 0.11).clamp(38.0, 46.0),
+                            height: (short * 0.11).clamp(38.0, 46.0),
                             decoration: BoxDecoration(
                               color: const Color(0xFF1E3A8A).withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               n['type'] == 'qr_scan' ? Icons.qr_code_scanner : Icons.notifications,
-                              color: const Color(0xFF1E3A8A), size: 20,
+                              color: const Color(0xFF1E3A8A),
+                              size: (short * 0.052).clamp(18.0, 22.0),
                             ),
                           ),
-                          title: Text(n['title'] ?? '',
-                              style: TextStyle(fontWeight: isRead ? FontWeight.w500 : FontWeight.w700, fontSize: 14)),
+                          title: Text(
+                            n['title'] ?? '',
+                            style: TextStyle(
+                              fontWeight: isRead ? FontWeight.w500 : FontWeight.w700,
+                              fontSize: (short * 0.036).clamp(13.0, 15.0),
+                            ),
+                          ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(n['body'] ?? '', style: const TextStyle(fontSize: 13)),
-                              const SizedBox(height: 4),
-                              Text(timeStr, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                              Text(
+                                n['body'] ?? '',
+                                style: TextStyle(fontSize: (short * 0.034).clamp(12.0, 14.0)),
+                              ),
+                              SizedBox(height: (short * 0.01).clamp(3.0, 6.0)),
+                              Text(
+                                timeStr,
+                                style: TextStyle(
+                                  fontSize: (short * 0.028).clamp(10.0, 12.0),
+                                  color: Colors.grey,
+                                ),
+                              ),
                             ],
                           ),
                           isThreeLine: true,
@@ -246,7 +293,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                   tooltip: appState.tr('Delete', 'حذف'),
                                   constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                                   padding: EdgeInsets.zero,
-                                  icon: Icon(Icons.delete_outline, size: 20, color: Colors.grey.shade600),
+                                  icon: Icon(
+                                    Icons.delete_outline,
+                                    size: (short * 0.052).clamp(18.0, 22.0),
+                                    color: Colors.grey.shade600,
+                                  ),
                                   onPressed: () => _deleteOne(id),
                                 ),
                             ],
@@ -264,8 +315,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   Widget _buildWearerRequestsOnlyState() {
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final hPad = (w * 0.04).clamp(12.0, 20.0);
+    final bottom = mq.viewInsets.bottom + mq.padding.bottom + (short * 0.04).clamp(12.0, 24.0);
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(hPad, hPad, hPad, bottom),
       children: [_buildWearerRequestsSection()],
     );
   }

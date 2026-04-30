@@ -28,48 +28,65 @@ class _SettingsPageState extends State<SettingsPage> {
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final vPad = (short * 0.028).clamp(12.0, 20.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.12).clamp(28.0, 48.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: const Color(0xFFF7F9FC),
-          body: Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/bg.png'),
-                fit: BoxFit.cover,
-                opacity: 0.1,
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/bg.png'),
+                        fit: BoxFit.cover,
+                        opacity: 0.1,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                      child: Column(
+              SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight - mq.padding.vertical),
+                        child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Header (Logo, Profile, Lang, Notifications)
                           const HeaderWidget(),
                           
-                          const SizedBox(height: 12),
+                          SizedBox(height: (short * 0.03).clamp(10.0, 14.0)),
                           Text(
                             appState.tr('Settings', 'الإعدادات'),
-                            style: const TextStyle(
-                              fontSize: 28,
+                            style: TextStyle(
+                              fontSize: (w * 0.075).clamp(22.0, 30.0),
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF273469),
+                              color: const Color(0xFF273469),
                             ),
                           ),
                           Text(
                             appState.tr('Security & Preferences', 'الأمان والتفضيلات'),
                             style: TextStyle(
                               color: Colors.grey.shade500,
-                              fontSize: 14,
+                              fontSize: (w * 0.035).clamp(12.0, 15.0),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 32),
+                          SizedBox(height: (short * 0.07).clamp(24.0, 36.0)),
 
                           // Profile Section
                           _buildSectionLabel(appState.tr('Profile', 'الملف الشخصي')),
@@ -139,7 +156,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               trailing: Switch(
                                 value: _biometricLock,
                                 onChanged: (v) => setState(() => _biometricLock = v),
-                                activeColor: Colors.white,
+                                activeThumbColor: Colors.white,
                                 activeTrackColor: const Color(0xFF3F83F8),
                               ),
                               onTap: () {},
@@ -236,7 +253,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ),
                           ]),
 
-                          const SizedBox(height: 32),
+                          SizedBox(height: (short * 0.07).clamp(24.0, 36.0)),
                           // Logout Button
                           SizedBox(
                             width: double.infinity,
@@ -257,21 +274,22 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                               ),
                               style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                padding: EdgeInsets.symmetric(vertical: (short * 0.045).clamp(14.0, 20.0)),
                                 backgroundColor: const Color(0xFFFFF5F5),
                                 side: const BorderSide(color: Color(0xFFFED7D7)),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                               ),
                             ),
                           ),
-                          const SizedBox(height: 48),
+                          SizedBox(height: (short * 0.04).clamp(12.0, 24.0)),
                         ],
+                        ),
                       ),
-                    ),
-                  ),
-                ],
+                    );
+                  },
+                ),
               ),
-            ),
+            ],
           ),
         );
       },
@@ -279,22 +297,29 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildSectionLabel(String text) {
+    final w = MediaQuery.sizeOf(context).width;
+    final short = MediaQuery.sizeOf(context).shortestSide;
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 12, top: 8),
+      padding: EdgeInsets.only(
+        left: 4,
+        bottom: (short * 0.03).clamp(10.0, 14.0),
+        top: (short * 0.02).clamp(6.0, 10.0),
+      ),
       child: Text(
         text,
-        style: const TextStyle(
-          fontSize: 16,
+        style: TextStyle(
+          fontSize: (w * 0.04).clamp(14.0, 17.0),
           fontWeight: FontWeight.w900,
-          color: Color(0xFF273469),
+          color: const Color(0xFF273469),
         ),
       ),
     );
   }
 
   Widget _buildCardWrapper(List<Widget> children) {
+    final short = MediaQuery.sizeOf(context).shortestSide;
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: EdgeInsets.only(bottom: (short * 0.06).clamp(18.0, 28.0)),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -396,9 +421,13 @@ class LanguageSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = AppState();
+    final w = MediaQuery.sizeOf(context).width;
+    final short = MediaQuery.sizeOf(context).shortestSide;
+    final selW = (w * 0.36).clamp(120.0, 160.0);
+    final selH = (short * 0.09).clamp(30.0, 36.0);
     return Container(
-      width: 140,
-      height: 32,
+      width: selW,
+      height: selH,
       decoration: BoxDecoration(
         color: const Color(0xFFEEF2FF),
         borderRadius: BorderRadius.circular(16),

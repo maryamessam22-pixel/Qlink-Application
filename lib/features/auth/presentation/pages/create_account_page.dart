@@ -223,6 +223,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   Widget _buildPage(BuildContext context) {
     final appState = AppState();
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -240,189 +241,259 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFB81829), 
-              Color(0xFF4C3A71), 
-              Color(0xFF015196), 
+              Color(0xFFB81829),
+              Color(0xFF4C3A71),
+              Color(0xFF015196),
             ],
             stops: [0.0, 0.4, 1.0],
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 10),
-                Center(
-                  child: Image.asset(
-                    'assets/images/qlink_logo.png',
-                    height: 70,
-                    color: Colors.white,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                const SizedBox(height: 30),
-                
-                Text(
-                  appState.tr('Create Account', 'إنشاء حساب'),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontFamily: 'Century Gothic',
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  appState.tr('Starts your safety journey', 'ابدأ رحلة سلامتك'),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withValues(alpha: 0.6),
-                  ),
-                ),
-                const SizedBox(height: 30),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final mq = MediaQuery.of(context);
+              final padBottom = mq.padding.bottom + mq.viewInsets.bottom + 20.0;
+              final shortest = mq.size.shortestSide;
+              final logoH = (shortest * 0.19).clamp(52.0, 78.0);
+              final titleSize = (mq.size.width * 0.07).clamp(22.0, 30.0);
+              final subtitleSize = (mq.size.width * 0.035).clamp(12.0, 16.0);
 
-                Center(
-                  child: _buildAuthAvatar(),
-                ),
-
-                const SizedBox(height: 30),
-
-                _buildTextField(
-                  controller: _nameController,
-                  hintText: appState.tr('Full Name', 'الاسم الكامل')
-                ),
-                const SizedBox(height: 16),
-
-                _buildTextField(
-                  controller: _emailController,
-                  hintText: appState.tr('Email Address', 'عنوان البريد الإلكتروني'),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16),
-
-                _buildTextField(
-                  controller: _passwordController, // Rabatna Password
-                  hintText: appState.tr('Password', 'كلمة المرور'),
-                  obscureText: _obscurePassword,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.grey.shade400,
-                      size: 20,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(24.0, 8.0, 24.0, padBottom),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - mq.padding.vertical - 4,
                   ),
-                ),
-                const SizedBox(height: 30),
-                
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _handleSignUp,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF28365B),
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25.0),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isLoading 
-                    ? const SizedBox(
-                        height: 20, 
-                        width: 20, 
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                      )
-                    : Text(
-                        appState.tr('Create a ${widget.role} Hub', 'إنشاء حساب ${widget.role}'),
-                        style: const TextStyle(
-                          fontSize: 16,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(height: (shortest * 0.02).clamp(4.0, 12.0)),
+                      Center(
+                        child: Image.asset(
+                          'assets/images/qlink_logo.png',
+                          height: logoH,
+                          color: Colors.white,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'Qlink',
+                                style: TextStyle(
+                                  fontSize: (titleSize * 1.5).clamp(26.0, 40.0),
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(height: (shortest * 0.055).clamp(18.0, 32.0)),
+                      Text(
+                        appState.tr('Create Account', 'إنشاء حساب'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Century Gothic',
+                          fontSize: titleSize,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
-                ),
-                const SizedBox(height: 40),
-                
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.8), thickness: 1)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text(appState.tr('OR', 'أو'), style: TextStyle(color: Colors.white.withValues(alpha: 0.8))),
-                    ),
-                    Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.8), thickness: 1)),
-                  ],
-                ),
-                const SizedBox(height: 30),
-                
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildSocialButton(
-                      iconWidget: Image.asset('assets/icons/fb2.png', width: 35, height: 35),
-                      backgroundColor: Colors.transparent,
-                      borderColor: Colors.white,
-                      onTap: () {},
-                    ),
-                    const SizedBox(width: 20),
-                    _buildSocialButton(
-                      iconWidget: Image.asset('assets/icons/google2.png', width: 32, height: 32),
-                      backgroundColor: Colors.transparent,
-                      borderColor: Colors.white,
-                      onTap: () {},
-                    ),
-                    const SizedBox(width: 20),
-                    _buildSocialButton(
-                      iconWidget: Image.asset('assets/icons/apple2.png', width: 32, height: 30),
-                      backgroundColor: Colors.transparent,
-                      borderColor: Colors.white,
-                      onTap: () {},
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 40),
-                
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      appState.tr('Already have an account ? ', 'هل لديك حساب بالفعل؟ '),
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => SignInPage(role: widget.role)),
-                        );
-                      },
-                      child: Text(
-                        appState.tr('Sign In', 'تسجيل الدخول'),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                      SizedBox(height: (shortest * 0.015).clamp(6.0, 10.0)),
+                      Text(
+                        appState.tr('Starts your safety journey', 'ابدأ رحلة سلامتك'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: subtitleSize,
+                          color: Colors.white.withValues(alpha: 0.6),
                         ),
                       ),
-                    ),
-                  ],
+                      SizedBox(height: (shortest * 0.055).clamp(18.0, 32.0)),
+                      Center(
+                        child: _buildAuthAvatar(context),
+                      ),
+                      SizedBox(height: (shortest * 0.055).clamp(18.0, 32.0)),
+                      _buildTextField(
+                        controller: _nameController,
+                        hintText: appState.tr('Full Name', 'الاسم الكامل'),
+                      ),
+                      SizedBox(height: (shortest * 0.038).clamp(12.0, 20.0)),
+                      _buildTextField(
+                        controller: _emailController,
+                        hintText: appState.tr('Email Address', 'عنوان البريد الإلكتروني'),
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      SizedBox(height: (shortest * 0.038).clamp(12.0, 20.0)),
+                      _buildTextField(
+                        controller: _passwordController,
+                        hintText: appState.tr('Password', 'كلمة المرور'),
+                        obscureText: _obscurePassword,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            color: Colors.grey.shade400,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                      ),
+                      SizedBox(height: (shortest * 0.055).clamp(20.0, 32.0)),
+                      ElevatedButton(
+                        onPressed: _isLoading ? null : _handleSignUp,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF28365B),
+                          padding: EdgeInsets.symmetric(
+                            vertical: (shortest * 0.038).clamp(14.0, 18.0),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25.0),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  appState.tr(
+                                    'Create a ${widget.role} Hub',
+                                    'إنشاء حساب ${widget.role}',
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  style: TextStyle(
+                                    fontSize: (mq.size.width * 0.04).clamp(14.0, 17.0),
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                      ),
+                      SizedBox(height: (shortest * 0.065).clamp(24.0, 40.0)),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Divider(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              thickness: 1,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Text(
+                              appState.tr('OR', 'أو'),
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
+                            ),
+                          ),
+                          Expanded(
+                            child: Divider(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              thickness: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: (shortest * 0.055).clamp(20.0, 32.0)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildSocialButton(
+                            context,
+                            iconWidget: Image.asset(
+                              'assets/icons/fb2.png',
+                              width: (shortest * 0.09).clamp(28.0, 38.0),
+                              height: (shortest * 0.09).clamp(28.0, 38.0),
+                            ),
+                            backgroundColor: Colors.transparent,
+                            borderColor: Colors.white,
+                            onTap: () {},
+                          ),
+                          SizedBox(width: (shortest * 0.045).clamp(12.0, 22.0)),
+                          _buildSocialButton(
+                            context,
+                            iconWidget: Image.asset(
+                              'assets/icons/google2.png',
+                              width: (shortest * 0.085).clamp(26.0, 36.0),
+                              height: (shortest * 0.085).clamp(26.0, 36.0),
+                            ),
+                            backgroundColor: Colors.transparent,
+                            borderColor: Colors.white,
+                            onTap: () {},
+                          ),
+                          SizedBox(width: (shortest * 0.045).clamp(12.0, 22.0)),
+                          _buildSocialButton(
+                            context,
+                            iconWidget: Image.asset(
+                              'assets/icons/apple2.png',
+                              width: (shortest * 0.085).clamp(26.0, 36.0),
+                              height: (shortest * 0.08).clamp(24.0, 34.0),
+                            ),
+                            backgroundColor: Colors.transparent,
+                            borderColor: Colors.white,
+                            onTap: () {},
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: (shortest * 0.065).clamp(24.0, 40.0)),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 4,
+                        runSpacing: 8,
+                        children: [
+                          Text(
+                            appState.tr('Already have an account ? ', 'هل لديك حساب بالفعل؟ '),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => SignInPage(role: widget.role),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              appState.tr('Sign In', 'تسجيل الدخول'),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: (shortest * 0.04).clamp(12.0, 24.0)),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 20),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),
     );
   }
 
-  Widget _buildAuthAvatar() {
+  Widget _buildAuthAvatar(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    final avatarSize = (mq.size.shortestSide * 0.26).clamp(80.0, 112.0);
+    final iconPerson = (avatarSize * 0.52).clamp(36.0, 54.0);
+
     Widget avatarChild;
     if (_selectedAvatarPath != null && _selectedAvatarPath!.isNotEmpty) {
       if (_selectedAvatarPath!.startsWith('http') || _selectedAvatarPath!.startsWith('blob:')) {
@@ -432,19 +503,20 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       } else if (!kIsWeb) {
         avatarChild = Image.file(File(_selectedAvatarPath!), fit: BoxFit.cover);
       } else {
-        avatarChild = const Icon(Icons.person, size: 52, color: Colors.white);
+        avatarChild = Icon(Icons.person, size: iconPerson, color: Colors.white);
       }
     } else {
-      avatarChild = const Icon(Icons.person, size: 52, color: Colors.white);
+      avatarChild = Icon(Icons.person, size: iconPerson, color: Colors.white);
     }
 
     return GestureDetector(
       onTap: _pickAvatar,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           Container(
-            width: 100,
-            height: 100,
+            width: avatarSize,
+            height: avatarSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white.withValues(alpha: 0.2),
@@ -456,12 +528,16 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             bottom: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all((avatarSize * 0.08).clamp(6.0, 10.0)),
               decoration: const BoxDecoration(
                 color: Color(0xFF28365B),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+              child: Icon(
+                Icons.camera_alt,
+                color: Colors.white,
+                size: (avatarSize * 0.2).clamp(16.0, 22.0),
+              ),
             ),
           ),
         ],
@@ -497,7 +573,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     );
   }
 
-  Widget _buildSocialButton({
+  Widget _buildSocialButton(
+    BuildContext context, {
     IconData? icon,
     Widget? iconWidget,
     Color? iconColor,
@@ -505,18 +582,19 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     Color? borderColor,
     required VoidCallback onTap,
   }) {
+    final d = (MediaQuery.sizeOf(context).shortestSide * 0.13).clamp(44.0, 56.0);
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 50,
-        height: 50,
+        width: d,
+        height: d,
         decoration: BoxDecoration(
           color: backgroundColor,
           shape: BoxShape.circle,
           border: borderColor != null ? Border.all(color: borderColor, width: 1.5) : null,
         ),
         child: Center(
-          child: iconWidget ?? Icon(icon, color: iconColor, size: 30),
+          child: iconWidget ?? Icon(icon, color: iconColor, size: d * 0.62),
         ),
       ),
     );

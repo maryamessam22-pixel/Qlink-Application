@@ -10,36 +10,57 @@ class HelpCenterPage extends StatelessWidget {
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.06).clamp(16.0, 28.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: const Color(0xFFF7F9FC),
-          body: Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/bg.png'),
-                fit: BoxFit.cover,
-                opacity: 0.1,
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/bg.png'),
+                        fit: BoxFit.cover,
+                        opacity: 0.1,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+              SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: (w * 0.035).clamp(8.0, 16.0),
+                      vertical: (short * 0.012).clamp(6.0, 10.0),
+                    ),
                     child: Row(
                       children: [
                         IconButton(
                           onPressed: () => Navigator.pop(context),
                           icon: const Icon(Icons.arrow_back, color: Color(0xFF273469)),
                         ),
-                        Text(
-                          appState.tr('Help Center', 'مركز المساعدة'),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF273469),
+                        Expanded(
+                          child: Text(
+                            appState.tr('Help Center', 'مركز المساعدة'),
+                            style: TextStyle(
+                              fontSize: (w * 0.05).clamp(17.0, 22.0),
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF273469),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -48,33 +69,38 @@ class HelpCenterPage extends StatelessWidget {
                   const Divider(color: Color(0xFFF3F4F6), thickness: 1),
                   Expanded(
                     child: ListView(
-                      padding: const EdgeInsets.all(24),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(hPad, (short * 0.02).clamp(8.0, 16.0), hPad, bottomPad),
                       children: [
                         Text(
                           appState.tr('Common questions', 'الأسئلة الشائعة'),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Color(0xFF273469),
+                          style: TextStyle(
+                            fontSize: (w * 0.04).clamp(14.0, 17.0),
+                            color: const Color(0xFF273469),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                         _buildFaqItem(
+                          context,
                           appState.tr('How do I pair my bracelet?', 'كيف يمكنني ربط سواري؟'),
                           appState.tr('Step-by-step pairing guide', 'دليل الربط خطوة بخطوة'),
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: (short * 0.03).clamp(10.0, 14.0)),
                         _buildFaqItem(
+                          context,
                           appState.tr('How to add a new medical profile?', 'كيف أضيف ملف طبي جديد؟'),
                           appState.tr('Learn how to add family members', 'تعرف على كيفية إضافة أفراد العائلة'),
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: (short * 0.03).clamp(10.0, 14.0)),
                         _buildFaqItem(
+                          context,
                           appState.tr('Who can see my QR data?', 'من يمكنه رؤية بيانات الـ QR الخاصة بي؟'),
                           appState.tr('Understanding privacy and access', 'فهم الخصوصية وصلاحيات الوصول'),
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: (short * 0.03).clamp(10.0, 14.0)),
                         _buildFaqItem(
+                          context,
                           appState.tr('What happens in an emergency?', 'ماذا يحدث في حالات الطوارئ؟'),
                           appState.tr('How alerts and notifications work', 'كيف تعمل التنبيهات والإشعارات'),
                         ),
@@ -84,15 +110,19 @@ class HelpCenterPage extends StatelessWidget {
                 ],
               ),
             ),
+            ],
           ),
         );
       },
     );
   }
 
-  Widget _buildFaqItem(String title, String subtitle) {
+  Widget _buildFaqItem(BuildContext context, String title, String subtitle) {
+    final short = MediaQuery.sizeOf(context).shortestSide;
+    final w = MediaQuery.sizeOf(context).width;
+    final pad = (short * 0.055).clamp(16.0, 26.0);
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(pad),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -109,18 +139,18 @@ class HelpCenterPage extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 17,
+            style: TextStyle(
+              fontSize: (w * 0.042).clamp(14.0, 18.0),
               fontWeight: FontWeight.bold,
-              color: Color(0xFF273469),
+              color: const Color(0xFF273469),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
           Text(
             subtitle,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF94A3B8),
+            style: TextStyle(
+              fontSize: (w * 0.035).clamp(12.0, 15.0),
+              color: const Color(0xFF94A3B8),
             ),
           ),
         ],

@@ -20,7 +20,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _nameController;
   final ImagePicker _picker = ImagePicker();
   Uint8List? _selectedAvatarBytes;
-  String? _selectedAvatarPath;
   bool _isSaving = false;
 
   @override
@@ -41,7 +40,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (image != null) {
         final bytes = await image.readAsBytes();
         setState(() {
-          _selectedAvatarPath = image.path;
           _selectedAvatarBytes = bytes;
         });
         AppState().updateCurrentUser(imagePath: image.path);
@@ -75,7 +73,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (userId != null) {
         await SupabaseService().client.from('profiles').update({
           'full_name': _nameController.text.trim(),
-          if (avatarUrl != null && avatarUrl.isNotEmpty) 'avatar_url': avatarUrl,
+          if (avatarUrl.isNotEmpty) 'avatar_url': avatarUrl,
         }).eq('id', userId);
       }
 
@@ -108,36 +106,57 @@ class _EditProfilePageState extends State<EditProfilePage> {
         final appState = AppState();
         final user = appState.currentUser;
 
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.08).clamp(20.0, 36.0);
+        final avatarD = (short * 0.30).clamp(100.0, 132.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: const Color(0xFFF7F9FC),
-          body: Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/bg.png'),
-                fit: BoxFit.cover,
-                opacity: 0.05,
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/bg.png'),
+                        fit: BoxFit.cover,
+                        opacity: 0.05,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  // Custom App Bar
+              SafeArea(
+                child: Column(
+                  children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: (w * 0.035).clamp(8.0, 16.0),
+                      vertical: (short * 0.012).clamp(6.0, 10.0),
+                    ),
                     child: Row(
                       children: [
                         IconButton(
                           onPressed: () => Navigator.pop(context),
                           icon: const Icon(Icons.arrow_back, color: Color(0xFF273469)),
                         ),
-                        Text(
-                          appState.tr('Edit Profile', 'تعديل الملف الشخصي'),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF273469),
+                        Expanded(
+                          child: Text(
+                            appState.tr('Edit Profile', 'تعديل الملف الشخصي'),
+                            style: TextStyle(
+                              fontSize: (w * 0.05).clamp(17.0, 22.0),
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF273469),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -146,17 +165,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   const Divider(color: Color(0xFFF3F4F6), thickness: 1),
 
                   Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: EdgeInsets.fromLTRB(hPad, (short * 0.02).clamp(8.0, 16.0), hPad, bottomPad),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                            child: Column(
                         children: [
                           // Profile Image with Camera Icon
                           Center(
                             child: Stack(
                               children: [
                                 Container(
-                                  width: 120,
-                                  height: 120,
+                                  width: avatarD,
+                                  height: avatarD,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(color: Colors.white, width: 4),
@@ -178,24 +202,33 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   child: GestureDetector(
                                     onTap: _pickImage,
                                     child: Container(
-                                      padding: const EdgeInsets.all(8),
+                                      padding: EdgeInsets.all((short * 0.02).clamp(6.0, 10.0)),
                                       decoration: const BoxDecoration(
                                         color: Color(0xFF1B64F2),
                                         shape: BoxShape.circle,
                                       ),
-                                      child: const Icon(LucideIcons.camera, color: Colors.white, size: 20),
+                                      child: Icon(
+                                        LucideIcons.camera,
+                                        color: Colors.white,
+                                        size: (short * 0.05).clamp(18.0, 22.0),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: (short * 0.035).clamp(12.0, 18.0)),
                           Text(
                             '${appState.tr('Current Role', 'الدور الحالي')}: ${appState.tr(user.role, user.role == 'Guardian' ? 'وصي' : 'مرتدي')}',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF273469)),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: (w * 0.04).clamp(14.0, 17.0),
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF273469),
+                            ),
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                             decoration: BoxDecoration(
@@ -207,14 +240,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               style: const TextStyle(color: Color(0xFF1B64F2), fontWeight: FontWeight.bold, fontSize: 12),
                             ),
                           ),
-                          const SizedBox(height: 32),
+                          SizedBox(height: (short * 0.07).clamp(24.0, 36.0)),
 
                           // Form Fields
                           _buildTextField(
                             label: appState.tr('Full Name', 'الاسم بالكامل'),
                             controller: _nameController,
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: (short * 0.045).clamp(14.0, 22.0)),
                           _buildNavigationField(
                             label: appState.tr('Password', 'كلمة المرور'),
                             value: '********',
@@ -225,7 +258,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               );
                             },
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: (short * 0.045).clamp(14.0, 22.0)),
                           _buildNavigationField(
                             label: appState.tr('Email Address', 'البريد الإلكتروني'),
                             value: user.email,
@@ -236,7 +269,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               );
                             },
                           ),
-                          const SizedBox(height: 48),
+                          SizedBox(height: (short * 0.09).clamp(32.0, 52.0)),
 
                           // Save Button
                           SizedBox(
@@ -246,29 +279,36 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1B64F2),
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                padding: EdgeInsets.symmetric(vertical: (short * 0.045).clamp(14.0, 20.0)),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                                 elevation: 0,
                               ),
                               child: _isSaving
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  ? SizedBox(
+                                      height: (short * 0.055).clamp(18.0, 24.0),
+                                      width: (short * 0.055).clamp(18.0, 24.0),
+                                      child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                                     )
                                   : Text(
                                       appState.tr('Save Changes', 'حفظ التغييرات'),
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: (w * 0.04).clamp(14.0, 17.0),
+                                      ),
                                     ),
                             ),
                           ),
                         ],
-                      ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
               ),
             ),
+            ],
           ),
         );
       },

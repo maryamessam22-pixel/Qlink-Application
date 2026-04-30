@@ -33,36 +33,57 @@ class _SwitchRolePageState extends State<SwitchRolePage> {
         final appState = AppState();
         final currentRole = appState.currentUser.role;
 
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.08).clamp(20.0, 36.0);
+        final toggleH = (short * 0.14).clamp(46.0, 56.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: const Color(0xFFF7F9FC),
-          body: Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/bg.png'),
-                fit: BoxFit.cover,
-                opacity: 0.05,
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/bg.png'),
+                        fit: BoxFit.cover,
+                        opacity: 0.05,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                   // Custom App Bar
+              SafeArea(
+                child: Column(
+                  children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: (w * 0.035).clamp(8.0, 16.0),
+                      vertical: (short * 0.012).clamp(6.0, 10.0),
+                    ),
                     child: Row(
                       children: [
                         IconButton(
                           onPressed: () => Navigator.pop(context),
                           icon: const Icon(Icons.arrow_back, color: Color(0xFF273469)),
                         ),
-                        Text(
-                          appState.tr('Switch Role', 'تبديل الدور'),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF273469),
+                        Expanded(
+                          child: Text(
+                            appState.tr('Switch Role', 'تبديل الدور'),
+                            style: TextStyle(
+                              fontSize: (w * 0.05).clamp(17.0, 22.0),
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF273469),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -71,14 +92,19 @@ class _SwitchRolePageState extends State<SwitchRolePage> {
                   const Divider(color: Color(0xFFF3F4F6), thickness: 1),
 
                   Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: EdgeInsets.fromLTRB(hPad, (short * 0.02).clamp(8.0, 16.0), hPad, bottomPad),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                            child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Current Role Card
                           Container(
-                            padding: const EdgeInsets.all(20),
+                            padding: EdgeInsets.all((short * 0.05).clamp(14.0, 22.0)),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
@@ -87,14 +113,18 @@ class _SwitchRolePageState extends State<SwitchRolePage> {
                             child: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(12),
+                                  padding: EdgeInsets.all((short * 0.03).clamp(8.0, 14.0)),
                                   decoration: const BoxDecoration(
                                     color: Color(0xFFEEF2FF),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(LucideIcons.shield, color: Color(0xFF1B64F2), size: 24),
+                                  child: Icon(
+                                    LucideIcons.shield,
+                                    color: const Color(0xFF1B64F2),
+                                    size: (short * 0.06).clamp(20.0, 28.0),
+                                  ),
                                 ),
-                                const SizedBox(width: 16),
+                                SizedBox(width: (w * 0.04).clamp(10.0, 18.0)),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,21 +155,28 @@ class _SwitchRolePageState extends State<SwitchRolePage> {
                             ),
                           ),
 
-                          const SizedBox(height: 32),
+                          SizedBox(height: (short * 0.07).clamp(24.0, 36.0)),
                           Text(
                             appState.tr('Select Active Mode', 'اختر الوضع النشط'),
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF273469)),
+                            style: TextStyle(
+                              fontSize: (w * 0.045).clamp(16.0, 19.0),
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF273469),
+                            ),
                           ),
                           Text(
                             appState.tr('Choose how you want to interact with Qlink.', 'اختر كيف تريد التفاعل مع Qlink.'),
-                            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+                            style: TextStyle(
+                              fontSize: (w * 0.035).clamp(12.0, 15.0),
+                              color: Colors.grey.shade500,
+                            ),
                           ),
                           
-                          const SizedBox(height: 24),
+                          SizedBox(height: (short * 0.055).clamp(18.0, 28.0)),
                           // Segmented Toggle
                           Container(
-                            height: 50,
-                            padding: const EdgeInsets.all(4),
+                            height: toggleH,
+                            padding: EdgeInsets.all((short * 0.012).clamp(3.0, 6.0)),
                             decoration: BoxDecoration(
                               color: const Color(0xFFEEF2FF),
                               borderRadius: BorderRadius.circular(25),
@@ -152,7 +189,7 @@ class _SwitchRolePageState extends State<SwitchRolePage> {
                             ),
                           ),
 
-                          const SizedBox(height: 24),
+                          SizedBox(height: (short * 0.055).clamp(18.0, 28.0)),
                           // Mode Cards
                           _buildModeCard(
                             role: 'Guardian',
@@ -160,7 +197,7 @@ class _SwitchRolePageState extends State<SwitchRolePage> {
                             description: appState.tr('Manage and monitor your connected profiles.', 'إدارة ومراقبة ملفاتك الشخصية المتصلة.'),
                             icon: Icons.people_outline,
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                           _buildModeCard(
                             role: 'Wearer',
                             title: appState.tr('Wearer Mode', 'وضع المرتدي'),
@@ -168,10 +205,10 @@ class _SwitchRolePageState extends State<SwitchRolePage> {
                             icon: Icons.person_outline,
                           ),
 
-                          const SizedBox(height: 24),
+                          SizedBox(height: (short * 0.055).clamp(18.0, 28.0)),
                           // Info Box
                           Container(
-                            padding: const EdgeInsets.all(20),
+                            padding: EdgeInsets.all((short * 0.05).clamp(14.0, 22.0)),
                             decoration: BoxDecoration(
                               color: const Color(0xFFEEF2FF),
                               borderRadius: BorderRadius.circular(16),
@@ -182,11 +219,15 @@ class _SwitchRolePageState extends State<SwitchRolePage> {
                                 'يمكنك تبديل الأدوار في أي وقت من الإعدادات. سيؤدي انتقال الأوضاع إلى تحديث لوحة التحكم وتفضيلات الإشعارات.'
                               ),
                               textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 13, color: Color(0xFF273469), height: 1.5),
+                              style: TextStyle(
+                                fontSize: (w * 0.034).clamp(12.0, 14.0),
+                                color: const Color(0xFF273469),
+                                height: 1.5,
+                              ),
                             ),
                           ),
 
-                          const SizedBox(height: 32),
+                          SizedBox(height: (short * 0.07).clamp(24.0, 36.0)),
                           // Confirm Button
                           SizedBox(
                             width: double.infinity,
@@ -214,29 +255,36 @@ class _SwitchRolePageState extends State<SwitchRolePage> {
                                   (route) => false,
                                 );
                               },
-                              icon: const Icon(LucideIcons.repeat, size: 18),
+                              icon: Icon(LucideIcons.repeat, size: (short * 0.045).clamp(16.0, 20.0)),
                               label: Text(
                                 appState.tr('Confirm Switch', 'تأكيد التبديل'),
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: (w * 0.04).clamp(14.0, 17.0),
+                                ),
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1B64F2),
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                padding: EdgeInsets.symmetric(vertical: (short * 0.045).clamp(14.0, 20.0)),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                                 elevation: 0,
                               ),
                              
                             ),
                           ),
-                          const SizedBox(height: 48),
+                          SizedBox(height: (short * 0.04).clamp(12.0, 24.0)),
                         ],
-                      ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
               ),
             ),
+            ],
           ),
         );
       },

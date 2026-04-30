@@ -243,45 +243,64 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
     return AnimatedBuilder(
       animation: AppState(),
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final vPad = (short * 0.028).clamp(12.0, 20.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.26).clamp(80.0, 112.0);
+        final gapL = (short * 0.055).clamp(18.0, 28.0);
+        final gapM = (short * 0.045).clamp(14.0, 22.0);
+        final gapS = (short * 0.02).clamp(6.0, 10.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
           extendBody: true,
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
-                vertical: 16.0,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildAppBar(),
-                  const SizedBox(height: 24),
-                  _buildBackButton(),
-                  const SizedBox(height: 20),
-                  _buildTitle(),
-                  const SizedBox(height: 16),
-                  _buildProgressBar(),
-                  const SizedBox(height: 8),
-                  _buildStepLabel(),
-                  const SizedBox(height: 24),
-                  const Divider(
-                    color: Color(0xFFE5E7EB),
-                    thickness: 1,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - mq.padding.vertical,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildAppBar(),
+                        SizedBox(height: gapL),
+                        _buildBackButton(),
+                        SizedBox(height: gapM),
+                        _buildTitle(),
+                        SizedBox(height: gapS + 8),
+                        _buildProgressBar(),
+                        SizedBox(height: gapS),
+                        _buildStepLabel(),
+                        SizedBox(height: gapL),
+                        const Divider(
+                          color: Color(0xFFE5E7EB),
+                          thickness: 1,
+                        ),
+                        SizedBox(height: gapL),
+                        _buildInfoCard(),
+                        SizedBox(height: (short * 0.06).clamp(22.0, 32.0)),
+                        _buildDeviceTypeDropdown(),
+                        SizedBox(height: gapL),
+                        _buildCodeField(),
+                        SizedBox(height: (short * 0.08).clamp(28.0, 40.0)),
+                        _buildConnectButton(),
+                        SizedBox(height: (short * 0.032).clamp(12.0, 18.0)),
+                        _buildSkipButton(),
+                        SizedBox(height: (short * 0.03).clamp(8.0, 16.0)),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 24),
-                  _buildInfoCard(),
-                  const SizedBox(height: 28),
-                  _buildDeviceTypeDropdown(),
-                  const SizedBox(height: 24),
-                  _buildCodeField(),
-                  const SizedBox(height: 36),
-                  _buildConnectButton(),
-                  const SizedBox(height: 14),
-                  _buildSkipButton(),
-                  const SizedBox(height: 120),
-                ],
-              ),
+                );
+              },
             ),
           ),
           bottomNavigationBar: const BottomNavWidget(),
@@ -291,32 +310,40 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   }
 
   Widget _buildAppBar() {
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final avR = (short * 0.042).clamp(14.0, 18.0);
+    final notif = (short * 0.068).clamp(24.0, 30.0);
+    final dot = (short * 0.028).clamp(8.0, 11.0);
+
     return Row(
       children: [
-        VideoLogoWidget(),
-        const SizedBox(width: 8),
+        const VideoLogoWidget(),
+        SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
         CircleAvatar(
-          radius: 16,
+          radius: avR,
           backgroundColor: const Color(0xFFE6F0FE),
           backgroundImage: getUserAvatarProvider(AppState().currentUser.imagePath),
           onBackgroundImageError: (_, __) {},
         ),
         const Spacer(),
         const LanguageToggle(),
-        const SizedBox(width: 16),
+        SizedBox(width: (w * 0.04).clamp(10.0, 18.0)),
         Stack(
+          clipBehavior: Clip.none,
           children: [
-            const Icon(
+            Icon(
               Icons.notifications_none,
-              color: Color(0xFF1E3A8A),
-              size: 28,
+              color: const Color(0xFF1E3A8A),
+              size: notif,
             ),
             Positioned(
-              right: 2,
-              top: 2,
+              right: 0,
+              top: 0,
               child: Container(
-                width: 10,
-                height: 10,
+                width: dot,
+                height: dot,
                 decoration: const BoxDecoration(
                   color: Colors.red,
                   shape: BoxShape.circle,
@@ -330,6 +357,8 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   }
 
   Widget _buildBackButton() {
+    final w = MediaQuery.sizeOf(context).width;
+    final short = MediaQuery.sizeOf(context).shortestSide;
     return GestureDetector(
       onTap: () => Navigator.pop(context),
       child: Row(
@@ -337,13 +366,13 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           Icon(
             Icons.arrow_back,
             color: Colors.grey.shade500,
-            size: 20,
+            size: (short * 0.052).clamp(18.0, 22.0),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
           Text(
             AppState().tr('Back', 'رجوع'),
             style: TextStyle(
-              fontSize: 16,
+              fontSize: (w * 0.04).clamp(14.0, 17.0),
               color: Colors.grey.shade500,
               fontWeight: FontWeight.w500,
             ),
@@ -354,12 +383,13 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   }
 
   Widget _buildTitle() {
+    final w = MediaQuery.sizeOf(context).width;
     return Text(
       AppState().tr('Connect Device', 'توصيل جهاز'),
-      style: const TextStyle(
-        fontSize: 22,
+      style: TextStyle(
+        fontSize: (w * 0.055).clamp(18.0, 24.0),
         fontWeight: FontWeight.w800,
-        color: Color(0xFF1E3A8A),
+        color: const Color(0xFF1E3A8A),
       ),
     );
   }
@@ -401,10 +431,11 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   }
 
   Widget _buildStepLabel() {
+    final w = MediaQuery.sizeOf(context).width;
     return Text(
       AppState().tr('Step 3 of 3: Hardware Link', 'الخطوة 3 من 3: ربط الأجهزة'),
       style: TextStyle(
-        fontSize: 16,
+        fontSize: (w * 0.04).clamp(14.0, 17.0),
         color: Colors.grey.shade600,
         fontWeight: FontWeight.w500,
       ),
@@ -412,8 +443,10 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   }
 
   Widget _buildInfoCard() {
+    final short = MediaQuery.sizeOf(context).shortestSide;
+    final pad = (short * 0.05).clamp(14.0, 22.0);
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(pad),
       decoration: BoxDecoration(
         color: const Color(0xFFF0FFF4),
         borderRadius: BorderRadius.circular(14),
@@ -428,7 +461,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           'ابحث عن بطاقة التفعيل داخل صندوق سوار كيولينك الخاص بك. أدخل البيانات لربط هذا الجهاز بملف المريض.'
         ),
         style: TextStyle(
-          fontSize: 14,
+          fontSize: (MediaQuery.sizeOf(context).width * 0.035).clamp(12.0, 15.0),
           color: Colors.grey.shade700,
           height: 1.6,
         ),
@@ -437,21 +470,24 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   }
 
   Widget _buildDeviceTypeDropdown() {
+    final short = MediaQuery.sizeOf(context).shortestSide;
+    final w = MediaQuery.sizeOf(context).width;
+    final h = (short * 0.135).clamp(48.0, 58.0);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           AppState().tr('Device Type', 'نوع الجهاز'),
-          style: const TextStyle(
-            fontSize: 14,
+          style: TextStyle(
+            fontSize: (w * 0.036).clamp(12.0, 15.0),
             fontWeight: FontWeight.w700,
-            color: Color(0xFF1E3A8A),
+            color: const Color(0xFF1E3A8A),
           ),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: (short * 0.024).clamp(8.0, 12.0)),
         Container(
-          height: 54,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          height: h,
+          padding: EdgeInsets.symmetric(horizontal: (w * 0.04).clamp(12.0, 18.0)),
           decoration: BoxDecoration(
             color: const Color(0xFFF9FAFB),
             borderRadius: BorderRadius.circular(12),
@@ -658,39 +694,55 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           }
         },
         borderRadius: BorderRadius.circular(27),
-        child: Container(
-          width: double.infinity,
-          height: 54,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF0066CC), Color(0xFF273469)],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            borderRadius: BorderRadius.circular(27),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF0066CC).withValues(alpha:0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _isLoading 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text(
-                    AppState().tr('Connect the Bracelet', 'توصيل السوار'),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final short = MediaQuery.sizeOf(context).shortestSide;
+            final w = MediaQuery.sizeOf(context).width;
+            final btnH = (short * 0.135).clamp(48.0, 58.0);
+            return Container(
+              width: double.infinity,
+              height: btnH,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0066CC), Color(0xFF273469)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(btnH * 0.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF0066CC).withValues(alpha:0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
-            ],
-          ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _isLoading
+                      ? SizedBox(
+                          width: (short * 0.055).clamp(18.0, 24.0),
+                          height: (short * 0.055).clamp(18.0, 24.0),
+                          child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : Flexible(
+                          child: Text(
+                            AppState().tr('Connect the Bracelet', 'توصيل السوار'),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: (w * 0.04).clamp(14.0, 17.0),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -707,32 +759,48 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
            Navigator.pop(context); 
         }
       },
-      child: Container(
-        width: double.infinity,
-        height: 54,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(27),
-          border: Border.all(
-            color: const Color(0xFFEF4444),
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _isLoading 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Color(0xFFEF4444), strokeWidth: 2))
-                : Text(
-                AppState().tr('Skip this step for now', 'تخطي هذه الخطوة الآن'),
-                style: const TextStyle(
-                  color: Color(0xFFEF4444),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final short = MediaQuery.sizeOf(context).shortestSide;
+          final w = MediaQuery.sizeOf(context).width;
+          final btnH = (short * 0.135).clamp(48.0, 58.0);
+          return Container(
+            width: double.infinity,
+            height: btnH,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(btnH * 0.5),
+              border: Border.all(
+                color: const Color(0xFFEF4444),
+                width: 1.5,
               ),
-          ],
-        ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _isLoading
+                    ? SizedBox(
+                        width: (short * 0.055).clamp(18.0, 24.0),
+                        height: (short * 0.055).clamp(18.0, 24.0),
+                        child: const CircularProgressIndicator(color: Color(0xFFEF4444), strokeWidth: 2),
+                      )
+                    : Flexible(
+                        child: Text(
+                          AppState().tr('Skip this step for now', 'تخطي هذه الخطوة الآن'),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: const Color(0xFFEF4444),
+                            fontSize: (w * 0.04).clamp(14.0, 17.0),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

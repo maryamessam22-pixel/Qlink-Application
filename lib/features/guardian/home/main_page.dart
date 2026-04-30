@@ -26,6 +26,7 @@ class MainPage extends StatelessWidget {
         final currentIndex = appState.currentGuardianIndex;
         
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           extendBody: true, // Important for floating nav bar
           body: _pages[currentIndex],
           bottomNavigationBar: const BottomNavWidget(),

@@ -31,12 +31,17 @@ class _VideoLogoWidgetState extends State<VideoLogoWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final short = MediaQuery.sizeOf(context).shortestSide;
+    final side = (short * 0.082).clamp(28.0, 40.0);
+    final radius = (side * 0.28).clamp(6.0, 10.0);
+    final loader = (side * 0.45).clamp(14.0, 20.0);
+
     return Container(
-      width: 32,
-      height: 32,
+      width: side,
+      height: side,
       decoration: BoxDecoration(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(radius),
       ),
       clipBehavior: Clip.hardEdge,
       child: _controller.value.isInitialized
@@ -48,11 +53,14 @@ class _VideoLogoWidgetState extends State<VideoLogoWidget> {
                 child: VideoPlayer(_controller),
               ),
             )
-          : const Center(
+          : Center(
               child: SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1E3A8A)),
+                width: loader,
+                height: loader,
+                child: const CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Color(0xFF1E3A8A),
+                ),
               ),
             ),
     );

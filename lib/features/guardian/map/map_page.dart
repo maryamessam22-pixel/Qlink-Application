@@ -71,17 +71,17 @@ class _MapPageState extends State<MapPage> {
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
-        final isArabic = appState.isArabic;
 
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
           body: Stack(
             children: [
-              _buildRealMap(isArabic),
-              _buildTopSection(isArabic, appState),
-              _buildGeofencingChip(isArabic, appState),
-              _buildNavigationButton(),
-              _buildMapControls(),
+              _buildRealMap(context),
+              _buildTopSection(context, appState),
+              _buildGeofencingChip(context, appState),
+              _buildNavigationButton(context),
+              _buildMapControls(context),
             ],
           ),
         );
@@ -89,9 +89,25 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Widget _buildRealMap(bool isArabic) {
+  Widget _buildRealMap(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final mapTop = (mq.size.height * 0.21).clamp(132.0, 228.0);
+    final markerWidth = (short * 0.26).clamp(72.0, 118.0);
+    // Marker box must fit Column: avatar + gap + label (square width was too short in height).
+    final avatarBox = (short * 0.132).clamp(44.0, 58.0);
+    final gapAfterAvatar = (short * 0.015).clamp(4.0, 8.0);
+    final nameFs = (short * 0.022).clamp(8.0, 11.0);
+    final labelPadV = (short * 0.005).clamp(1.0, 4.0) * 2;
+    final markerHeight = (avatarBox +
+            gapAfterAvatar +
+            labelPadV +
+            nameFs * 1.45 +
+            10)
+        .clamp(markerWidth * 1.12, markerWidth * 1.55);
+
     return Positioned.fill(
-      top: 180,
+      top: mapTop,
       child: FutureBuilder<List<PatientProfile>>(
         future: _profilesFuture,
         builder: (context, snapshot) {
@@ -118,12 +134,14 @@ class _MapPageState extends State<MapPage> {
                     : _placeholderCoords[i % _placeholderCoords.length];
                 markers.add(Marker(
                   point: coord,
-                  width: 100,
-                  height: 100,
+                  width: markerWidth,
+                  height: markerHeight,
                   child: _buildProfileMarker(
+                    context,
                     name: profile.profileName.toUpperCase(),
                     avatarUrl: profile.avatarUrl,
                     hasStatusDot: true,
+                    maxLabelWidth: markerWidth - 4,
                   ),
                 ));
               }
@@ -149,11 +167,21 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Widget _buildProfileMarker({
+  Widget _buildProfileMarker(
+    BuildContext context, {
     required String name,
     required String avatarUrl,
     bool hasStatusDot = false,
+    double? maxLabelWidth,
   }) {
+    final short = MediaQuery.sizeOf(context).shortestSide;
+    final avatarBox = (short * 0.132).clamp(44.0, 58.0);
+    final borderW = (short * 0.007).clamp(2.0, 3.5);
+    final innerR = (avatarBox * 0.42).clamp(18.0, 25.0);
+    final initialFs = (avatarBox * 0.32).clamp(14.0, 19.0);
+    final dot = (short * 0.03).clamp(9.0, 14.0);
+    final nameFs = (short * 0.022).clamp(8.0, 11.0);
+
     ImageProvider? imageProvider;
     if (avatarUrl.isNotEmpty) {
       if (avatarUrl.startsWith('assets')) {
@@ -170,64 +198,79 @@ class _MapPageState extends State<MapPage> {
           clipBehavior: Clip.none,
           children: [
             Container(
-              width: 52,
-              height: 52,
+              width: avatarBox,
+              height: avatarBox,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFE8D5C4), width: 3),
+                border: Border.all(color: const Color(0xFFE8D5C4), width: borderW),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
+                    blurRadius: (short * 0.02).clamp(6.0, 10.0),
+                    offset: Offset(0, (short * 0.008).clamp(2.0, 4.0)),
                   ),
                 ],
               ),
               child: CircleAvatar(
-                radius: 23,
+                radius: innerR,
                 backgroundColor: const Color(0xFF273469),
                 backgroundImage: imageProvider,
                 child: imageProvider == null
                     ? Text(
                         name.isNotEmpty ? name[0] : '?',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: initialFs,
+                        ),
                       )
                     : null,
               ),
             ),
             if (hasStatusDot)
               Positioned(
-                right: 2,
-                bottom: 2,
+                right: (short * 0.005).clamp(1.0, 3.0),
+                bottom: (short * 0.005).clamp(1.0, 3.0),
                 child: Container(
-                  width: 12,
-                  height: 12,
+                  width: dot,
+                  height: dot,
                   decoration: BoxDecoration(
                     color: const Color(0xFF22C55E),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(color: Colors.white, width: (dot * 0.14).clamp(1.5, 2.5)),
                   ),
                 ),
               ),
           ],
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: (short * 0.015).clamp(4.0, 8.0)),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          constraints: maxLabelWidth != null
+              ? BoxConstraints(maxWidth: maxLabelWidth)
+              : null,
+          padding: EdgeInsets.symmetric(
+            horizontal: (short * 0.016).clamp(4.0, 8.0),
+            vertical: (short * 0.005).clamp(1.0, 4.0),
+          ),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular((short * 0.028).clamp(8.0, 12.0)),
           ),
-          child: Text(
-            name,
-            style: const TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF374151),
-              letterSpacing: 0.5,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.center,
+            child: Text(
+              name,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: nameFs,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF374151),
+                letterSpacing: 0.5,
+                height: 1.1,
+              ),
             ),
           ),
         ),
@@ -235,8 +278,19 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Widget _buildTopSection(bool isArabic, AppState appState) {
+  Widget _buildTopSection(BuildContext context, AppState appState) {
     final activeCount = _profiles.where((p) => p.status).length;
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final hPad = (w * 0.05).clamp(14.0, 24.0);
+    final vPad = (short * 0.028).clamp(8.0, 14.0);
+    final titleFs = (w * 0.055).clamp(18.0, 24.0);
+    final subtitleFs = (w * 0.036).clamp(12.0, 15.0);
+    final gapAfterBar = (short * 0.038).clamp(12.0, 18.0);
+    final gapSmall = (short * 0.01).clamp(3.0, 6.0);
+    final gapBeforeSearch = (short * 0.03).clamp(10.0, 14.0);
+    final kb = mq.viewInsets.bottom;
 
     return Positioned(
       top: 0,
@@ -248,46 +302,52 @@ class _MapPageState extends State<MapPage> {
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
+              blurRadius: (short * 0.024).clamp(6.0, 12.0),
+              offset: Offset(0, (short * 0.005).clamp(1.0, 3.0)),
             ),
           ],
         ),
         child: SafeArea(
           bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildAppBar(),
-                const SizedBox(height: 16),
-                Text(
-                  appState.tr('Map', 'الخريطة'),
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1E3A8A),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(bottom: kb > 0 ? kb + 8 : 0),
+            physics: kb > 0
+                ? const ClampingScrollPhysics()
+                : const NeverScrollableScrollPhysics(),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildAppBar(context),
+                  SizedBox(height: gapAfterBar),
+                  Text(
+                    appState.tr('Map', 'الخريطة'),
+                    style: TextStyle(
+                      fontSize: titleFs,
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF1E3A8A),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  activeCount == 0
-                      ? appState.tr('No active bracelets', 'لا توجد أساور نشطة')
-                      : appState.tr(
-                          '$activeCount Bracelet${activeCount == 1 ? '' : 's'} Active',
-                          '$activeCount أسورة نشطة',
-                        ),
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade500,
-                    fontWeight: FontWeight.w400,
+                  SizedBox(height: gapSmall),
+                  Text(
+                    activeCount == 0
+                        ? appState.tr('No active bracelets', 'لا توجد أساور نشطة')
+                        : appState.tr(
+                            '$activeCount Bracelet${activeCount == 1 ? '' : 's'} Active',
+                            '$activeCount أسورة نشطة',
+                          ),
+                    style: TextStyle(
+                      fontSize: subtitleFs,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                _buildSearchBar(appState),
-                const SizedBox(height: 8),
-              ],
+                  SizedBox(height: gapBeforeSearch),
+                  _buildSearchBar(context, appState),
+                  SizedBox(height: (short * 0.02).clamp(6.0, 12.0)),
+                ],
+              ),
             ),
           ),
         ),
@@ -295,20 +355,30 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final gapLogo = (w * 0.02).clamp(6.0, 10.0);
+    final avatarR = (short * 0.042).clamp(14.0, 18.0);
+    final notifIcon = (short * 0.068).clamp(24.0, 30.0);
+    final badgeMin = (short * 0.04).clamp(14.0, 18.0);
+    final badgeFs = (short * 0.022).clamp(8.0, 10.0);
+    final trailingGap = (w * 0.04).clamp(10.0, 18.0);
+
     return Row(
       children: [
-        VideoLogoWidget(),
-        const SizedBox(width: 8),
+        const VideoLogoWidget(),
+        SizedBox(width: gapLogo),
         CircleAvatar(
-          radius: 16,
+          radius: avatarR,
           backgroundColor: const Color(0xFFE6F0FE),
           backgroundImage: getUserAvatarProvider(AppState().currentUser.imagePath),
           onBackgroundImageError: (_, __) {},
         ),
         const Spacer(),
         const LanguageToggle(),
-        const SizedBox(width: 16),
+        SizedBox(width: trailingGap),
         GestureDetector(
           onTap: () => Navigator.push(
               context, MaterialPageRoute(builder: (_) => const NotificationsPage())),
@@ -317,24 +387,25 @@ class _MapPageState extends State<MapPage> {
             builder: (context, _) {
               final unread = AppState().unreadNotificationCount;
               return Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  const Icon(Icons.notifications_none,
-                      color: Color(0xFF1E3A8A), size: 28),
+                  Icon(Icons.notifications_none,
+                      color: const Color(0xFF1E3A8A), size: notifIcon),
                   if (unread > 0)
                     Positioned(
-                      right: 0,
-                      top: 0,
+                      right: -2,
+                      top: -2,
                       child: Container(
-                        padding: const EdgeInsets.all(2),
+                        padding: EdgeInsets.all((short * 0.005).clamp(1.0, 3.0)),
                         decoration: const BoxDecoration(
                             color: Colors.red, shape: BoxShape.circle),
                         constraints:
-                            const BoxConstraints(minWidth: 16, minHeight: 16),
+                            BoxConstraints(minWidth: badgeMin, minHeight: badgeMin),
                         child: Text(
                           unread > 99 ? '99+' : '$unread',
-                          style: const TextStyle(
+                          style: TextStyle(
                               color: Colors.white,
-                              fontSize: 9,
+                              fontSize: badgeFs,
                               fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
@@ -349,19 +420,30 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Widget _buildSearchBar(AppState appState) {
+  Widget _buildSearchBar(BuildContext context, AppState appState) {
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final barH = (short * 0.12).clamp(44.0, 54.0);
+    final hintFs = (w * 0.035).clamp(12.0, 15.0);
+    final iconPad = (w * 0.035).clamp(10.0, 16.0);
+    final searchIcon = (short * 0.055).clamp(20.0, 24.0);
+    final locBtn = (short * 0.092).clamp(32.0, 40.0);
+    final locIcon = (locBtn * 0.48).clamp(16.0, 20.0);
+    final marginH = (w * 0.014).clamp(4.0, 8.0);
+
     return Container(
-      height: 48,
+      height: barH,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular((short * 0.032).clamp(10.0, 14.0)),
         border: Border.all(color: Colors.grey.shade200, width: 1.5),
       ),
       child: Row(
         children: [
-          const SizedBox(width: 14),
-          Icon(Icons.search, color: Colors.grey.shade400, size: 22),
-          const SizedBox(width: 10),
+          SizedBox(width: iconPad),
+          Icon(Icons.search, color: Colors.grey.shade400, size: searchIcon),
+          SizedBox(width: (w * 0.024).clamp(6.0, 12.0)),
           Expanded(
             child: TextField(
               controller: _searchController,
@@ -370,9 +452,11 @@ class _MapPageState extends State<MapPage> {
                 hintText: appState.tr(
                     'Search members...', 'ابحث عن الأعضاء...'),
                 hintStyle:
-                    TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                    TextStyle(color: Colors.grey.shade400, fontSize: hintFs),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: (barH * 0.2).clamp(8.0, 14.0),
+                ),
               ),
               onSubmitted: (value) {
                 if (value.isNotEmpty) _performSearch(value);
@@ -384,15 +468,15 @@ class _MapPageState extends State<MapPage> {
               _mapController.move(const LatLng(30.0444, 31.2357), 13.0);
             },
             child: Container(
-              width: 36,
-              height: 36,
-              margin: const EdgeInsets.only(right: 6, left: 6),
+              width: locBtn,
+              height: locBtn,
+              margin: EdgeInsets.only(right: marginH, left: marginH),
               decoration: BoxDecoration(
                 color: Colors.grey.shade100,
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.my_location,
-                  color: Colors.grey.shade600, size: 18),
+                  color: Colors.grey.shade600, size: locIcon),
             ),
           ),
         ],
@@ -400,23 +484,32 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Widget _buildGeofencingChip(bool isArabic, AppState appState) {
+  Widget _buildGeofencingChip(BuildContext context, AppState appState) {
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final leftPad = (w * 0.05).clamp(14.0, 24.0);
+    final bottomFab = mq.padding.bottom + (short * 0.24).clamp(92.0, 128.0);
+
     return Positioned(
-      left: 20,
-      bottom: 130,
+      left: leftPad,
+      bottom: bottomFab,
       child: GestureDetector(
         onTap: () => Navigator.push(context,
             MaterialPageRoute(builder: (context) => const GeofenceSetupPage())),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: EdgeInsets.symmetric(
+            horizontal: (w * 0.04).clamp(12.0, 18.0),
+            vertical: (short * 0.024).clamp(8.0, 12.0),
+          ),
           decoration: BoxDecoration(
             color: const Color(0xFF1E293B),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular((short * 0.06).clamp(18.0, 28.0)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                blurRadius: (short * 0.03).clamp(8.0, 14.0),
+                offset: Offset(0, (short * 0.01).clamp(3.0, 6.0)),
               ),
             ],
           ),
@@ -424,21 +517,26 @@ class _MapPageState extends State<MapPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 24,
-                height: 24,
+                width: (short * 0.065).clamp(20.0, 28.0),
+                height: (short * 0.065).clamp(20.0, 28.0),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.radar, color: Colors.white, size: 14),
+                child: Icon(
+                  Icons.radar,
+                  color: Colors.white,
+                  size: (short * 0.038).clamp(12.0, 16.0),
+                ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
               Text(
                 appState.tr('Geofencing', 'السياج الجغرافي'),
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: (w * 0.032).clamp(11.0, 14.0),
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -447,43 +545,64 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Widget _buildNavigationButton() {
+  Widget _buildNavigationButton(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final rightPad = (w * 0.05).clamp(14.0, 24.0);
+    final bottomFab = mq.padding.bottom + (short * 0.24).clamp(92.0, 128.0);
+    final btn = (short * 0.14).clamp(46.0, 58.0);
+    final iconSz = (btn * 0.46).clamp(20.0, 28.0);
+
     return Positioned(
-      right: 20,
-      bottom: 130,
+      right: rightPad,
+      bottom: bottomFab,
       child: Container(
-        width: 52,
-        height: 52,
+        width: btn,
+        height: btn,
         decoration: BoxDecoration(
           color: const Color(0xFF1B64F2),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF1B64F2).withValues(alpha: 0.35),
-              blurRadius: 14,
-              offset: const Offset(0, 5),
+              blurRadius: (short * 0.035).clamp(10.0, 16.0),
+              offset: Offset(0, (short * 0.012).clamp(4.0, 7.0)),
             ),
           ],
         ),
-        child: const Icon(Icons.navigation, color: Colors.white, size: 24),
+        child: Icon(Icons.navigation, color: Colors.white, size: iconSz),
       ),
     );
   }
 
-  Widget _buildMapControls() {
+  Widget _buildMapControls(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final rightPad = (w * 0.05).clamp(14.0, 24.0);
+    final navClear = mq.padding.bottom + (short * 0.24).clamp(92.0, 128.0);
+    final controlsBottom = navClear + (short * 0.16).clamp(56.0, 80.0);
+    final gap = (short * 0.006).clamp(1.0, 4.0);
+
     return Positioned(
-      right: 20,
-      bottom: 200,
+      right: rightPad,
+      bottom: controlsBottom,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _buildMapControlButton(Icons.add, () {
+          _buildMapControlButton(context, Icons.add, () {
             _mapController.move(
                 _mapController.camera.center, _mapController.camera.zoom + 1);
           }),
-          const SizedBox(height: 2),
-          Container(width: 40, height: 1, color: Colors.grey.shade300),
-          const SizedBox(height: 2),
-          _buildMapControlButton(Icons.remove, () {
+          SizedBox(height: gap),
+          Container(
+            width: (short * 0.1).clamp(34.0, 44.0),
+            height: 1,
+            color: Colors.grey.shade300,
+          ),
+          SizedBox(height: gap),
+          _buildMapControlButton(context, Icons.remove, () {
             _mapController.move(
                 _mapController.camera.center, _mapController.camera.zoom - 1);
           }),
@@ -492,24 +611,29 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Widget _buildMapControlButton(IconData icon, VoidCallback onTap) {
+  Widget _buildMapControlButton(BuildContext context, IconData icon, VoidCallback onTap) {
+    final short = MediaQuery.sizeOf(context).shortestSide;
+    final side = (short * 0.1).clamp(36.0, 44.0);
+    final iconSz = (side * 0.48).clamp(18.0, 22.0);
+    final radius = (short * 0.02).clamp(6.0, 10.0);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40,
-        height: 40,
+        width: side,
+        height: side,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radius),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+              blurRadius: (short * 0.016).clamp(4.0, 8.0),
+              offset: Offset(0, (short * 0.005).clamp(1.0, 3.0)),
             ),
           ],
         ),
-        child: Icon(icon, color: Colors.grey.shade700, size: 20),
+        child: Icon(icon, color: Colors.grey.shade700, size: iconSz),
       ),
     );
   }

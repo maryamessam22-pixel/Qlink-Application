@@ -68,51 +68,62 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
     return AnimatedBuilder(
       animation: AppState(),
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final vPad = (short * 0.028).clamp(12.0, 20.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.26).clamp(80.0, 112.0);
+        final gapL = (short * 0.055).clamp(18.0, 28.0);
+        final gapM = (short * 0.045).clamp(14.0, 22.0);
+        final gapS = (short * 0.02).clamp(6.0, 10.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
           extendBody: true,
           body: SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0,
-                      vertical: 16.0,
-                    ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight - mq.padding.vertical),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _buildAppBar(),
-                        const SizedBox(height: 24),
+                        SizedBox(height: gapL),
                         _buildBackButton(),
-                        const SizedBox(height: 20),
+                        SizedBox(height: gapM),
                         _buildTitle(),
-                        const SizedBox(height: 16),
+                        SizedBox(height: gapS + 8),
                         _buildProgressBar(),
-                        const SizedBox(height: 8),
+                        SizedBox(height: gapS),
                         _buildStepLabel(),
-                        const SizedBox(height: 24),
+                        SizedBox(height: gapL),
                         const Divider(
                           color: Color(0xFFE5E7EB),
                           thickness: 1,
                         ),
-                        const SizedBox(height: 24),
+                        SizedBox(height: gapL),
                         _buildSafetyNotesField(),
-                        const SizedBox(height: 24),
+                        SizedBox(height: gapL),
                         _buildAllergiesField(),
-                        const SizedBox(height: 24),
+                        SizedBox(height: gapL),
                         _buildBloodTypeSelector(),
-                        const SizedBox(height: 24),
+                        SizedBox(height: gapL),
                         _buildMedicalNotesField(),
-                        const SizedBox(height: 32),
+                        SizedBox(height: (short * 0.07).clamp(24.0, 36.0)),
                         _buildContinueButton(),
-                        const SizedBox(height: 120),
+                        SizedBox(height: (short * 0.03).clamp(8.0, 16.0)),
                       ],
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
           bottomNavigationBar: const BottomNavWidget(),
@@ -122,32 +133,40 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
   }
 
   Widget _buildAppBar() {
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final avR = (short * 0.042).clamp(14.0, 18.0);
+    final notif = (short * 0.068).clamp(24.0, 30.0);
+    final dot = (short * 0.028).clamp(8.0, 11.0);
+
     return Row(
       children: [
-        VideoLogoWidget(),
-        const SizedBox(width: 8),
+        const VideoLogoWidget(),
+        SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
         CircleAvatar(
-          radius: 16,
+          radius: avR,
           backgroundColor: const Color(0xFFE6F0FE),
           backgroundImage: getUserAvatarProvider(AppState().currentUser.imagePath),
           onBackgroundImageError: (_, __) {},
         ),
         const Spacer(),
         const LanguageToggle(),
-        const SizedBox(width: 16),
+        SizedBox(width: (w * 0.04).clamp(10.0, 18.0)),
         Stack(
+          clipBehavior: Clip.none,
           children: [
-            const Icon(
+            Icon(
               Icons.notifications_none,
-              color: Color(0xFF1E3A8A),
-              size: 28,
+              color: const Color(0xFF1E3A8A),
+              size: notif,
             ),
             Positioned(
-              right: 2,
-              top: 2,
+              right: 0,
+              top: 0,
               child: Container(
-                width: 10,
-                height: 10,
+                width: dot,
+                height: dot,
                 decoration: const BoxDecoration(
                   color: Colors.red,
                   shape: BoxShape.circle,
@@ -161,6 +180,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
   }
 
   Widget _buildBackButton() {
+    final w = MediaQuery.sizeOf(context).width;
     return GestureDetector(
       onTap: () => Navigator.pop(context),
       child: Row(
@@ -168,13 +188,13 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           Icon(
             Icons.arrow_back,
             color: Colors.grey.shade500,
-            size: 20,
+            size: (MediaQuery.sizeOf(context).shortestSide * 0.052).clamp(18.0, 22.0),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
           Text(
             AppState().tr('Back', 'رجوع'),
             style: TextStyle(
-              fontSize: 16,
+              fontSize: (w * 0.04).clamp(14.0, 17.0),
               color: Colors.grey.shade500,
               fontWeight: FontWeight.w500,
             ),
@@ -185,12 +205,13 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
   }
 
   Widget _buildTitle() {
+    final w = MediaQuery.sizeOf(context).width;
     return Text(
       AppState().tr('Generate Patient Profile', 'إنشاء ملف المريض'),
-      style: const TextStyle(
-        fontSize: 22,
+      style: TextStyle(
+        fontSize: (w * 0.055).clamp(18.0, 24.0),
         fontWeight: FontWeight.w800,
-        color: Color(0xFF1E3A8A),
+        color: const Color(0xFF1E3A8A),
       ),
     );
   }
@@ -232,10 +253,11 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
   }
 
   Widget _buildStepLabel() {
+    final w = MediaQuery.sizeOf(context).width;
     return Text(
       AppState().tr('Step 2 of 3: Medical', 'الخطوة 2 من 3: الطبية'),
       style: TextStyle(
-        fontSize: 16,
+        fontSize: (w * 0.04).clamp(14.0, 17.0),
         color: Colors.grey.shade600,
         fontWeight: FontWeight.w500,
       ),
@@ -323,21 +345,27 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
   }
 
   Widget _buildBloodTypeSelector() {
+    final short = MediaQuery.sizeOf(context).shortestSide;
+    final w = MediaQuery.sizeOf(context).width;
+    final chipW = (short * 0.19).clamp(56.0, 76.0);
+    final chipH = (short * 0.11).clamp(40.0, 50.0);
+    final chipFs = (w * 0.036).clamp(12.0, 15.0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           AppState().tr('Blood Type', 'فصيلة الدم'),
-          style: const TextStyle(
-            fontSize: 14,
+          style: TextStyle(
+            fontSize: (w * 0.036).clamp(12.0, 15.0),
             fontWeight: FontWeight.w700,
-            color: Color(0xFF1E3A8A),
+            color: const Color(0xFF1E3A8A),
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: (short * 0.03).clamp(8.0, 14.0)),
         Wrap(
-          spacing: 10,
-          runSpacing: 10,
+          spacing: (w * 0.025).clamp(6.0, 12.0),
+          runSpacing: (w * 0.025).clamp(6.0, 12.0),
           children: _bloodTypes.map((type) {
             final isSelected = _selectedBloodType == type;
             return GestureDetector(
@@ -348,8 +376,8 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                width: 70,
-                height: 44,
+                width: chipW,
+                height: chipH,
                 decoration: BoxDecoration(
                   color: isSelected
                       ? const Color(0xFF1E3A8A)
@@ -366,7 +394,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
                 child: Text(
                   type,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: chipFs,
                     fontWeight: FontWeight.w600,
                     color: isSelected
                         ? Colors.white
@@ -515,36 +543,52 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           }
         }
       },
-      child: Container(
-        width: double.infinity,
-        height: 54,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF0066CC), Color(0xFF273469)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          borderRadius: BorderRadius.circular(27),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _isLoading 
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-              : Text(
-                  AppState().tr('Continue to Hardware Link', 'متابعة لربط الأجهزة'), // 8ayrt el text shwya
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final short = MediaQuery.sizeOf(context).shortestSide;
+          final w = MediaQuery.sizeOf(context).width;
+          final btnH = (short * 0.135).clamp(48.0, 58.0);
+          return Container(
+            width: double.infinity,
+            height: btnH,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0066CC), Color(0xFF273469)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(btnH * 0.5),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (_isLoading)
+                  SizedBox(
+                    width: (short * 0.055).clamp(18.0, 24.0),
+                    height: (short * 0.055).clamp(18.0, 24.0),
+                    child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  )
+                else ...[
+                  Flexible(
+                    child: Text(
+                      AppState().tr('Continue to Hardware Link', 'متابعة لربط الأجهزة'),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: (w * 0.04).clamp(14.0, 17.0),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
-                ),
-            if (!_isLoading) ...[
-              const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
-            ]
-          ],
-        ),
+                  SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
+                  Icon(Icons.arrow_forward, color: Colors.white, size: (short * 0.05).clamp(18.0, 22.0)),
+                ],
+              ],
+            ),
+          );
+        },
       ),
     );
   }

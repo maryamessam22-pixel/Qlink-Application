@@ -23,14 +23,26 @@ class HeaderWidget extends StatelessWidget {
       builder: (context, child) {
         final appState = AppState();
         final unread = appState.unreadNotificationCount;
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final bottomPad = (short * 0.072).clamp(18.0, 34.0);
+        final gapLogo = (w * 0.02).clamp(6.0, 12.0);
+        final avatarR = (short * 0.042).clamp(14.0, 20.0);
+        final initialFs = (avatarR * 0.72).clamp(10.0, 14.0);
+        final notifIcon = (short * 0.068).clamp(24.0, 30.0);
+        final badgeMin = (short * 0.04).clamp(14.0, 18.0);
+        final badgeFs = (short * 0.022).clamp(8.0, 10.0);
+        final trailingGap = (w * 0.04).clamp(10.0, 18.0);
+
         return Padding(
-          padding: const EdgeInsets.only(bottom: 30.0),
+          padding: EdgeInsets.only(bottom: bottomPad),
           child: Row(
             children: [
-              VideoLogoWidget(),
-              const SizedBox(width: 8),
+              const VideoLogoWidget(),
+              SizedBox(width: gapLogo),
               CircleAvatar(
-                radius: 16,
+                radius: avatarR,
                 backgroundColor: const Color(0xFFE6F0FE),
                 backgroundImage: appState.currentUser.imagePath.trim().isNotEmpty
                     ? getUserAvatarProvider(appState.currentUser.imagePath)
@@ -43,17 +55,17 @@ class HeaderWidget extends StatelessWidget {
                         appState.currentUser.name.isNotEmpty
                             ? appState.currentUser.name[0].toUpperCase()
                             : '?',
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: initialFs,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1B64F2),
+                          color: const Color(0xFF1B64F2),
                         ),
                       )
                     : null,
               ),
               const Spacer(),
-              LanguageToggle(),
-              const SizedBox(width: 16),
+              const LanguageToggle(),
+              SizedBox(width: trailingGap),
               GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -62,22 +74,27 @@ class HeaderWidget extends StatelessWidget {
                   );
                 },
                 child: Stack(
+                  clipBehavior: Clip.none,
                   children: [
-                    const Icon(Icons.notifications_none, color: Color(0xFF1E3A8A), size: 28),
+                    Icon(Icons.notifications_none, color: const Color(0xFF1E3A8A), size: notifIcon),
                     if (unread > 0)
                       Positioned(
-                        right: 0,
-                        top: 0,
+                        right: -2,
+                        top: -2,
                         child: Container(
-                          padding: const EdgeInsets.all(2),
+                          padding: EdgeInsets.all((short * 0.005).clamp(1.0, 3.0)),
                           decoration: const BoxDecoration(
                             color: Colors.red,
                             shape: BoxShape.circle,
                           ),
-                          constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                          constraints: BoxConstraints(minWidth: badgeMin, minHeight: badgeMin),
                           child: Text(
                             unread > 99 ? '99+' : '$unread',
-                            style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: badgeFs,
+                              fontWeight: FontWeight.bold,
+                            ),
                             textAlign: TextAlign.center,
                           ),
                         ),

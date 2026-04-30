@@ -83,32 +83,50 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
     return AnimatedBuilder(
       animation: AppState(),
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final vPad = (short * 0.028).clamp(12.0, 20.0);
+        final barH = (short * 0.175).clamp(56.0, 78.0);
+        final vMargin = (short * 0.038).clamp(10.0, 20.0);
+        final navReserve = barH + vMargin * 2 + (short * 0.12).clamp(28.0, 44.0);
+        final bottomPad = mq.viewInsets.bottom + mq.padding.bottom + navReserve;
+        final gapL = (short * 0.055).clamp(18.0, 28.0);
+        final gapM = (short * 0.05).clamp(16.0, 24.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
           extendBody: true,
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20.0,
-                vertical: 16.0,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildTopBar(context),
-                  const SizedBox(height: 20),
-                  _buildProfileHeader(widget.profile),
-                  const SizedBox(height: 28),
-                  _buildMedicalSummary(widget.profile),
-                  const SizedBox(height: 28),
-                  _buildEmergencyContacts(widget.profile),
-                  const SizedBox(height: 28),
-                  _buildDocuments(),
-                  const SizedBox(height: 24),
-                  _buildSecurityNote(),
-                  const SizedBox(height: 120),
-                ],
-              ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTopBar(context),
+                        SizedBox(height: (short * 0.05).clamp(16.0, 24.0)),
+                        _buildProfileHeader(widget.profile),
+                        SizedBox(height: gapL),
+                        _buildMedicalSummary(widget.profile),
+                        SizedBox(height: gapL),
+                        _buildEmergencyContacts(widget.profile),
+                        SizedBox(height: gapL),
+                        _buildDocuments(),
+                        SizedBox(height: gapM),
+                        _buildSecurityNote(),
+                        SizedBox(height: (short * 0.03).clamp(8.0, 16.0)),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           bottomNavigationBar: const BottomNavWidget(),
@@ -119,24 +137,31 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
 
   Widget _buildTopBar(BuildContext context) {
     final appState = AppState();
+    final short = MediaQuery.of(context).size.shortestSide;
+    final backS = (short * 0.058).clamp(20.0, 24.0);
+    final titleFs = (short * 0.052).clamp(17.0, 22.0);
+    final actionS = (short * 0.062).clamp(22.0, 26.0);
+    final gap = (short * 0.04).clamp(12.0, 18.0);
+
     return Row(
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.arrow_back,
-                color: Color(0xFF1E3A8A),
-                size: 22,
+                color: const Color(0xFF1E3A8A),
+                size: backS,
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
               Text(
                 appState.tr('Vault', 'الخزنة'),
-                style: const TextStyle(
-                  fontSize: 20,
+                style: TextStyle(
+                  fontSize: titleFs,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF1E3A8A),
+                  color: const Color(0xFF1E3A8A),
                 ),
               ),
             ],
@@ -144,22 +169,22 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
         ),
         const Spacer(),
         const LanguageToggle(),
-        const SizedBox(width: 16),
+        SizedBox(width: gap),
         GestureDetector(
           onTap: _showUploadDialog,
           child: Icon(
             Icons.file_upload_outlined,
             color: Colors.grey.shade600,
-            size: 24,
+            size: actionS,
           ),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: gap),
         GestureDetector(
           onTap: _shareVault,
           child: Icon(
             Icons.share_outlined,
             color: Colors.grey.shade600,
-            size: 24,
+            size: actionS,
           ),
         ),
       ],
@@ -168,16 +193,22 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
 
   Widget _buildProfileHeader(PatientProfile profile) {
     final appState = AppState();
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final pad = (short * 0.04).clamp(12.0, 18.0);
+    final radius = (w * 0.04).clamp(14.0, 18.0);
+    final avatarR = (short * 0.082).clamp(28.0, 36.0);
     final statusColor = profile.status ? const Color(0xFF22C55E) : const Color(0xFFEF4444);
     final statusLabel = profile.status ? appState.tr('SECURE', 'آمن') : appState.tr('ALERT', 'تنبيه');
     final avatarUrl = (_avatarUrlOverride ?? profile.avatarUrl).trim();
     final showPhoto = avatarUrl.isNotEmpty && !_avatarImageFailed;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(pad),
       decoration: BoxDecoration(
         color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(
           color: Colors.grey.shade100,
         ),
@@ -185,7 +216,7 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
       child: Row(
         children: [
           CircleAvatar(
-            radius: 32,
+            radius: avatarR,
             backgroundColor: const Color(0xFFE6F0FE),
             backgroundImage:
                 showPhoto ? getUserAvatarProvider(avatarUrl) : null,
@@ -200,39 +231,41 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
                     profile.profileName.isNotEmpty
                         ? profile.profileName[0].toUpperCase()
                         : '?',
-                    style: const TextStyle(
-                      fontSize: 22,
+                    style: TextStyle(
+                      fontSize: (avatarR * 0.68).clamp(16.0, 24.0),
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1B64F2),
+                      color: const Color(0xFF1B64F2),
                     ),
                   ),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: (short * 0.035).clamp(10.0, 16.0)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   profile.profileName,
-                  style: const TextStyle(
-                    fontSize: 17,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: (short * 0.042).clamp(15.0, 18.0),
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1F2937),
+                    color: const Color(0xFF1F2937),
                   ),
                 ),
-                const SizedBox(height: 3),
+                SizedBox(height: (short * 0.008).clamp(2.0, 5.0)),
                 Text(
                   appState.tr('Monitored Since ${profile.createdAt.year}', 'مستخدم مراقب منذ ${profile.createdAt.year}'),
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: (short * 0.034).clamp(12.0, 14.0),
                     color: Colors.grey.shade500,
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: (short * 0.016).clamp(4.0, 8.0)),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 3,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: (short * 0.026).clamp(8.0, 12.0),
+                    vertical: (short * 0.008).clamp(2.0, 4.0),
                   ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.12),
@@ -241,7 +274,7 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
                   child: Text(
                     statusLabel,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: (short * 0.028).clamp(10.0, 12.0),
                       fontWeight: FontWeight.w700,
                       color: statusColor,
                       letterSpacing: 0.5,
@@ -258,6 +291,8 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
 
   Widget _buildMedicalSummary(PatientProfile profile) {
     final appState = AppState();
+    final short = MediaQuery.of(context).size.shortestSide;
+    final sectionFs = (short * 0.042).clamp(15.0, 18.0);
     final condition = appState.isArabic ? (profile.medicalNotesAr.isNotEmpty ? profile.medicalNotesAr : profile.medicalNotesEn) : profile.medicalNotesEn;
     final allergies = appState.isArabic ? (profile.allergiesAr.isNotEmpty ? profile.allergiesAr : profile.allergiesEn) : profile.allergiesEn;
 
@@ -266,13 +301,13 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
       children: [
         Text(
           appState.tr('Medical Summary', 'الملخص الطبي'),
-          style: const TextStyle(
-            fontSize: 17,
+          style: TextStyle(
+            fontSize: sectionFs,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF1F2937),
+            color: const Color(0xFF1F2937),
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: (short * 0.042).clamp(12.0, 18.0)),
         _buildMedicalRow(
           icon: Icons.bloodtype_outlined,
           iconColor: const Color(0xFFEF4444),
@@ -310,39 +345,46 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
     required String value,
     required Color valueColor,
   }) {
+    final short = MediaQuery.of(context).size.shortestSide;
+    final box = (short * 0.092).clamp(32.0, 40.0);
+    final iconS = (box * 0.5).clamp(16.0, 20.0);
+    final labelFs = (short * 0.038).clamp(13.5, 16.0);
+    final valueFs = (short * 0.034).clamp(12.0, 14.0);
+    final vPad = (short * 0.038).clamp(10.0, 16.0);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14),
+      padding: EdgeInsets.symmetric(vertical: vPad),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start, // 3shan lw el klam nzl satren, yfdal el icon fo2
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: box,
+            height: box,
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: iconColor, size: 18),
+            child: Icon(icon, color: iconColor, size: iconS),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: (short * 0.035).clamp(10.0, 16.0)),
           Padding(
-            padding: const EdgeInsets.only(top: 8.0),
+            padding: EdgeInsets.only(top: (short * 0.022).clamp(6.0, 10.0)),
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: labelFs,
                 color: Colors.grey.shade700,
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: (short * 0.04).clamp(10.0, 18.0)),
           Expanded(
             child: Align(
               alignment: AlignmentDirectional.centerEnd, // by-zbot el mkan ymen aw shmal 7asab el lo8a
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
+                padding: EdgeInsets.symmetric(
+                  horizontal: (short * 0.026).clamp(8.0, 12.0),
+                  vertical: (short * 0.016).clamp(4.0, 8.0),
                 ),
                 decoration: BoxDecoration(
                   color: valueColor.withValues(alpha: 0.08),
@@ -352,7 +394,7 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
                   value,
                   textAlign: TextAlign.end,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: valueFs,
                     fontWeight: FontWeight.w600,
                     color: valueColor,
                     height: 1.4, // Msafa ben el stoor lw el klam kbeer
@@ -389,18 +431,21 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
       ));
     }
 
+    final short = MediaQuery.of(context).size.shortestSide;
+    final sectionFs = (short * 0.042).clamp(15.0, 18.0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           appState.tr('Emergency Contacts', 'جهات اتصال الطوارئ'),
-          style: const TextStyle(
-            fontSize: 17,
+          style: TextStyle(
+            fontSize: sectionFs,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF1F2937),
+            color: const Color(0xFF1F2937),
           ),
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: (short * 0.035).clamp(10.0, 16.0)),
         ...buildResults,
       ],
     );
@@ -410,39 +455,50 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
     required String name,
     required String role,
   }) {
+    final short = MediaQuery.of(context).size.shortestSide;
+    final avatarR = (short * 0.056).clamp(18.0, 24.0);
+    final phoneBox = (short * 0.1).clamp(36.0, 44.0);
+    final nameFs = (short * 0.038).clamp(13.5, 16.0);
+    final roleFs = (short * 0.034).clamp(12.0, 14.0);
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: (short * 0.032).clamp(10.0, 14.0)),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 22,
+            radius: avatarR,
             backgroundColor: const Color(0xFFE6F0FE),
             child: Text(
               name.isNotEmpty ? name[0].toUpperCase() : '?',
-              style: const TextStyle(
-                color: Color(0xFF1B64F2),
+              style: TextStyle(
+                color: const Color(0xFF1B64F2),
                 fontWeight: FontWeight.bold,
+                fontSize: (avatarR * 0.55).clamp(12.0, 16.0),
               ),
             ),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: (short * 0.035).clamp(10.0, 16.0)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   name,
-                  style: const TextStyle(
-                    fontSize: 15,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: nameFs,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1F2937),
+                    color: const Color(0xFF1F2937),
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: (short * 0.006).clamp(1.0, 4.0)),
                 Text(
                   role,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: roleFs,
                     color: Colors.grey.shade500,
                   ),
                 ),
@@ -450,16 +506,16 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
             ),
           ),
           Container(
-            width: 40,
-            height: 40,
+            width: phoneBox,
+            height: phoneBox,
             decoration: const BoxDecoration(
               color: Color(0xFF1B64F2),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.phone,
               color: Colors.white,
-              size: 18,
+              size: (phoneBox * 0.45).clamp(16.0, 20.0),
             ),
           ),
         ],
@@ -469,6 +525,10 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
 
   Widget _buildDocuments() {
     final appState = AppState();
+    final short = MediaQuery.of(context).size.shortestSide;
+    final sectionFs = (short * 0.042).clamp(15.0, 18.0);
+    final emptyFs = (short * 0.034).clamp(12.0, 14.0);
+
     if (_isLoadingDocs) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -478,33 +538,33 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
         children: [
           Text(
             appState.tr('Documents', 'المستندات'),
-            style: const TextStyle(
-              fontSize: 17,
+            style: TextStyle(
+              fontSize: sectionFs,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF1F2937),
+              color: const Color(0xFF1F2937),
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: (short * 0.032).clamp(10.0, 14.0)),
           Text(
             appState.tr('No documents uploaded yet.', 'لا توجد مستندات مرفوعة بعد.'),
-            style: TextStyle(color: Colors.grey.shade500),
+            style: TextStyle(color: Colors.grey.shade500, fontSize: emptyFs),
           ),
         ],
       );
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           appState.tr('Documents', 'المستندات'),
-          style: const TextStyle(
-            fontSize: 17,
+          style: TextStyle(
+            fontSize: sectionFs,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF1F2937),
+            color: const Color(0xFF1F2937),
           ),
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: (short * 0.035).clamp(10.0, 16.0)),
         ..._documents.map((doc) => _buildDocumentRow(
               id: doc['id'] ?? '',
               title: doc['title'] ?? '',
@@ -554,38 +614,50 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
     required VoidCallback onDelete,
   }) {
     final appState = AppState();
+    final short = MediaQuery.of(context).size.shortestSide;
+    final w = MediaQuery.of(context).size.width;
+    final box = (short * 0.1).clamp(36.0, 44.0);
+    final iconS = (box * 0.48).clamp(17.0, 22.0);
+    final titleFs = (short * 0.036).clamp(13.0, 15.0);
+    final subFs = (short * 0.032).clamp(11.0, 13.0);
+    final actionFs = (short * 0.036).clamp(13.0, 15.0);
+    final gap = (short * 0.035).clamp(10.0, 16.0);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: EdgeInsets.only(bottom: (short * 0.038).clamp(12.0, 16.0)),
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: box,
+            height: box,
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular((w * 0.025).clamp(8.0, 12.0)),
             ),
-            child: Icon(icon, color: iconColor, size: 20),
+            child: Icon(icon, color: iconColor, size: iconS),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: gap),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: titleFs,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1F2937),
+                    color: const Color(0xFF1F2937),
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: (short * 0.006).clamp(1.0, 4.0)),
                 Text(
                   subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: subFs,
                     color: Colors.grey.shade500,
                   ),
                 ),
@@ -597,16 +669,16 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
             child: Icon(
               Icons.delete_outline,
               color: Colors.red.shade400,
-              size: 20,
+              size: iconS,
             ),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: gap),
           GestureDetector(
             onTap: onView,
             child: Text(
               appState.tr('View', 'عرض'),
               style: TextStyle(
-                fontSize: 14,
+                fontSize: actionFs,
                 fontWeight: FontWeight.w600,
                 color: const Color(0xFF1B64F2).withValues(alpha: 0.8),
               ),
@@ -619,11 +691,19 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
 
   Widget _buildSecurityNote() {
     final appState = AppState();
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final pad = (short * 0.045).clamp(14.0, 20.0);
+    final radius = (w * 0.035).clamp(12.0, 16.0);
+    final lockS = (short * 0.052).clamp(18.0, 22.0);
+    final bodyFs = (short * 0.034).clamp(12.0, 14.0);
+
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(pad),
       decoration: BoxDecoration(
         color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(
           color: Colors.grey.shade200,
         ),
@@ -634,17 +714,17 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
           Icon(
             Icons.lock_outline,
             color: Colors.grey.shade500,
-            size: 20,
+            size: lockS,
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: (short * 0.03).clamp(8.0, 14.0)),
           Expanded(
             child: Text(
               appState.tr(
                 'You can securely share this vault with medical professionals or emergency helpers when assistance is required. All data is encrypted and only accessible via your permission.',
-                'يمكنك مشاركة هذه الخزنة بأمان مع المتخصصين الطبيين أو مساعدي الطوارئ عند الحاجة. جميع البيانات مشفرة ولا يمكن الوصول إليها إلا بإذنك.'
+                'يمكنك مشاركة هذه الخزنة بأمان مع المتخصصين الطبيين أو مساعدي الطوارئ عند الحاجة. جميع البيانات مشفرة ولا يمكن الوصول إليها إلا بإذنك.',
               ),
               style: TextStyle(
-                fontSize: 13,
+                fontSize: bodyFs,
                 color: Colors.grey.shade600,
                 height: 1.5,
               ),

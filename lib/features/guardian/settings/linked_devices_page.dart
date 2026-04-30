@@ -96,7 +96,17 @@ class _LinkedDevicesPageState extends State<LinkedDevicesPage> {
 
   Widget _buildContent(BuildContext context) {
     final appState = AppState();
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final hPad = (w * 0.055).clamp(16.0, 28.0);
+    final vPad = (short * 0.028).clamp(12.0, 20.0);
+    final bottomSliver =
+        mq.viewInsets.bottom + mq.padding.bottom + (short * 0.26).clamp(80.0, 112.0);
+
     return Scaffold(
+      resizeToAvoidBottomInset: true,
+      extendBody: true,
       backgroundColor: const Color(0xFFF7F9FC),
       body: SafeArea(
         child: Column(
@@ -113,10 +123,11 @@ class _LinkedDevicesPageState extends State<LinkedDevicesPage> {
                       : (allDevices.fold<int>(0, (s, d) => s + d.batteryLevel) / allDevices.length).round();
 
                   return CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
                       SliverToBoxAdapter(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                          padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, 0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -163,7 +174,7 @@ class _LinkedDevicesPageState extends State<LinkedDevicesPage> {
                         )
                       else
                         SliverPadding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          padding: EdgeInsets.symmetric(horizontal: hPad),
                           sliver: SliverList(
                             delegate: SliverChildBuilderDelegate(
                               (context, index) {
@@ -174,30 +185,41 @@ class _LinkedDevicesPageState extends State<LinkedDevicesPage> {
                             ),
                           ),
                         ),
-                      const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                      SliverToBoxAdapter(child: SizedBox(height: bottomSliver)),
                     ],
                   );
                 },
               ),
             ),
-            const BottomNavWidget(),
           ],
         ),
       ),
+      bottomNavigationBar: const BottomNavWidget(),
     );
   }
 
   Widget _buildHeader(AppState appState) {
+    final w = MediaQuery.sizeOf(context).width;
+    final short = MediaQuery.sizeOf(context).shortestSide;
     return Row(
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context),
           child: Row(
             children: [
-              Icon(Icons.arrow_back, color: Colors.grey.shade600, size: 20),
-              const SizedBox(width: 4),
-              Text(appState.tr('Back', 'رجوع'),
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+              Icon(
+                Icons.arrow_back,
+                color: Colors.grey.shade600,
+                size: (short * 0.052).clamp(18.0, 22.0),
+              ),
+              SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
+              Text(
+                appState.tr('Back', 'رجوع'),
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: (w * 0.04).clamp(14.0, 17.0),
+                ),
+              ),
             ],
           ),
         ),
@@ -208,20 +230,29 @@ class _LinkedDevicesPageState extends State<LinkedDevicesPage> {
   }
 
   Widget _buildTitle(AppState appState) {
+    final w = MediaQuery.sizeOf(context).width;
+    final short = MediaQuery.sizeOf(context).shortestSide;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           appState.tr('Manage Devices', 'إدارة الأجهزة'),
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+          style: TextStyle(
+            fontSize: (w * 0.06).clamp(20.0, 26.0),
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF1E293B),
+          ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: (short * 0.012).clamp(4.0, 8.0)),
         Text(
           appState.tr(
             'Manage all connected devices and their status',
             'إدارة جميع الأجهزة المتصلة وحالتها',
           ),
-          style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+          style: TextStyle(
+            color: Colors.grey.shade500,
+            fontSize: (w * 0.035).clamp(12.0, 15.0),
+          ),
         ),
       ],
     );
@@ -260,9 +291,10 @@ class _LinkedDevicesPageState extends State<LinkedDevicesPage> {
     required String value,
     required Color color,
   }) {
+    final pad = (MediaQuery.sizeOf(context).shortestSide * 0.038).clamp(10.0, 16.0);
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(pad),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),

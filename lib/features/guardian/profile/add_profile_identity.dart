@@ -74,133 +74,252 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
     super.dispose();
   }
 
+  Widget _buildAppBar() {
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final avR = (short * 0.042).clamp(14.0, 18.0);
+    final notif = (short * 0.068).clamp(24.0, 30.0);
+    final dot = (short * 0.028).clamp(8.0, 11.0);
+
+    return Row(
+      children: [
+        const VideoLogoWidget(),
+        SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
+        CircleAvatar(
+          radius: avR,
+          backgroundColor: const Color(0xFFE6F0FE),
+          backgroundImage: getUserAvatarProvider(AppState().currentUser.imagePath),
+          onBackgroundImageError: (_, __) {},
+        ),
+        const Spacer(),
+        const LanguageToggle(),
+        SizedBox(width: (w * 0.04).clamp(10.0, 18.0)),
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Icon(
+              Icons.notifications_none,
+              color: const Color(0xFF1E3A8A),
+              size: notif,
+            ),
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                width: dot,
+                height: dot,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBackButton() {
+    final w = MediaQuery.sizeOf(context).width;
+    final short = MediaQuery.sizeOf(context).shortestSide;
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Row(
+        children: [
+          Icon(
+            Icons.arrow_back,
+            color: Colors.grey.shade500,
+            size: (short * 0.052).clamp(18.0, 22.0),
+          ),
+          SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
+          Text(
+            AppState().tr('Cancel', 'إلغاء'),
+            style: TextStyle(
+              fontSize: (w * 0.04).clamp(14.0, 17.0),
+              color: Colors.grey.shade500,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIdentityTitle() {
+    final w = MediaQuery.sizeOf(context).width;
+    return Text(
+      AppState().tr('Generate Patient Profile', 'إنشاء ملف المريض'),
+      style: TextStyle(
+        fontSize: (w * 0.055).clamp(18.0, 24.0),
+        fontWeight: FontWeight.w800,
+        color: const Color(0xFF1E3A8A),
+      ),
+    );
+  }
+
+  Widget _buildIdentityStepLabel() {
+    final w = MediaQuery.sizeOf(context).width;
+    return Text(
+      AppState().tr('Step 1 of 3: Identity', 'الخطوة 1 من 3: الهوية'),
+      style: TextStyle(
+        fontSize: (w * 0.04).clamp(14.0, 17.0),
+        color: Colors.grey.shade600,
+        fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+
+  Widget _buildContinueToMedicalButton() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AddMedicalInfoPage(
+              name: _nameController.text,
+              relationship: _relationshipController.text,
+              birthYear: _birthYearController.text,
+              emergencyContacts: _contactControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+              avatarUrl: _imagePath,
+              avatarBytes: _imageBytes,
+              editIndex: widget.editIndex,
+              existingProfile: widget.existingProfile,
+            ),
+          ),
+        );
+      },
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final short = MediaQuery.sizeOf(context).shortestSide;
+          final w = MediaQuery.sizeOf(context).width;
+          final btnH = (short * 0.135).clamp(48.0, 58.0);
+          return Container(
+            width: double.infinity,
+            height: btnH,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0066CC), Color(0xFF273469)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(btnH * 0.5),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(
+                    AppState().tr('Continue to Medical Info', 'متابعة للمعلومات الطبية'),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: (w * 0.04).clamp(14.0, 17.0),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
+                Icon(Icons.arrow_forward, color: Colors.white, size: (short * 0.05).clamp(18.0, 22.0)),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: AppState(),
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final vPad = (short * 0.028).clamp(12.0, 20.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.26).clamp(80.0, 112.0);
+        final gapL = (short * 0.055).clamp(18.0, 28.0);
+        final gapM = (short * 0.045).clamp(14.0, 22.0);
+        final gapS = (short * 0.02).clamp(6.0, 10.0);
+        final avatarD = (short * 0.30).clamp(100.0, 132.0);
+        final personIcon = (avatarD * 0.45).clamp(44.0, 64.0);
+        final camIcon = (short * 0.05).clamp(18.0, 22.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
           extendBody: true,
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      VideoLogoWidget(),
-                      const SizedBox(width: 8),
-                      CircleAvatar(
-                        radius: 16,
-                        backgroundColor: const Color(0xFFE6F0FE),
-                        backgroundImage: getUserAvatarProvider(AppState().currentUser.imagePath),
-                        onBackgroundImageError: (_, __) {},
-                      ),
-                      const Spacer(),
-                      const LanguageToggle(),
-                      const SizedBox(width: 16),
-                      Stack(
-                        children: [
-                          const Icon(Icons.notifications_none, color: Color(0xFF1E3A8A), size: 28),
-                          Positioned(
-                            right: 2,
-                            top: 2,
-                            child: Container(
-                              width: 10,
-                              height: 10,
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - mq.padding.vertical,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildAppBar(),
+                        SizedBox(height: gapL),
+                        _buildBackButton(),
+                        SizedBox(height: gapM),
+                        _buildIdentityTitle(),
+                        SizedBox(height: gapS + 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1E3A8A),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Row(
-                      children: [
-                        Icon(Icons.arrow_back, color: Colors.grey.shade500, size: 20),
-                        const SizedBox(width: 4),
-                        Text(
-                          AppState().tr('Cancel', 'إلغاء'),
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey.shade500,
-                            fontWeight: FontWeight.w500,
-                          ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Container(
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Container(
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    AppState().tr('Generate Patient Profile', 'إنشاء ملف المريض'),
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1E3A8A),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E3A8A),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Container(
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Container(
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    AppState().tr('Step 1 of 3: Identity', 'الخطوة 1 من 3: الهوية'),
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Divider(color: Color(0xFFE5E7EB), thickness: 1),
-                  const SizedBox(height: 24),
+                        SizedBox(height: gapS),
+                        _buildIdentityStepLabel(),
+                        SizedBox(height: gapL),
+                        const Divider(color: Color(0xFFE5E7EB), thickness: 1),
+                        SizedBox(height: gapL),
 
                   // Profile Picture Section
                   Center(
                     child: Stack(
                       children: [
                         Container(
-                          width: 120,
-                          height: 120,
+                          width: avatarD,
+                          height: avatarD,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(color: const Color(0xFF1E3A8A), width: 2),
@@ -220,10 +339,10 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                                       ? Image.asset(_imagePath!, fit: BoxFit.cover)
                                       : (!kIsWeb
                                         ? Image.file(File(_imagePath!), fit: BoxFit.cover)
-                                        : const Icon(Icons.person, size: 60, color: Color(0xFF1B64F2)))))
+                                        : Icon(Icons.person, size: personIcon, color: const Color(0xFF1B64F2)))))
                                 : Container(
                                     color: const Color(0xFFE6F0FE),
-                                    child: const Icon(Icons.person, size: 60, color: Color(0xFF1B64F2)),
+                                    child: Icon(Icons.person, size: personIcon, color: const Color(0xFF1B64F2)),
                                   ),
                           ),
                         ),
@@ -233,30 +352,30 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                           child: GestureDetector(
                             onTap: _pickImage,
                             child: Container(
-                              padding: const EdgeInsets.all(8),
+                              padding: EdgeInsets.all((short * 0.02).clamp(6.0, 10.0)),
                               decoration: const BoxDecoration(
                                 color: Color(0xFF1B64F2),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                              child: Icon(Icons.camera_alt, color: Colors.white, size: camIcon),
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: gapS),
                   Center(
                     child: Text(
                       AppState().tr('Add Profile Picture', 'إضافة صورة الملف الشخصي'),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: (w * 0.035).clamp(12.0, 15.0),
                         color: Colors.grey.shade600,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: gapL),
                   
                   _buildLabelAndTextField(AppState().tr('Patient\'s Full Name', 'الاسم الكامل للمريض'), AppState().tr('e.g., Mohamed Saber', 'مثال: محمد صابر'), controller: _nameController),
                   const SizedBox(height: 16),
@@ -278,10 +397,10 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                       child: _buildContactField(index),
                     );
                   }),
-                  const SizedBox(height: 8),
+                  SizedBox(height: gapS),
                   Container(
                     width: double.infinity,
-                    height: 50,
+                    height: (short * 0.12).clamp(44.0, 54.0),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey.shade300),
                       borderRadius: BorderRadius.circular(8),
@@ -311,56 +430,14 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddMedicalInfoPage(
-                            name: _nameController.text,
-                            relationship: _relationshipController.text,
-                            birthYear: _birthYearController.text,
-                            emergencyContacts: _contactControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
-                            avatarUrl: _imagePath,
-                            avatarBytes: _imageBytes,
-                            editIndex: widget.editIndex,
-                            existingProfile: widget.existingProfile,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      height: 54,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF0066CC), Color(0xFF273469)],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        borderRadius: BorderRadius.circular(27),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            AppState().tr('Continue to Medical Info', 'متابعة للمعلومات الطبية'),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
-                        ],
-                      ),
+                  SizedBox(height: (short * 0.07).clamp(24.0, 36.0)),
+                  _buildContinueToMedicalButton(),
+                  SizedBox(height: (short * 0.03).clamp(8.0, 16.0)),
+                ],
                     ),
                   ),
-                  const SizedBox(height: 120),
-                ],
-              ),
+                );
+              },
             ),
           ),
           bottomNavigationBar: const BottomNavWidget(),

@@ -17,37 +17,55 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
       builder: (context, _) {
         final appState = AppState();
         final history = appState.scanHistory;
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final btnPadBottom = mq.viewInsets.bottom + mq.padding.bottom + (short * 0.04).clamp(12.0, 24.0);
 
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: const Color(0xFFF7F9FC),
-          body: Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/bg.png'),
-                fit: BoxFit.cover,
-                opacity: 0.1,
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/bg.png'),
+                        fit: BoxFit.cover,
+                        opacity: 0.1,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                   // Custom App Bar
+              SafeArea(
+                child: Column(
+                  children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: (w * 0.035).clamp(8.0, 16.0),
+                      vertical: (short * 0.012).clamp(6.0, 10.0),
+                    ),
                     child: Row(
                       children: [
                         IconButton(
                           onPressed: () => Navigator.pop(context),
                           icon: const Icon(Icons.arrow_back, color: Color(0xFF273469)),
                         ),
-                        Text(
-                          appState.tr('QR Scan History', 'سجل مسح QR'),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF273469),
+                        Expanded(
+                          child: Text(
+                            appState.tr('QR Scan History', 'سجل مسح QR'),
+                            style: TextStyle(
+                              fontSize: (w * 0.05).clamp(17.0, 22.0),
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF273469),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -56,16 +74,29 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
                   const Divider(color: Color(0xFFF3F4F6), thickness: 1),
 
                   Expanded(
-                    child: history.isEmpty 
-                    ? Center(child: Text(appState.tr('No scan history found', 'لم يتم العثور على سجل مسح')))
+                    child: history.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: hPad),
+                          child: Text(
+                            appState.tr('No scan history found', 'لم يتم العثور على سجل مسح'),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: (w * 0.038).clamp(13.0, 16.0),
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ),
+                      )
                     : ListView.builder(
-                        padding: const EdgeInsets.all(24),
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsets.fromLTRB(hPad, (short * 0.02).clamp(8.0, 14.0), hPad, (short * 0.02).clamp(8.0, 14.0)),
                         itemCount: history.length,
                         itemBuilder: (context, index) {
                           final item = history[index];
                           return Container(
-                            margin: const EdgeInsets.only(bottom: 16),
-                            padding: const EdgeInsets.all(20),
+                            margin: EdgeInsets.only(bottom: (short * 0.04).clamp(12.0, 18.0)),
+                            padding: EdgeInsets.all((short * 0.05).clamp(14.0, 22.0)),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
@@ -80,27 +111,31 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
                             child: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(12),
+                                  padding: EdgeInsets.all((short * 0.03).clamp(8.0, 14.0)),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFEEF2FF),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: const Icon(LucideIcons.qrCode, color: Color(0xFF1B64F2), size: 24),
+                                  child: Icon(
+                                    LucideIcons.qrCode,
+                                    color: const Color(0xFF1B64F2),
+                                    size: (short * 0.06).clamp(20.0, 28.0),
+                                  ),
                                 ),
-                                const SizedBox(width: 16),
+                                SizedBox(width: (w * 0.04).clamp(10.0, 18.0)),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         item.title,
-                                        style: const TextStyle(
-                                          fontSize: 15,
+                                        style: TextStyle(
+                                          fontSize: (w * 0.038).clamp(13.0, 16.0),
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF273469),
+                                          color: const Color(0xFF273469),
                                         ),
                                       ),
-                                      const SizedBox(height: 6),
+                                      SizedBox(height: (short * 0.018).clamp(4.0, 8.0)),
                                       RichText(
                                         text: TextSpan(
                                           style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
@@ -128,9 +163,13 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
                       ),
                   ),
 
-                  // Clear History Button
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 32),
+                    padding: EdgeInsets.fromLTRB(
+                      (w * 0.1).clamp(24.0, 52.0),
+                      (short * 0.025).clamp(10.0, 20.0),
+                      (w * 0.1).clamp(24.0, 52.0),
+                      btnPadBottom,
+                    ),
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -144,12 +183,15 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
                           backgroundColor: const Color(0xFFF3F4F6),
                           foregroundColor: const Color(0xFF273469),
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: EdgeInsets.symmetric(vertical: (short * 0.04).clamp(12.0, 18.0)),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                         ),
                         child: Text(
                           appState.tr('Clear History', 'مسح السجل'),
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: (w * 0.035).clamp(12.0, 15.0),
+                          ),
                         ),
                       ),
                     ),
@@ -157,6 +199,7 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
                 ],
               ),
             ),
+            ],
           ),
         );
       },

@@ -73,14 +73,28 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final vPad = (short * 0.028).clamp(12.0, 20.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.26).clamp(80.0, 112.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
+          extendBody: true,
           backgroundColor: const Color(0xFFF7F9FC),
           body: SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - mq.padding.vertical,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -91,9 +105,19 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
                               onTap: () => Navigator.pop(context),
                               child: Row(
                                 children: [
-                                  Icon(Icons.arrow_back, color: Colors.grey.shade600, size: 20),
-                                  const SizedBox(width: 4),
-                                  Text(appState.tr('Back', 'رجوع'), style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                                  Icon(
+                                    Icons.arrow_back,
+                                    color: Colors.grey.shade600,
+                                    size: (short * 0.052).clamp(18.0, 22.0),
+                                  ),
+                                  SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
+                                  Text(
+                                    appState.tr('Back', 'رجوع'),
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: (w * 0.04).clamp(14.0, 17.0),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -101,16 +125,24 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
                             const LanguageToggle(),
                           ],
                         ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: (short * 0.07).clamp(24.0, 36.0)),
 
                       Text(
                         AppState().tr('QR Code Visibility', 'رؤية رمز QR'),
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
+                      style: TextStyle(
+                        fontSize: (w * 0.06).clamp(20.0, 26.0),
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1E3A8A),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       AppState().tr('Choose what information appears when someone scans the bracelet', 'اختر المعلومات التي تظهر عندما يقوم شخص ما بمسح السوار'),
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13, height: 1.4),
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: (w * 0.032).clamp(12.0, 14.0),
+                        height: 1.4,
+                      ),
                     ),
                     const SizedBox(height: 32),
 
@@ -201,12 +233,12 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
                       child: Text(AppState().tr('Preview QR View', 'معاينة رمز QR'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                     ),
                   ],
-                ),
-              ),
+                    ),
+                  ),
+                );
+              },
             ),
-          ],
-        ),
-      ),
+          ),
           bottomNavigationBar: const BottomNavWidget(),
         );
       },

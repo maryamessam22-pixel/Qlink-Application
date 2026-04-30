@@ -68,15 +68,32 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final topPad = (short * 0.05).clamp(12.0, 28.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.06).clamp(20.0, 40.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: const Color(0xFF131A2A), // Dark blue background
-          body: SingleChildScrollView(
-            child: Column(
-              children: [
+          body: SafeArea(
+            bottom: false,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.only(bottom: bottomPad),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
+                      children: [
                 // Top Red Section
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.only(top: 60, left: 24, right: 24, bottom: 40),
+                  padding: EdgeInsets.fromLTRB(hPad, topPad, hPad, (short * 0.05).clamp(28.0, 44.0)),
                   decoration: const BoxDecoration(
                     color: Color(0xFFD32F2F), // Red background
                     borderRadius: BorderRadius.only(
@@ -92,9 +109,19 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
                             onTap: () => Navigator.pop(context),
                             child: Row(
                               children: [
-                                const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                                const SizedBox(width: 4),
-                                Text(appState.tr('Close Preview', 'إغلاق المعاينة'), style: const TextStyle(color: Colors.white, fontSize: 16)),
+                                Icon(
+                                  Icons.arrow_back,
+                                  color: Colors.white,
+                                  size: (short * 0.052).clamp(18.0, 22.0),
+                                ),
+                                SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
+                                Text(
+                                  appState.tr('Close Preview', 'إغلاق المعاينة'),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: (w * 0.04).clamp(14.0, 17.0),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -121,7 +148,12 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
                   const SizedBox(height: 16),
                   Text(
                     widget.profile.name,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: (w * 0.06).clamp(20.0, 26.0),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -143,7 +175,7 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
 
             // Content Section
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: EdgeInsets.all(hPad),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: _buildPublicEmergencyCards(),
@@ -153,13 +185,18 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
             // Footer Section
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(24.0),
+              padding: EdgeInsets.all(hPad),
               color: const Color(0xFF1E293B), // Slightly lighter dark blue for footer
               child: Column(
                 children: [
                   Text(
                     AppState().tr('Stay Protected with Qlink!', 'ابقَ محميًا مع كيولينك!'),
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: (w * 0.045).clamp(16.0, 20.0),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -211,13 +248,17 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
                   ),
                   const SizedBox(height: 16),
                   Text(AppState().tr('© 2026 Qlink Emergency. All rights reserved.', '© 2026 كيولينك لخدمات الطوارئ. جميع الحقوق محفوظة.'), style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                  const SizedBox(height: 20),
+                  SizedBox(height: (short * 0.025).clamp(12.0, 20.0)),
                 ],
               ),
             ),
           ],
-        ),
-      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         );
       },
     );

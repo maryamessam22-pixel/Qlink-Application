@@ -31,49 +31,73 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.08).clamp(20.0, 36.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: const Color(0xFFF7F9FC),
-          body: Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/bg.png'),
-                fit: BoxFit.cover,
-                opacity: 0.05,
-              ),
-            ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                   // Custom App Bar
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.arrow_back, color: Color(0xFF273469)),
-                        ),
-                        Text(
-                          appState.tr('Change Password', 'تغيير كلمة المرور'),
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF273469),
-                          ),
-                        ),
-                      ],
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/bg.png'),
+                        fit: BoxFit.cover,
+                        opacity: 0.05,
+                      ),
                     ),
                   ),
-                  const Divider(color: Color(0xFFF3F4F6), thickness: 1),
-
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                ),
+              ),
+              SafeArea(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: (w * 0.035).clamp(8.0, 16.0),
+                        vertical: (short * 0.012).clamp(6.0, 10.0),
+                      ),
+                      child: Row(
                         children: [
+                          IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(Icons.arrow_back, color: Color(0xFF273469)),
+                          ),
+                          Expanded(
+                            child: Text(
+                              appState.tr('Change Password', 'تغيير كلمة المرور'),
+                              style: TextStyle(
+                                fontSize: (w * 0.05).clamp(17.0, 22.0),
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF273469),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(color: Color(0xFFF3F4F6), thickness: 1),
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: EdgeInsets.fromLTRB(hPad, (short * 0.02).clamp(8.0, 16.0), hPad, bottomPad),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                           _buildPasswordField(
                             label: appState.tr('Current Password', 'كلمة المرور الحالية'),
                             hint: appState.tr('Enter current password', 'أدخل كلمة المرور الحالية'),
@@ -81,7 +105,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                             obscure: _obscureCurrent,
                             onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: (short * 0.055).clamp(18.0, 28.0)),
                           _buildPasswordField(
                             label: appState.tr('New Password', 'كلمة المرور الجديدة'),
                             hint: appState.tr('At least 8 characters', '8 أحرف على الأقل'),
@@ -89,7 +113,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                             obscure: _obscureNew,
                             onToggle: () => setState(() => _obscureNew = !_obscureNew),
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: (short * 0.055).clamp(18.0, 28.0)),
                           _buildPasswordField(
                             label: appState.tr('Confirm New Password', 'تأكيد كلمة المرور الجديدة'),
                             hint: appState.tr('Re-enter new password', 'أعد إدخال كلمة المرور الجديدة'),
@@ -97,7 +121,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                             obscure: _obscureConfirm,
                             onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
                           ),
-                          const SizedBox(height: 60),
+                          SizedBox(height: (short * 0.07).clamp(28.0, 56.0)),
 
                           // Update Button
                           SizedBox(
@@ -124,23 +148,30 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1B64F2),
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                padding: EdgeInsets.symmetric(vertical: (short * 0.045).clamp(14.0, 20.0)),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                                 elevation: 0,
                               ),
                               child: Text(
                                 appState.tr('Update Password', 'تحديث كلمة المرور'),
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: (w * 0.04).clamp(14.0, 17.0),
+                                ),
                               ),
                             ),
                           ),
-                        ],
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
         );
       },

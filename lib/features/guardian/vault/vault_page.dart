@@ -22,87 +22,113 @@ class _VaultPageState extends State<VaultPage> {
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.055).clamp(16.0, 28.0);
+        final vPad = (short * 0.028).clamp(12.0, 20.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.22).clamp(72.0, 100.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: Colors.transparent,
-          body: Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              color: Color(0xFFF7F9FC),
-              image: DecorationImage(
-                image: AssetImage('assets/images/bg.png'),
-                fit: BoxFit.cover,
-                opacity: 0.08,
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              const ColoredBox(color: Color(0xFFF7F9FC)),
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/bg.png'),
+                        fit: BoxFit.cover,
+                        opacity: 0.08,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: SafeArea(
-              child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20.0,
-                vertical: 16.0,
-              ),
-              child: FutureBuilder<List<PatientProfile>>(
-                future: SupabaseService().fetchPatientProfiles(),
-                builder: (context, snapshot) {
-                  final profiles = snapshot.data ?? [];
-                  
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildAppBar(),
-                      const SizedBox(height: 20),
-                      _buildSearchBar(),
-                      const SizedBox(height: 24),
-                      _buildMonitoredProfilesHeader(profiles.length),
-                      const SizedBox(height: 16),
-                      
-                      if (snapshot.connectionState == ConnectionState.waiting)
-                        const Center(child: CircularProgressIndicator(color: Color(0xFF1B64F2)))
-                      else if (profiles.isEmpty)
-                        Center(child: Text(appState.tr('No profiles found', 'لا توجد ملفات حالياً')))
-                      else
-                        ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: profiles.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 16),
-                          itemBuilder: (context, index) {
-                            final profile = profiles[index];
-                            final statusColor = profile.status ? const Color(0xFF22C55E) : const Color(0xFFEF4444);
-                            final statusLabel = profile.status ? appState.tr('SECURE', 'آمن') : appState.tr('ALERT', 'تنبيه');
-                            
-                            return _buildProfileCard(
-                              name: profile.profileName,
-                              role: appState.tr(profile.relationshipToGuardian, profile.relationshipToGuardian),
-                              imagePath: profile.avatarUrl,
-                              recordCount: 5, // Mock for now, could be fetched
-                              lastUpdate: appState.tr('Latest', 'الأحدث'),
-                              statusLabel: statusLabel,
-                              statusColor: statusColor,
-                              onOpenVault: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => VaultDetailPage(
-                                      profile: profile,
-                                      documents: const [],
-                                    ),
+              SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: FutureBuilder<List<PatientProfile>>(
+                          future: SupabaseService().fetchPatientProfiles(),
+                          builder: (context, snapshot) {
+                            final profiles = snapshot.data ?? [];
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _buildAppBar(),
+                                SizedBox(height: (short * 0.05).clamp(16.0, 24.0)),
+                                _buildSearchBar(),
+                                SizedBox(height: (short * 0.055).clamp(18.0, 28.0)),
+                                _buildMonitoredProfilesHeader(profiles.length),
+                                SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
+                                if (snapshot.connectionState == ConnectionState.waiting)
+                                  const Center(child: CircularProgressIndicator(color: Color(0xFF1B64F2)))
+                                else if (profiles.isEmpty)
+                                  Center(child: Text(appState.tr('No profiles found', 'لا توجد ملفات حالياً')))
+                                else
+                                  ListView.separated(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: profiles.length,
+                                    separatorBuilder: (_, __) =>
+                                        SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
+                                    itemBuilder: (context, index) {
+                                      final profile = profiles[index];
+                                      final statusColor =
+                                          profile.status ? const Color(0xFF22C55E) : const Color(0xFFEF4444);
+                                      final statusLabel = profile.status
+                                          ? appState.tr('SECURE', 'آمن')
+                                          : appState.tr('ALERT', 'تنبيه');
+
+                                      return _buildProfileCard(
+                                        name: profile.profileName,
+                                        role: appState.tr(
+                                            profile.relationshipToGuardian, profile.relationshipToGuardian),
+                                        imagePath: profile.avatarUrl,
+                                        recordCount: 5, // Mock for now, could be fetched
+                                        lastUpdate: appState.tr('Latest', 'الأحدث'),
+                                        statusLabel: statusLabel,
+                                        statusColor: statusColor,
+                                        onOpenVault: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => VaultDetailPage(
+                                                profile: profile,
+                                                documents: const [],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
                                   ),
-                                );
-                              },
+                                SizedBox(height: (short * 0.055).clamp(18.0, 28.0)),
+                                _buildHealthSecurityTip(),
+                                SizedBox(height: (short * 0.03).clamp(8.0, 16.0)),
+                              ],
                             );
                           },
                         ),
-                      
-                      const SizedBox(height: 24),
-                      _buildHealthSecurityTip(),
-                      const SizedBox(height: 120),
-                    ],
-                  );
-                },
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            ),
+            ],
           ),
         );
       },
@@ -111,12 +137,19 @@ class _VaultPageState extends State<VaultPage> {
 
   Widget _buildAppBar() {
     final appState = AppState();
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final avatarR = (short * 0.042).clamp(14.0, 18.0);
+    final titleFs = (short * 0.052).clamp(17.0, 22.0);
+    final bell = (short * 0.072).clamp(24.0, 30.0);
+    final gap = (short * 0.022).clamp(6.0, 12.0);
+
     return Row(
       children: [
         VideoLogoWidget(),
-        const SizedBox(width: 8),
+        SizedBox(width: gap),
         CircleAvatar(
-          radius: 16,
+          radius: avatarR,
           backgroundColor: const Color(0xFFE6F0FE),
           backgroundImage: appState.currentUser.imagePath.trim().isNotEmpty
               ? getUserAvatarProvider(appState.currentUser.imagePath)
@@ -129,10 +162,10 @@ class _VaultPageState extends State<VaultPage> {
                   appState.currentUser.name.isNotEmpty
                       ? appState.currentUser.name[0].toUpperCase()
                       : '?',
-                  style: const TextStyle(
-                    fontSize: 12,
+                  style: TextStyle(
+                    fontSize: (avatarR * 0.72).clamp(10.0, 14.0),
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1B64F2),
+                    color: const Color(0xFF1B64F2),
                   ),
                 )
               : null,
@@ -140,15 +173,15 @@ class _VaultPageState extends State<VaultPage> {
         const Spacer(),
         Text(
           appState.tr('Vault', 'الخزنة'),
-          style: const TextStyle(
-            fontSize: 20,
+          style: TextStyle(
+            fontSize: titleFs,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF1E3A8A),
+            color: const Color(0xFF1E3A8A),
           ),
         ),
         const Spacer(),
         const LanguageToggle(),
-        const SizedBox(width: 16),
+        SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
         GestureDetector(
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsPage())),
           child: AnimatedBuilder(
@@ -156,8 +189,9 @@ class _VaultPageState extends State<VaultPage> {
             builder: (context, _) {
               final unread = AppState().unreadNotificationCount;
               return Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  const Icon(Icons.notifications_none, color: Color(0xFF1E3A8A), size: 28),
+                  Icon(Icons.notifications_none, color: const Color(0xFF1E3A8A), size: bell),
                   if (unread > 0)
                     Positioned(
                       right: 0,
@@ -165,10 +199,17 @@ class _VaultPageState extends State<VaultPage> {
                       child: Container(
                         padding: const EdgeInsets.all(2),
                         decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        constraints: BoxConstraints(
+                          minWidth: (short * 0.042).clamp(14.0, 18.0),
+                          minHeight: (short * 0.042).clamp(14.0, 18.0),
+                        ),
                         child: Text(
                           unread > 99 ? '99+' : '$unread',
-                          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: (short * 0.024).clamp(8.0, 10.0),
+                            fontWeight: FontWeight.bold,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -184,11 +225,19 @@ class _VaultPageState extends State<VaultPage> {
 
   Widget _buildSearchBar() {
     final appState = AppState();
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final h = (short * 0.125).clamp(44.0, 56.0);
+    final radius = (w * 0.035).clamp(12.0, 16.0);
+    final iconS = (short * 0.055).clamp(20.0, 24.0);
+    final padH = (w * 0.035).clamp(12.0, 16.0);
+
     return Container(
-      height: 50,
+      height: h,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(
           color: Colors.grey.shade200,
           width: 1.5,
@@ -203,19 +252,21 @@ class _VaultPageState extends State<VaultPage> {
       ),
       child: Row(
         children: [
-          const SizedBox(width: 14),
+          SizedBox(width: padH),
           Icon(
             Icons.search,
             color: Colors.grey.shade400,
-            size: 22,
+            size: iconS,
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: (short * 0.026).clamp(8.0, 12.0)),
           Expanded(
             child: Text(
               appState.tr('Search records or profiles', 'ابحث في السجلات أو الملفات'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: Colors.grey.shade400,
-                fontSize: 14,
+                fontSize: (short * 0.036).clamp(13.0, 15.0),
               ),
             ),
           ),
@@ -226,34 +277,41 @@ class _VaultPageState extends State<VaultPage> {
 
   Widget _buildMonitoredProfilesHeader(int count) {
     final appState = AppState();
+    final short = MediaQuery.of(context).size.shortestSide;
+    final titleFs = (short * 0.046).clamp(16.0, 20.0);
+    final subFs = (short * 0.034).clamp(12.0, 14.0);
+    final linkFs = (short * 0.036).clamp(13.0, 15.0);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              appState.tr('Monitored Profiles', 'الملفات المراقبة'),
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1E3A8A),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                appState.tr('Monitored Profiles', 'الملفات المراقبة'),
+                style: TextStyle(
+                  fontSize: titleFs,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF1E3A8A),
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              appState.tr('$count active medical profiles linked', 'يوجد $count ملفات طبية نشطة مرتبطة'),
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade500,
+              SizedBox(height: (short * 0.01).clamp(3.0, 6.0)),
+              Text(
+                appState.tr('$count active medical profiles linked', 'يوجد $count ملفات طبية نشطة مرتبطة'),
+                style: TextStyle(
+                  fontSize: subFs,
+                  color: Colors.grey.shade500,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         Text(
           appState.tr('View All', 'عرض الكل'),
           style: TextStyle(
-            fontSize: 14,
+            fontSize: linkFs,
             fontWeight: FontWeight.w600,
             color: const Color(0xFF1E3A8A).withValues(alpha: 0.7),
           ),
@@ -273,12 +331,22 @@ class _VaultPageState extends State<VaultPage> {
     required VoidCallback onOpenVault,
   }) {
     final appState = AppState();
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final cardPad = (short * 0.045).clamp(14.0, 20.0);
+    final avatarR = (short * 0.072).clamp(24.0, 32.0);
+    final nameFs = (short * 0.04).clamp(14.0, 17.0);
+    final metaFs = (short * 0.033).clamp(11.5, 13.5);
+    final smallIcon = (short * 0.036).clamp(12.0, 15.0);
+    final btnH = (short * 0.105).clamp(40.0, 48.0);
+    final cardRadius = (w * 0.04).clamp(14.0, 18.0);
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(cardPad),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(cardRadius),
         border: Border.all(
           color: Colors.grey.shade100,
           width: 1,
@@ -297,7 +365,7 @@ class _VaultPageState extends State<VaultPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
-                radius: 28,
+                radius: avatarR,
                 backgroundImage:
                     imagePath.trim().isNotEmpty ? getUserAvatarProvider(imagePath) : null,
                 onBackgroundImageError:
@@ -305,63 +373,73 @@ class _VaultPageState extends State<VaultPage> {
                 child: imagePath.trim().isEmpty
                     ? Text(
                         name.isNotEmpty ? name[0].toUpperCase() : '?',
-                        style: const TextStyle(
-                          color: Color(0xFF1B64F2),
+                        style: TextStyle(
+                          color: const Color(0xFF1B64F2),
                           fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                          fontSize: (avatarR * 0.62).clamp(14.0, 20.0),
                         ),
                       )
                     : null,
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: (short * 0.035).clamp(10.0, 16.0)),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       name,
-                      style: const TextStyle(
-                        fontSize: 16,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: nameFs,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF1F2937),
+                        color: const Color(0xFF1F2937),
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: (short * 0.006).clamp(1.0, 4.0)),
                     Text(
                       role,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: metaFs,
                         color: Colors.grey.shade500,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: (short * 0.016).clamp(4.0, 8.0)),
                     Row(
                       children: [
                         Icon(
                           Icons.description_outlined,
-                          size: 14,
+                          size: smallIcon,
                           color: Colors.grey.shade400,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          appState.tr('$recordCount Records', '$recordCount سجلات'),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade500,
+                        SizedBox(width: (short * 0.01).clamp(3.0, 6.0)),
+                        Flexible(
+                          child: Text(
+                            appState.tr('$recordCount Records', '$recordCount سجلات'),
+                            style: TextStyle(
+                              fontSize: metaFs,
+                              color: Colors.grey.shade500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: (short * 0.03).clamp(8.0, 14.0)),
                         Icon(
                           Icons.access_time,
-                          size: 14,
+                          size: smallIcon,
                           color: Colors.grey.shade400,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          lastUpdate,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade500,
+                        SizedBox(width: (short * 0.01).clamp(3.0, 6.0)),
+                        Flexible(
+                          child: Text(
+                            lastUpdate,
+                            style: TextStyle(
+                              fontSize: metaFs,
+                              color: Colors.grey.shade500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -381,7 +459,7 @@ class _VaultPageState extends State<VaultPage> {
                 child: Text(
                   statusLabel,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: (short * 0.028).clamp(10.0, 12.0),
                     fontWeight: FontWeight.w700,
                     color: statusColor,
                     letterSpacing: 0.5,
@@ -390,14 +468,14 @@ class _VaultPageState extends State<VaultPage> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
           Row(
             children: [
               Expanded(
                 child: GestureDetector(
                   onTap: onOpenVault,
                   child: Container(
-                    height: 42,
+                    height: btnH,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [
@@ -407,22 +485,22 @@ class _VaultPageState extends State<VaultPage> {
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                       ),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular((short * 0.026).clamp(8.0, 12.0)),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.folder_open,
                           color: Colors.white,
-                          size: 18,
+                          size: (btnH * 0.42).clamp(16.0, 20.0),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: (short * 0.02).clamp(6.0, 10.0)),
                         Text(
                           appState.tr('Open Vault', 'فتح الخزنة'),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 14,
+                            fontSize: (short * 0.036).clamp(13.0, 15.0),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -431,7 +509,7 @@ class _VaultPageState extends State<VaultPage> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: (short * 0.03).clamp(8.0, 14.0)),
               GestureDetector(
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -441,17 +519,18 @@ class _VaultPageState extends State<VaultPage> {
                   );
                 },
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.share_outlined,
                       color: Colors.grey.shade600,
-                      size: 18,
+                      size: (short * 0.045).clamp(16.0, 20.0),
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
                     Text(
                       appState.tr('Share', 'مشاركة'),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: (short * 0.036).clamp(13.0, 15.0),
                         fontWeight: FontWeight.w600,
                         color: Colors.grey.shade600,
                       ),
@@ -459,7 +538,7 @@ class _VaultPageState extends State<VaultPage> {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: (short * 0.02).clamp(4.0, 10.0)),
             ],
           ),
         ],
@@ -469,8 +548,18 @@ class _VaultPageState extends State<VaultPage> {
 
   Widget _buildHealthSecurityTip() {
     final appState = AppState();
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final pad = (short * 0.05).clamp(16.0, 22.0);
+    final iconBox = (short * 0.1).clamp(36.0, 44.0);
+    final iconIn = (iconBox * 0.5).clamp(18.0, 22.0);
+    final titleFs = (short * 0.038).clamp(14.0, 16.0);
+    final bodyFs = (short * 0.034).clamp(12.0, 14.0);
+    final radius = (w * 0.04).clamp(14.0, 18.0);
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(pad),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -480,7 +569,7 @@ class _VaultPageState extends State<VaultPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(
           color: const Color(0xFFB4E6C9).withValues(alpha: 0.6),
           width: 1.5,
@@ -490,39 +579,39 @@ class _VaultPageState extends State<VaultPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: iconBox,
+            height: iconBox,
             decoration: BoxDecoration(
               color: const Color(0xFF22C55E).withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.verified_user,
-              color: Color(0xFF22C55E),
-              size: 20,
+              color: const Color(0xFF22C55E),
+              size: iconIn,
             ),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: (short * 0.035).clamp(10.0, 16.0)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   appState.tr('Health Security Tip', 'نصيحة أمنية صحية'),
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: TextStyle(
+                    fontSize: titleFs,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF166534),
+                    color: const Color(0xFF166534),
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: (short * 0.016).clamp(4.0, 8.0)),
                 Text(
                   appState.tr(
                     'Ensure two-factor authentication is active to protect\nsensitive medical history files.',
-                    'تأكد من تفعيل المصادقة الثنائية لحماية\nملفات التاريخ الطبي الحساسة.'
+                    'تأكد من تفعيل المصادقة الثنائية لحماية\nملفات التاريخ الطبي الحساسة.',
                   ),
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: bodyFs,
                     color: Colors.grey.shade600,
                     height: 1.5,
                   ),

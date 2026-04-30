@@ -54,7 +54,13 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
+          extendBody: true,
           backgroundColor: const Color(0xFF131A2A),
           body: Column(
             children: [
@@ -70,33 +76,44 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                     ),
                   ),
                   child: SafeArea(
+                    bottom: false,
                     child: Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: (w * 0.055).clamp(16.0, 28.0),
+                            vertical: (short * 0.028).clamp(8.0, 14.0),
+                          ),
                           child: Row(
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.arrow_back, color: Colors.white),
                                 onPressed: () => Navigator.pop(context),
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                appState.tr('Locate Bracelet', 'تحديد موقع السوار'),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                              SizedBox(width: (w * 0.02).clamp(4.0, 10.0)),
+                              Expanded(
+                                child: Text(
+                                  appState.tr('Locate Bracelet', 'تحديد موقع السوار'),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: (w * 0.045).clamp(16.0, 19.0),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              const Spacer(),
                               const LanguageToggle(color: Colors.white),
                             ],
                           ),
                         ),
                         
                         Expanded(
-                          child: Center(
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final maxRing = (constraints.biggest.shortestSide * 0.88).clamp(180.0, 300.0);
+                              final centerDot = (maxRing * 0.28).clamp(64.0, 96.0);
+                              return Center(
                             child: Stack(
                               alignment: Alignment.center,
                               clipBehavior: Clip.none,
@@ -107,8 +124,8 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                                     builder: (context, child) {
                                       double progress = (_animationController.value + index / 3) % 1;
                                       return Container(
-                                        width: 260 * progress,
-                                        height: 260 * progress,
+                                        width: maxRing * progress,
+                                        height: maxRing * progress,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           border: Border.all(
@@ -123,8 +140,8 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                                   );
                                 }),
                                 Container(
-                                  width: 80,
-                                  height: 80,
+                                  width: centerDot,
+                                  height: centerDot,
                                   decoration: BoxDecoration(
                                     color: _isRinging ? Colors.green : const Color(0xFF1B64F2),
                                     shape: BoxShape.circle,
@@ -135,7 +152,11 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                                       ),
                                     ],
                                   ),
-                                  child: Icon(_isRinging ? Icons.notifications_active : Icons.location_on, color: Colors.white, size: 32),
+                                  child: Icon(
+                                    _isRinging ? Icons.notifications_active : Icons.location_on,
+                                    color: Colors.white,
+                                    size: (centerDot * 0.38).clamp(26.0, 36.0),
+                                  ),
                                 ),
                                 Positioned(
                                   bottom: -15, 
@@ -161,6 +182,8 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                                 ),
                               ],
                             ),
+                          );
+                            },
                           ),
                         ),
                       ],
@@ -181,7 +204,13 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                     ),
                   ),
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(32),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(
+                      (w * 0.07).clamp(20.0, 36.0),
+                      (short * 0.07).clamp(22.0, 36.0),
+                      (w * 0.07).clamp(20.0, 36.0),
+                      mq.viewInsets.bottom + mq.padding.bottom + (short * 0.26).clamp(80.0, 112.0),
+                    ),
                     child: Column(
                       children: [
                         Container(
