@@ -16,13 +16,17 @@ class WearerHeader extends StatelessWidget {
         final appState = AppState();
         final unread = appState.unreadNotificationCount;
         final imagePath = appState.currentUser.imagePath;
+        final short = MediaQuery.of(context).size.shortestSide;
+        final avatarR = (short * 0.042).clamp(14.0, 18.0);
+        final bell = (short * 0.072).clamp(24.0, 30.0);
+        final gap = (short * 0.022).clamp(6.0, 12.0);
 
         return Row(
           children: [
             VideoLogoWidget(),
-            const SizedBox(width: 8),
+            SizedBox(width: gap),
             CircleAvatar(
-              radius: 16,
+              radius: avatarR,
               backgroundColor: const Color(0xFFE6F0FE),
               backgroundImage: imagePath.isNotEmpty
                   ? getUserAvatarProvider(imagePath)
@@ -34,8 +38,8 @@ class WearerHeader extends StatelessWidget {
                       appState.currentUser.name.isNotEmpty
                           ? appState.currentUser.name[0].toUpperCase()
                           : '?',
-                      style: const TextStyle(
-                          fontSize: 12,
+                      style: TextStyle(
+                          fontSize: (avatarR * 0.72).clamp(10.0, 14.0),
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF1B64F2)),
                     )
@@ -43,16 +47,17 @@ class WearerHeader extends StatelessWidget {
             ),
             const Spacer(),
             const LanguageToggle(),
-            const SizedBox(width: 16),
+            SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
             GestureDetector(
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const NotificationsPage()),
               ),
               child: Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  const Icon(Icons.notifications_none,
-                      color: Color(0xFF1E3A8A), size: 28),
+                  Icon(Icons.notifications_none,
+                      color: const Color(0xFF1E3A8A), size: bell),
                   if (unread > 0)
                     Positioned(
                       right: 0,
@@ -61,13 +66,15 @@ class WearerHeader extends StatelessWidget {
                         padding: const EdgeInsets.all(2),
                         decoration: const BoxDecoration(
                             color: Colors.red, shape: BoxShape.circle),
-                        constraints:
-                            const BoxConstraints(minWidth: 16, minHeight: 16),
+                        constraints: BoxConstraints(
+                          minWidth: (short * 0.042).clamp(14.0, 18.0),
+                          minHeight: (short * 0.042).clamp(14.0, 18.0),
+                        ),
                         child: Text(
                           unread > 99 ? '99+' : '$unread',
-                          style: const TextStyle(
+                          style: TextStyle(
                               color: Colors.white,
-                              fontSize: 9,
+                              fontSize: (short * 0.024).clamp(8.0, 10.0),
                               fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),

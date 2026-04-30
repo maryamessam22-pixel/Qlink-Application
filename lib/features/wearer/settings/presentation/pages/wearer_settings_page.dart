@@ -25,36 +25,42 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
     return AnimatedBuilder(
       animation: appState,
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.06).clamp(16.0, 28.0);
+        final bottomPad = mq.padding.bottom + (short * 0.22).clamp(72.0, 104.0);
         return Scaffold(
           backgroundColor: const Color(0xFFF7F9FC),
           body: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(hPad, hPad, hPad, bottomPad),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const WearerHeader(),
-                  const SizedBox(height: 32),
+                  SizedBox(height: (short * 0.08).clamp(22.0, 34.0)),
 
                   Text(
                     appState.tr('Settings', 'الإعدادات'),
-                    style: const TextStyle(
-                      fontSize: 26,
+                    style: TextStyle(
+                      fontSize: (short * 0.07).clamp(22.0, 28.0),
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF273469),
+                      color: const Color(0xFF273469),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: (short * 0.01).clamp(2.0, 6.0)),
                   Text(
                     appState.tr('Security & Preferences', 'الأمن والتفضيلات'),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: (short * 0.036).clamp(13.0, 15.0),
                       color: Colors.grey.shade500,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  SizedBox(height: (short * 0.08).clamp(22.0, 34.0)),
 
                   // Profile Section
                   _buildSectionTitle(appState.tr('Profile', 'الملف الشخصي')),
@@ -71,7 +77,7 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                     },
                   ),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
                   // Security Section
                   _buildSectionTitle(appState.tr('Security', 'الأمان')),
@@ -82,7 +88,7 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                     onChanged: (val) => setState(() => _biometricEnabled = val),
                   ),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
                   // Device Section
                   _buildSectionTitle(appState.tr('Device', 'الجهاز')),
@@ -98,7 +104,7 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                       );
                     },
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: (short * 0.03).clamp(8.0, 14.0)),
                   _buildSettingsItem(
                     icon: LucideIcons.history,
                     title: appState.tr('QR Scan History', 'سجل مسح QR'),
@@ -112,7 +118,7 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                     },
                   ),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
                   // Privacy Section
                   _buildSectionTitle(
@@ -131,14 +137,14 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                     },
                   ),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
                   // Support Section
                   _buildSectionTitle(appState.tr('Support', 'الدعم')),
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular((w * 0.05).clamp(14.0, 22.0)),
                     ),
                     child: Column(
                       children: [
@@ -161,7 +167,7 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                           indent: 60,
                         ),
                         Padding(
-                          padding: const EdgeInsets.all(20),
+                          padding: EdgeInsets.all((short * 0.05).clamp(14.0, 22.0)),
                           child: Row(
                             children: [
                               Container(
@@ -176,21 +182,21 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                                   size: 20,
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
                               Expanded(
                                 child: Text(
                                   appState.tr('App Version', 'إصدار التطبيق'),
-                                  style: const TextStyle(
-                                    fontSize: 15,
+                                  style: TextStyle(
+                                    fontSize: (short * 0.038).clamp(14.0, 16.0),
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF273469),
+                                    color: const Color(0xFF273469),
                                   ),
                                 ),
                               ),
                               Text(
                                 'v2.4.0 (Wearer Edition)',
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: (short * 0.033).clamp(12.0, 14.0),
                                   color: Colors.grey.shade400,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -202,12 +208,12 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                     ),
                   ),
 
-                  const SizedBox(height: 48),
+                  SizedBox(height: (short * 0.12).clamp(34.0, 52.0)),
 
                   // Logout Button
                   SizedBox(
                     width: double.infinity,
-                    height: 60,
+                    height: (short * 0.16).clamp(54.0, 64.0),
                     child: OutlinedButton(
                       onPressed: () {
                         Navigator.push(
@@ -224,21 +230,19 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                         ),
                         backgroundColor: const Color(0xFFFFF1F2),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular((short * 0.08).clamp(24.0, 32.0)),
                         ),
                       ),
                       child: Text(
                         appState.tr('Logout', 'تسجيل الخروج'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Color(0xFFE11D48),
-                          fontSize: 16,
+                          fontSize: (short * 0.04).clamp(14.0, 17.0),
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 100),
                 ],
               ),
             ),
@@ -249,14 +253,15 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
   }
 
   Widget _buildSectionTitle(String title) {
+    final short = MediaQuery.of(context).size.shortestSide;
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 12),
+      padding: EdgeInsets.only(left: 4, bottom: (short * 0.03).clamp(8.0, 14.0)),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 16,
+        style: TextStyle(
+          fontSize: (short * 0.04).clamp(14.0, 17.0),
           fontWeight: FontWeight.w900,
-          color: Color(0xFF273469),
+          color: const Color(0xFF273469),
         ),
       ),
     );
@@ -268,35 +273,37 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
     required VoidCallback onTap,
     bool noMargin = false,
   }) {
+    final short = MediaQuery.of(context).size.shortestSide;
+    final w = MediaQuery.of(context).size.width;
     return Container(
       margin: EdgeInsets.only(bottom: noMargin ? 0 : 0),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: noMargin ? BorderRadius.zero : BorderRadius.circular(20),
+        borderRadius: noMargin ? BorderRadius.zero : BorderRadius.circular((w * 0.05).clamp(14.0, 22.0)),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular((w * 0.05).clamp(14.0, 22.0)),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all((short * 0.05).clamp(14.0, 22.0)),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: EdgeInsets.all((short * 0.026).clamp(8.0, 12.0)),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEFF6FF),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: const Color(0xFF1B64F2), size: 20),
+                child: Icon(icon, color: const Color(0xFF1B64F2), size: (short * 0.05).clamp(18.0, 22.0)),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: TextStyle(
+                    fontSize: (short * 0.038).clamp(14.0, 16.0),
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF273469),
+                    color: const Color(0xFF273469),
                   ),
                 ),
               ),
@@ -318,30 +325,32 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
     required bool value,
     required Function(bool) onChanged,
   }) {
+    final short = MediaQuery.of(context).size.shortestSide;
+    final w = MediaQuery.of(context).size.width;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all((short * 0.05).clamp(14.0, 22.0)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular((w * 0.05).clamp(14.0, 22.0)),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all((short * 0.026).clamp(8.0, 12.0)),
             decoration: BoxDecoration(
               color: const Color(0xFFEFF6FF),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: const Color(0xFF1B64F2), size: 20),
+            child: Icon(icon, color: const Color(0xFF1B64F2), size: (short * 0.05).clamp(18.0, 22.0)),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
-                fontSize: 15,
+              style: TextStyle(
+                fontSize: (short * 0.038).clamp(14.0, 16.0),
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF273469),
+                color: const Color(0xFF273469),
               ),
             ),
           ),

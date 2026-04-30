@@ -11,46 +11,57 @@ class WearerInitialSetupPage extends StatelessWidget {
     return AnimatedBuilder(
       animation: appState,
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.06).clamp(16.0, 28.0);
+        final bottomPad = mq.padding.bottom + (short * 0.08).clamp(24.0, 40.0);
+
         return Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(hPad, hPad, hPad, bottomPad),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
                 children: [
-                  const SizedBox(height: 40),
+                  SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
                   
                   // Large circular icon
                   Center(
                     child: Container(
-                      width: 120,
-                      height: 120,
+                      width: (short * 0.32).clamp(96.0, 128.0),
+                      height: (short * 0.32).clamp(96.0, 128.0),
                       decoration: const BoxDecoration(
                         color: Color(0xFF1B64F2),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.qr_code_scanner,
                         color: Colors.white,
-                        size: 60,
+                        size: (short * 0.16).clamp(44.0, 64.0),
                       ),
                     ),
                   ),
                   
-                  const SizedBox(height: 40),
+                  SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
                   
                   // Title
                   Text(
                     appState.tr('Create Your Profile', 'أنشئ ملفك الشخصي'),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 28,
+                    style: TextStyle(
+                      fontSize: (short * 0.075).clamp(24.0, 30.0),
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF273469),
+                      color: const Color(0xFF273469),
                     ),
                   ),
                   
-                  const SizedBox(height: 16),
+                  SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                   
                   // Subtitle
                   Text(
@@ -60,14 +71,14 @@ class WearerInitialSetupPage extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: (short * 0.04).clamp(14.0, 17.0),
                       color: Colors.grey.shade500,
                       height: 1.5,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   
-                  const SizedBox(height: 60),
+                  SizedBox(height: (short * 0.14).clamp(40.0, 64.0)),
                   
                   // Action Card
                   GestureDetector(
@@ -78,10 +89,10 @@ class WearerInitialSetupPage extends StatelessWidget {
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: EdgeInsets.all((short * 0.05).clamp(14.0, 22.0)),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular((w * 0.06).clamp(16.0, 24.0)),
                         border: Border.all(color: Colors.grey.shade100, width: 2),
                         boxShadow: [
                           BoxShadow(
@@ -94,31 +105,31 @@ class WearerInitialSetupPage extends StatelessWidget {
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: EdgeInsets.all((short * 0.03).clamp(10.0, 14.0)),
                             decoration: BoxDecoration(
                               color: const Color(0xFFEFF6FF),
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular((w * 0.04).clamp(12.0, 18.0)),
                             ),
                             child: const Icon(Icons.person_outline, color: Color(0xFF1B64F2), size: 24),
                           ),
-                          const SizedBox(width: 16),
+                          SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   appState.tr('Create your profile', 'أنشئ ملفك الشخصي'),
-                                  style: const TextStyle(
-                                    fontSize: 16,
+                                  style: TextStyle(
+                                    fontSize: (short * 0.04).clamp(14.0, 17.0),
                                     fontWeight: FontWeight.w900,
-                                    color: Color(0xFF273469),
+                                    color: const Color(0xFF273469),
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                SizedBox(height: (short * 0.01).clamp(2.0, 6.0)),
                                 Text(
                                   appState.tr('Add your info', 'أضف معلوماتك'),
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: (short * 0.036).clamp(13.0, 15.0),
                                     color: Colors.grey.shade400,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -132,19 +143,19 @@ class WearerInitialSetupPage extends StatelessWidget {
                     ),
                   ),
                   
-                  const SizedBox(height: 40),
+                  SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
 
                   // Device Status
                   Text(
                     appState.tr('DEVICE STATUS', 'حالة الجهاز'),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: (short * 0.032).clamp(12.0, 14.0),
                       fontWeight: FontWeight.w800,
                       color: Colors.grey.shade400,
                       letterSpacing: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: (short * 0.03).clamp(8.0, 14.0)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -156,36 +167,42 @@ class WearerInitialSetupPage extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
+                      SizedBox(width: (short * 0.02).clamp(6.0, 10.0)),
+                      Expanded(
+                        child: Text(
                         appState.tr('Searching for nearby Qlink devices...', 'البحث عن أجهزة Qlink القريبة...'),
+                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: (short * 0.036).clamp(13.0, 15.0),
                           color: Colors.grey.shade500,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
+                      ),
                     ],
                   ),
                   
-                  const SizedBox(height: 40),
+                  SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
                   
                   // Help link
                   TextButton(
                     onPressed: () {},
                     child: Text(
                       appState.tr('Need help setting up?', 'هل تحتاج إلى مساعدة في الإعداد؟'),
-                      style: const TextStyle(
-                        color: Color(0xFF1B64F2),
-                        fontSize: 15,
+                      style: TextStyle(
+                        color: const Color(0xFF1B64F2),
+                        fontSize: (short * 0.038).clamp(14.0, 16.0),
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),
                   
-                  const SizedBox(height: 20),
+                  SizedBox(height: (short * 0.05).clamp(14.0, 22.0)),
                 ],
               ),
+                  ),
+                );
+              },
             ),
           ),
         );

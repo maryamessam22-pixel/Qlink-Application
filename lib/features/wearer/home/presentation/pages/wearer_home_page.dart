@@ -72,45 +72,58 @@ class WearerHomePage extends StatelessWidget {
       animation: AppState(),
       builder: (context, _) {
     final appState = AppState();
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24.0, 54.0, 24.0, 24.0),
-      child: Column(
+    final mq = MediaQuery.of(context);
+    final short = mq.size.shortestSide;
+    final w = mq.size.width;
+    final hPad = (w * 0.06).clamp(16.0, 28.0);
+    final topPad = (short * 0.12).clamp(20.0, 54.0);
+    final bottomPad = mq.padding.bottom + mq.viewInsets.bottom + (short * 0.24).clamp(80.0, 112.0);
+
+    return SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(hPad, topPad, hPad, bottomPad),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const WearerHeader(),
-          const SizedBox(height: 24),
+          SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
           // Greeting
           Text(
             appState.tr('Hello, ${appState.currentUser.name}', 'مرحباً، ${appState.currentUser.name}'),
-            style: const TextStyle(
-              fontSize: 24,
+            style: TextStyle(
+              fontSize: (short * 0.065).clamp(20.0, 26.0),
               fontWeight: FontWeight.w900,
-              color: Color(0xFF273469),
+              color: const Color(0xFF273469),
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: (short * 0.01).clamp(2.0, 6.0)),
           Text(
             appState.tr('Your Safety Circle Command Center', 'مركز قيادة دائرة سلامتك'),
             style: TextStyle(
-              fontSize: 14,
+              fontSize: (short * 0.036).clamp(13.0, 15.0),
               color: Colors.grey.shade500,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
           // System Status Card
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all((short * 0.06).clamp(16.0, 24.0)),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular((w * 0.06).clamp(16.0, 24.0)),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFF4F46E5).withValues(alpha: 0.3),
@@ -130,16 +143,16 @@ class WearerHomePage extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
                 Text(
                   appState.tr('You are Safe', 'أنت في أمان'),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 26,
+                    fontSize: (short * 0.07).clamp(22.0, 28.0),
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
@@ -157,14 +170,14 @@ class WearerHomePage extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: (short * 0.02).clamp(6.0, 10.0)),
                       Text(
                         isConnected 
                           ? appState.tr('Monitoring Active', 'المراقبة نشطة')
                           : appState.tr('Offline', 'غير متصل'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 12,
+                          fontSize: (short * 0.03).clamp(11.0, 13.0),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -174,15 +187,15 @@ class WearerHomePage extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
           // Device Status Section
           if (!isConnected)
             _buildNoDeviceCard(context, appState)
           else
-            _buildConnectedDevicesGrid(appState),
+            _buildConnectedDevicesGrid(context, appState),
 
-          const SizedBox(height: 24),
+          SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
           // Emergency Buttons
           GestureDetector(
@@ -190,10 +203,10 @@ class WearerHomePage extends StatelessWidget {
             onLongPress: () => _triggerSOS(context),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 20),
+              padding: EdgeInsets.symmetric(vertical: (short * 0.05).clamp(16.0, 22.0)),
               decoration: BoxDecoration(
                 color: const Color(0xFFEF4444),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular((w * 0.04).clamp(14.0, 18.0)),
                 boxShadow: [
                   BoxShadow(
                     color: const Color(0xFFEF4444).withValues(alpha:0.2),
@@ -206,47 +219,47 @@ class WearerHomePage extends StatelessWidget {
                 children: [
                   Text(
                     appState.tr('SOS Emergency', 'طوارئ SOS'),
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 20,
+                      fontSize: (short * 0.052).clamp(18.0, 22.0),
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: (short * 0.01).clamp(2.0, 6.0)),
                   Text(
                     appState.tr('Press and hold for 3 seconds', 'اضغط مع الاستمرار لمدة 3 ثوانٍ'),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 12,
+                      fontSize: (short * 0.03).clamp(11.0, 13.0),
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
           Container(
             width: double.infinity,
-            height: 64,
+            height: (short * 0.17).clamp(56.0, 68.0),
             decoration: BoxDecoration(
               color: const Color(0xFF22C55E),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular((w * 0.04).clamp(14.0, 18.0)),
             ),
             child: TextButton.icon(
               onPressed: () => _callEmergencyContact(context),
-              icon: const Icon(LucideIcons.phone, color: Colors.white),
+              icon: Icon(LucideIcons.phone, color: Colors.white, size: (short * 0.055).clamp(20.0, 24.0)),
               label: Text(
                 appState.tr('Call Emergency Contact', 'اتصل بجهة اتصال الطوارئ'),
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: (short * 0.04).clamp(14.0, 17.0),
                   fontWeight: FontWeight.w800,
                 ),
               ),
             ),
           ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: (short * 0.08).clamp(22.0, 34.0)),
 
           // Recent Activity
           Row(
@@ -254,10 +267,10 @@ class WearerHomePage extends StatelessWidget {
             children: [
               Text(
                 appState.tr('Recent Activity', 'النشاط الأخير'),
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: (short * 0.046).clamp(16.0, 20.0),
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF273469),
+                  color: const Color(0xFF273469),
                 ),
               ),
               TextButton(
@@ -272,26 +285,27 @@ class WearerHomePage extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: (short * 0.03).clamp(8.0, 14.0)),
           if (appState.scanHistory.isEmpty)
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 32),
+              padding: EdgeInsets.symmetric(vertical: (short * 0.08).clamp(24.0, 34.0)),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular((w * 0.04).clamp(14.0, 18.0)),
                 border: Border.all(color: Colors.grey.shade100),
               ),
               child: Center(
                 child: Text(
                   appState.tr('No activity yet', 'لا يوجد نشاط بعد'),
-                  style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                  style: TextStyle(color: Colors.grey.shade400, fontSize: (short * 0.036).clamp(13.0, 15.0)),
                 ),
               ),
             )
           else
             ...appState.scanHistory.take(5).map((item) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: EdgeInsets.only(bottom: (short * 0.03).clamp(8.0, 14.0)),
               child: _buildActivityItem(
+                context: context,
                 icon: LucideIcons.qrCode,
                 iconColor: const Color(0xFF1B64F2),
                 title: item.title,
@@ -300,8 +314,11 @@ class WearerHomePage extends StatelessWidget {
                 appState: appState,
               ),
             )),
-          const SizedBox(height: 100),
         ],
+      ),
+    ),
+    );
+        },
       ),
     );
       },
@@ -309,12 +326,14 @@ class WearerHomePage extends StatelessWidget {
   }
 
   Widget _buildNoDeviceCard(BuildContext context, AppState appState) {
+    final short = MediaQuery.of(context).size.shortestSide;
+    final w = MediaQuery.of(context).size.width;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all((short * 0.06).clamp(16.0, 24.0)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular((w * 0.06).clamp(16.0, 24.0)),
         border: Border.all(color: Colors.grey.shade100),
       ),
       child: Column(
@@ -322,37 +341,43 @@ class WearerHomePage extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all((short * 0.03).clamp(10.0, 14.0)),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEEF2FF),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular((w * 0.04).clamp(12.0, 18.0)),
                 ),
-                child: const Icon(LucideIcons.watch, color: Color(0xFF1B64F2), size: 24),
+                child: Icon(LucideIcons.watch, color: const Color(0xFF1B64F2), size: (short * 0.06).clamp(20.0, 26.0)),
               ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    appState.tr('No Device Connected', 'لا يوجد جهاز متصل'),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF273469),
+              SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      appState.tr('No Device Connected', 'لا يوجد جهاز متصل'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: (short * 0.04).clamp(14.0, 17.0),
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF273469),
+                      ),
                     ),
-                  ),
-                  Text(
-                    appState.tr('Wearable Link', 'رابط الجهاز'),
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade400,
+                    Text(
+                      appState.tr('Wearable Link', 'رابط الجهاز'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: (short * 0.033).clamp(12.0, 14.0),
+                        color: Colors.grey.shade400,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: (short * 0.06).clamp(16.0, 24.0)),
           GestureDetector(
             onTap: () {
                Navigator.push(
@@ -368,21 +393,21 @@ class WearerHomePage extends StatelessWidget {
             },
             child: Container(
               width: double.infinity,
-              height: 54,
+              height: (short * 0.145).clamp(48.0, 58.0),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF0066CC), Color(0xFF273469)],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
-                borderRadius: BorderRadius.circular(27),
+                borderRadius: BorderRadius.circular((short * 0.07).clamp(22.0, 28.0)),
               ),
               child: Center(
                 child: Text(
                   appState.tr('+ Add Device', '+ إضافة جهاز'),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: (short * 0.04).clamp(14.0, 17.0),
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -394,11 +419,13 @@ class WearerHomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildConnectedDevicesGrid(AppState appState) {
+  Widget _buildConnectedDevicesGrid(BuildContext context, AppState appState) {
+    final short = MediaQuery.of(context).size.shortestSide;
     return Row(
       children: [
         Expanded(
           child: _buildSmallStatusCard(
+            context: context,
             icon: LucideIcons.watch,
             iconColor: const Color(0xFF1B64F2),
             label: appState.tr('Bracelet', 'السوار'),
@@ -406,9 +433,10 @@ class WearerHomePage extends StatelessWidget {
             appState: appState,
           ),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: (short * 0.04).clamp(10.0, 18.0)),
         Expanded(
           child: _buildSmallStatusCard(
+            context: context,
             icon: LucideIcons.battery,
             iconColor: const Color(0xFF22C55E),
             label: appState.tr('Battery', 'البطارية'),
@@ -421,45 +449,48 @@ class WearerHomePage extends StatelessWidget {
   }
 
   Widget _buildSmallStatusCard({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required String label,
     required String value,
     required AppState appState,
   }) {
+    final short = MediaQuery.of(context).size.shortestSide;
+    final w = MediaQuery.of(context).size.width;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all((short * 0.05).clamp(14.0, 20.0)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular((w * 0.05).clamp(14.0, 20.0)),
         border: Border.all(color: Colors.grey.shade100),
       ),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all((short * 0.026).clamp(8.0, 12.0)),
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: iconColor, size: 24),
+            child: Icon(icon, color: iconColor, size: (short * 0.06).clamp(20.0, 26.0)),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: (short * 0.03).clamp(8.0, 14.0)),
           Text(
             label,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: (short * 0.033).clamp(12.0, 14.0),
               color: Colors.grey.shade500,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: (short * 0.01).clamp(2.0, 6.0)),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 16,
+            style: TextStyle(
+              fontSize: (short * 0.04).clamp(14.0, 17.0),
               fontWeight: FontWeight.w900,
-              color: Color(0xFF273469),
+              color: const Color(0xFF273469),
             ),
           ),
         ],
@@ -468,6 +499,7 @@ class WearerHomePage extends StatelessWidget {
   }
 
   Widget _buildActivityItem({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required String title,
@@ -475,52 +507,63 @@ class WearerHomePage extends StatelessWidget {
     required String status,
     required AppState appState,
   }) {
+    final short = MediaQuery.of(context).size.shortestSide;
+    final w = MediaQuery.of(context).size.width;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all((short * 0.042).clamp(12.0, 18.0)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular((w * 0.04).clamp(14.0, 18.0)),
         border: Border.all(color: Colors.grey.shade100),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all((short * 0.026).clamp(8.0, 12.0)),
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: iconColor, size: 20),
+            child: Icon(icon, color: iconColor, size: (short * 0.05).clamp(18.0, 22.0)),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: (short * 0.04).clamp(10.0, 18.0)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 15,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: (short * 0.038).clamp(14.0, 16.0),
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF273469),
+                    color: const Color(0xFF273469),
                   ),
                 ),
                 Text(
                   subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: (short * 0.03).clamp(11.0, 13.0),
                     color: Colors.grey.shade400,
                   ),
                 ),
               ],
             ),
           ),
-          Text(
-            status,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade400,
-              fontWeight: FontWeight.w500,
+          Flexible(
+            child: Text(
+              status,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontSize: (short * 0.03).clamp(11.0, 13.0),
+                color: Colors.grey.shade400,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

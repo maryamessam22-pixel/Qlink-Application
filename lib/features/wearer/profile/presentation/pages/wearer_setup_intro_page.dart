@@ -12,7 +12,14 @@ class WearerSetupIntroPage extends StatelessWidget {
     return AnimatedBuilder(
       animation: appState,
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.06).clamp(16.0, 28.0);
+        final bodyHPad = (w * 0.08).clamp(20.0, 34.0);
+        final listBottom = mq.padding.bottom + (short * 0.1).clamp(28.0, 46.0);
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
           appBar: AppBar(
             backgroundColor: Colors.white,
@@ -32,41 +39,43 @@ class WearerSetupIntroPage extends StatelessWidget {
             centerTitle: true,
           ),
           body: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.only(bottom: listBottom),
             child: Column(
               children: [
-                const SizedBox(height: 20),
+                SizedBox(height: (short * 0.05).clamp(14.0, 22.0)),
                 // Hero Image
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: hPad),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular((w * 0.05).clamp(14.0, 22.0)),
                     child: Image.asset(
                       'assets/images/setup pic.png',
                       width: double.infinity,
-                      height: 300,
+                      height: (short * 0.8).clamp(240.0, 320.0),
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
                 
-                const SizedBox(height: 40),
+                SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
                 
                 // Content
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  padding: EdgeInsets.symmetric(horizontal: bodyHPad),
                   child: Column(
                     children: [
                       Text(
                         appState.tr("Let's Link Your First Bracelet", "لنقم بربط سوارك الأول"),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 24,
+                        style: TextStyle(
+                          fontSize: (short * 0.065).clamp(20.0, 26.0),
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFF273469),
+                          color: const Color(0xFF273469),
                           height: 1.2,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: (short * 0.03).clamp(8.0, 14.0)),
                       Text(
                         appState.tr(
                           "Follow these simple steps to activate your life-saving device.",
@@ -74,37 +83,40 @@ class WearerSetupIntroPage extends StatelessWidget {
                         ),
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: (short * 0.036).clamp(13.0, 15.0),
                           color: Colors.grey.shade500,
                           height: 1.4,
                         ),
                       ),
                       
-                      const SizedBox(height: 40),
+                      SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
                       
                       // Steps
                       _buildStep(
+                        context: context,
                         icon: LucideIcons.qrCode,
                         title: appState.tr('Enter the code inside the box to pair', 'أدخل الرمز الموجود داخل الصندوق للإقران'),
                         subtitle: appState.tr('QR Code connection', 'اتصال رمز QR'),
                         appState: appState,
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
                       _buildStep(
+                        context: context,
                         icon: LucideIcons.shieldCheck,
                         title: appState.tr('Build the safety profile', 'أنشئ ملف السلامة'),
                         subtitle: appState.tr('Medical info and emergency contacts', 'المعلومات الطبية وجهات اتصال الطوارئ'),
                         appState: appState,
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
                       _buildStep(
+                        context: context,
                         icon: LucideIcons.radio,
                         title: appState.tr('Ready for emergencies', 'جاهز للطوارئ'),
                         subtitle: appState.tr('One tap to alert responders', 'نقرة واحدة لتنبيه المستجيبين'),
                         appState: appState,
                       ),
                       
-                      const SizedBox(height: 48),
+                      SizedBox(height: (short * 0.12).clamp(34.0, 52.0)),
                       
                       // Button
                       GestureDetector(
@@ -116,21 +128,21 @@ class WearerSetupIntroPage extends StatelessWidget {
                         },
                         child: Container(
                           width: double.infinity,
-                          height: 60,
+                          height: (short * 0.16).clamp(54.0, 64.0),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: [Color(0xFF0066CC), Color(0xFF273469)],
                               begin: Alignment.centerLeft,
                               end: Alignment.centerRight,
                             ),
-                            borderRadius: BorderRadius.circular(30),
+                            borderRadius: BorderRadius.circular((short * 0.08).clamp(24.0, 32.0)),
                           ),
                           child: Center(
                             child: Text(
                               appState.tr('Start Linking', 'بدء الربط'),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 18,
+                                fontSize: (short * 0.046).clamp(16.0, 20.0),
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
@@ -138,7 +150,7 @@ class WearerSetupIntroPage extends StatelessWidget {
                         ),
                       ),
                       
-                      const SizedBox(height: 60),
+                      SizedBox(height: (short * 0.14).clamp(40.0, 64.0)),
                     ],
                   ),
                 ),
@@ -151,41 +163,44 @@ class WearerSetupIntroPage extends StatelessWidget {
   }
 
   Widget _buildStep({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String subtitle,
     required AppState appState,
   }) {
+    final short = MediaQuery.of(context).size.shortestSide;
+    final w = MediaQuery.of(context).size.width;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(10),
+          padding: EdgeInsets.all((short * 0.026).clamp(8.0, 12.0)),
           decoration: BoxDecoration(
             color: const Color(0xFFEEF2FF),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular((w * 0.03).clamp(10.0, 14.0)),
           ),
-          child: Icon(icon, color: const Color(0xFF1B64F2), size: 20),
+          child: Icon(icon, color: const Color(0xFF1B64F2), size: (short * 0.05).clamp(18.0, 22.0)),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 15,
+                style: TextStyle(
+                  fontSize: (short * 0.038).clamp(14.0, 16.0),
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF273469),
+                  color: const Color(0xFF273469),
                   height: 1.3,
                 ),
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: (short * 0.006).clamp(1.0, 4.0)),
               Text(
                 subtitle,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: (short * 0.033).clamp(12.0, 14.0),
                   color: Colors.grey.shade500,
                 ),
               ),

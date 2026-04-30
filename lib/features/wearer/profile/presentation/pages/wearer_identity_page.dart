@@ -63,36 +63,50 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
     return AnimatedBuilder(
       animation: appState,
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.06).clamp(16.0, 28.0);
+        final vPad = (short * 0.03).clamp(12.0, 20.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.08).clamp(24.0, 40.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-              child: Column(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                    Row(
                     children: [
                       VideoLogoWidget(),
-                      const SizedBox(width: 8),
+                      SizedBox(width: (short * 0.022).clamp(6.0, 12.0)),
                       CircleAvatar(
-                        radius: 16,
+                        radius: (short * 0.042).clamp(14.0, 18.0),
                         backgroundColor: const Color(0xFFE6F0FE),
                         backgroundImage: getUserAvatarProvider(AppState().currentUser.imagePath),
                         onBackgroundImageError: (_, __) {},
                       ),
                       const Spacer(),
                       const LanguageToggle(),
-                      const SizedBox(width: 16),
+                      SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
                       Stack(
                         children: [
-                          const Icon(Icons.notifications_none, color: Color(0xFF1E3A8A), size: 28),
+                          Icon(Icons.notifications_none, color: const Color(0xFF1E3A8A), size: (short * 0.072).clamp(24.0, 30.0)),
                           Positioned(
                             right: 2,
                             top: 2,
                             child: Container(
-                              width: 10,
-                              height: 10,
+                              width: (short * 0.028).clamp(8.0, 12.0),
+                              height: (short * 0.028).clamp(8.0, 12.0),
                               decoration: const BoxDecoration(
                                 color: Colors.red,
                                 shape: BoxShape.circle,
@@ -103,7 +117,7 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
                   
                   // Cancel Button
                   GestureDetector(
@@ -124,46 +138,46 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
                     ),
                   ),
                   
-                  const SizedBox(height: 20),
+                  SizedBox(height: (short * 0.05).clamp(14.0, 22.0)),
                   
                   // Title
                   Text(
                     appState.tr('Generate Your Profile', 'أنشئ ملفك الشخصي'),
-                    style: const TextStyle(
-                      fontSize: 24,
+                    style: TextStyle(
+                      fontSize: (short * 0.065).clamp(20.0, 26.0),
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF273469),
+                      color: const Color(0xFF273469),
                     ),
                   ),
                   
-                  const SizedBox(height: 16),
+                  SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                   
                   // Progress Bar
                   Row(
                     children: [
                       Expanded(
                         child: Container(
-                          height: 4,
+                          height: (short * 0.012).clamp(3.0, 5.0),
                           decoration: BoxDecoration(
                             color: const Color(0xFF273469),
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
                       Expanded(
                         child: Container(
-                          height: 4,
+                          height: (short * 0.012).clamp(3.0, 5.0),
                           decoration: BoxDecoration(
                             color: Colors.grey.shade200,
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
                       Expanded(
                         child: Container(
-                          height: 4,
+                          height: (short * 0.012).clamp(3.0, 5.0),
                           decoration: BoxDecoration(
                             color: Colors.grey.shade200,
                             borderRadius: BorderRadius.circular(2),
@@ -173,28 +187,28 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
                     ],
                   ),
                   
-                  const SizedBox(height: 8),
+                  SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
                   
                   Text(
                     appState.tr('Step 1 of 3: Identity', 'الخطوة 1 من 3: الهوية'),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: (short * 0.036).clamp(13.0, 15.0),
                       color: Colors.grey.shade600,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
                   const Divider(color: Color(0xFFE5E7EB), thickness: 1),
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
                   // Profile Picture Section
                   Center(
                     child: Stack(
                       children: [
                         Container(
-                          width: 120,
-                          height: 120,
+                          width: (short * 0.32).clamp(96.0, 128.0),
+                          height: (short * 0.32).clamp(96.0, 128.0),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(color: const Color(0xFF1E3A8A), width: 2),
@@ -250,7 +264,7 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
                   // Form Fields
                   _buildLabelAndTextField(
@@ -258,40 +272,40 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
                     hintText: appState.tr('e.g., Mohamed Saber', 'مثال: محمد صابر'),
                     controller: _nameController,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                   
                   _buildLabelAndTextField(
                     label: appState.tr('Relationship to You', 'صلة القرابة'),
                     hintText: appState.tr('e.g., Grandfather', 'مثال: الجد'),
                     controller: _relationshipController,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                   
                   _buildLabelAndTextField(
                     label: appState.tr('Birth Year', 'سنة الميلاد'),
                     hintText: appState.tr('e.g., 1945', 'مثال: 1945'),
                     controller: _birthYearController,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
                   // Emergency Contacts
                   ..._contactControllers.asMap().entries.map((entry) {
                     int index = entry.key;
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                      padding: EdgeInsets.only(bottom: (short * 0.04).clamp(12.0, 18.0)),
                       child: _buildContactField(index, appState),
                     );
                   }),
 
-                  const SizedBox(height: 8),
+                  SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
                   
                   // Add More Button
                   Container(
                     width: double.infinity,
-                    height: 54,
+                    height: (short * 0.145).clamp(48.0, 58.0),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey.shade200),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular((w * 0.03).clamp(10.0, 14.0)),
                     ),
                     child: TextButton(
                       onPressed: () {
@@ -317,7 +331,7 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
                     ),
                   ),
                   
-                  const SizedBox(height: 32),
+                  SizedBox(height: (short * 0.08).clamp(22.0, 34.0)),
 
                   // Continue Button
                   GestureDetector(
@@ -341,23 +355,23 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
                     },
                     child: Container(
                       width: double.infinity,
-                      height: 56,
+                      height: (short * 0.15).clamp(50.0, 60.0),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF0066CC), Color(0xFF273469)],
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                         ),
-                        borderRadius: BorderRadius.circular(28),
+                        borderRadius: BorderRadius.circular((short * 0.075).clamp(24.0, 30.0)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
                             appState.tr('Continue to Medical Info', 'متابعة للمعلومات الطبية'),
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
-                              fontSize: 16,
+                              fontSize: (short * 0.04).clamp(14.0, 17.0),
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -368,9 +382,11 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
                     ),
                   ),
                   
-                  const SizedBox(height: 80),
                 ],
               ),
+            ),
+                );
+              },
             ),
           ),
         );

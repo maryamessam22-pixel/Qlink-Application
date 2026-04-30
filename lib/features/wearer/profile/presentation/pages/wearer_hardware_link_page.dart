@@ -63,36 +63,57 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
     return AnimatedBuilder(
       animation: appState,
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.06).clamp(16.0, 28.0);
+        final vPad = (short * 0.03).clamp(12.0, 20.0);
+        final bottomPad = mq.viewInsets.bottom + mq.padding.bottom + (short * 0.08).clamp(24.0, 40.0);
+        final gapS = (short * 0.04).clamp(12.0, 18.0);
+        final gapM = (short * 0.06).clamp(18.0, 26.0);
+        final gapL = (short * 0.08).clamp(24.0, 34.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                    Row(
                     children: [
                       VideoLogoWidget(),
-                      const SizedBox(width: 8),
+                      SizedBox(width: (short * 0.022).clamp(6.0, 12.0)),
                       CircleAvatar(
-                        radius: 16,
+                        radius: (short * 0.042).clamp(14.0, 18.0),
                         backgroundColor: const Color(0xFFE6F0FE),
                         backgroundImage: getUserAvatarProvider(appState.currentUser.imagePath),
                         onBackgroundImageError: (_, __) {},
                       ),
                       const Spacer(),
                       const LanguageToggle(),
-                      const SizedBox(width: 16),
+                      SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
                       Stack(
+                        clipBehavior: Clip.none,
                         children: [
-                          const Icon(Icons.notifications_none, color: Color(0xFF1E3A8A), size: 28),
+                          Icon(
+                            Icons.notifications_none,
+                            color: const Color(0xFF1E3A8A),
+                            size: (short * 0.072).clamp(24.0, 30.0),
+                          ),
                           Positioned(
                             right: 2,
                             top: 2,
                             child: Container(
-                              width: 10,
-                              height: 10,
+                              width: (short * 0.028).clamp(8.0, 12.0),
+                              height: (short * 0.028).clamp(8.0, 12.0),
                               decoration: const BoxDecoration(
                                 color: Colors.red,
                                 shape: BoxShape.circle,
@@ -103,7 +124,7 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: gapM),
                   
                   // Back Button
                   GestureDetector(
@@ -124,46 +145,46 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                     ),
                   ),
                   
-                  const SizedBox(height: 20),
+                  SizedBox(height: gapS),
                   
                   // Title
                   Text(
                     appState.tr('Connect Your Device', 'ربط جهازك'),
-                    style: const TextStyle(
-                      fontSize: 24,
+                    style: TextStyle(
+                      fontSize: (short * 0.065).clamp(20.0, 26.0),
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF273469),
+                      color: const Color(0xFF273469),
                     ),
                   ),
-                  
-                  const SizedBox(height: 16),
+
+                  SizedBox(height: gapS),
                   
                   // Progress Bar
                   Row(
                     children: [
                       Expanded(
                         child: Container(
-                          height: 4,
+                          height: (short * 0.012).clamp(3.0, 5.0),
                           decoration: BoxDecoration(
                             color: const Color(0xFF273469),
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
                       Expanded(
                         child: Container(
-                          height: 4,
+                          height: (short * 0.012).clamp(3.0, 5.0),
                           decoration: BoxDecoration(
                             color: const Color(0xFF273469),
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
                       Expanded(
                         child: Container(
-                          height: 4,
+                          height: (short * 0.012).clamp(3.0, 5.0),
                           decoration: BoxDecoration(
                             color: const Color(0xFF273469),
                             borderRadius: BorderRadius.circular(2),
@@ -173,25 +194,25 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                     ],
                   ),
                   
-                  const SizedBox(height: 8),
+                  SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
                   
                   Text(
                     appState.tr('Step 3 of 3: Hardware Link', 'الخطوة 3 من 3: ربط الجهاز'),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: (short * 0.036).clamp(13.0, 15.0),
                       color: Colors.grey.shade600,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  
-                  const SizedBox(height: 24),
+
+                  SizedBox(height: gapM),
                   
                   // Info Box
                   Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: EdgeInsets.all((short * 0.05).clamp(14.0, 22.0)),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE6FFFA),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular((w * 0.03).clamp(10.0, 14.0)),
                       border: Border.all(color: const Color(0xFF38B2AC), width: 1),
                     ),
                      child: Text(
@@ -207,8 +228,8 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                       ),
                     ),
                   ),
-                  
-                  const SizedBox(height: 32),
+
+                  SizedBox(height: gapL),
                   
                   // Device Type
                   Text(
@@ -219,13 +240,13 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                       color: Color(0xFF1E3A8A),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: (short * 0.026).clamp(8.0, 12.0)),
                   Container(
-                    height: 54,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    constraints: BoxConstraints(minHeight: (short * 0.145).clamp(48.0, 58.0)),
+                    padding: EdgeInsets.symmetric(horizontal: (short * 0.04).clamp(12.0, 18.0)),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF9FAFB),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular((w * 0.03).clamp(10.0, 14.0)),
                       border: Border.all(
                         color: Colors.grey.shade300,
                         width: 1,
@@ -251,10 +272,11 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                             value: type,
                             child: Text(
                               type,
-                              style: const TextStyle(
-                                fontSize: 14,
+                              style: TextStyle(
+                                fontSize: (short * 0.035).clamp(13.0, 15.0),
                                 color: Color(0xFF1F2937),
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           );
                         }).toList(),
@@ -267,7 +289,7 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                     ),
                   ),
                   
-                  const SizedBox(height: 24),
+                  SizedBox(height: gapM),
                   
                   // Code Field
                   Text(
@@ -278,11 +300,11 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                       color: Color(0xFF1E3A8A),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: (short * 0.026).clamp(8.0, 12.0)),
                   TextField(
                     controller: _codeController,
-                    style: const TextStyle(
-                      fontSize: 14,
+                    style: TextStyle(
+                      fontSize: (short * 0.035).clamp(13.0, 15.0),
                       color: Color(0xFF1F2937),
                       letterSpacing: 1.2,
                     ),
@@ -290,18 +312,21 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                       hintText: 'QLINK-PULSE-8A3F2E',
                       hintStyle: TextStyle(
                         color: Colors.grey.shade400,
-                        fontSize: 14,
+                        fontSize: (short * 0.035).clamp(13.0, 15.0),
                         letterSpacing: 1.2,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: (short * 0.04).clamp(12.0, 18.0),
+                        vertical: (short * 0.04).clamp(12.0, 18.0),
+                      ),
                       filled: true,
                       fillColor: const Color(0xFFF9FAFB),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular((w * 0.03).clamp(10.0, 14.0)),
                         borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular((w * 0.03).clamp(10.0, 14.0)),
                         borderSide: const BorderSide(
                           color: Color(0xFF1E3A8A),
                           width: 1.5,
@@ -310,7 +335,7 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                     ),
                   ),
                   
-                  const SizedBox(height: 48),
+                  SizedBox(height: (short * 0.12).clamp(34.0, 52.0)),
                   
                   // Connect Button
                   GestureDetector(
@@ -438,23 +463,23 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                     },
                     child: Container(
                       width: double.infinity,
-                      height: 56,
+                      height: (short * 0.15).clamp(50.0, 60.0),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF0066CC), Color(0xFF273469)],
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                         ),
-                        borderRadius: BorderRadius.circular(28),
+                        borderRadius: BorderRadius.circular((short * 0.075).clamp(24.0, 30.0)),
                       ),
                       child: Center(
                         child: _isLoading 
                           ? const CircularProgressIndicator(color: Colors.white)
                           : Text(
                               appState.tr('Connect the Bracelet', 'ربط السوار'),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 16,
+                                fontSize: (short * 0.04).clamp(14.0, 17.0),
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
@@ -462,7 +487,7 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                     ),
                   ),
                   
-                  const SizedBox(height: 16),
+                  SizedBox(height: gapS),
                   
                   // Skip Button
                   GestureDetector(
@@ -478,31 +503,33 @@ class _WearerHardwareLinkPageState extends State<WearerHardwareLinkPage> {
                     },
                     child: Container(
                       width: double.infinity,
-                      height: 56,
+                      height: (short * 0.15).clamp(50.0, 60.0),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF273469), Color(0xFF0066CC)],
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                         ),
-                        borderRadius: BorderRadius.circular(28),
+                        borderRadius: BorderRadius.circular((short * 0.075).clamp(24.0, 30.0)),
                       ),
                       child: Center(
                         child: Text(
                           appState.tr('Skip this step for now', 'تخطي هذه الخطوة الآن'),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 16,
+                            fontSize: (short * 0.04).clamp(14.0, 17.0),
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
                     ),
                   ),
-                  
-                  const SizedBox(height: 80),
-                ],
-              ),
+
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         );

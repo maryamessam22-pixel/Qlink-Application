@@ -12,6 +12,11 @@ class WearerQrScanHistoryPage extends StatelessWidget {
     return AnimatedBuilder(
       animation: appState,
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.06).clamp(16.0, 28.0);
+        final bottomPad = mq.padding.bottom + (short * 0.22).clamp(72.0, 104.0);
         return Scaffold(
           backgroundColor: const Color(0xFFF7F9FC),
           appBar: AppBar(
@@ -31,41 +36,42 @@ class WearerQrScanHistoryPage extends StatelessWidget {
             ),
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(hPad, hPad, hPad, bottomPad),
             child: Column(
               children: [
                 _buildScanItem(
+                  context: context,
                   appState: appState,
                   title: 'Emergency Scan (Mohamed\'s Bracelet)',
                   subtitle: 'Scanned by +20 123 456 7890',
                   location: 'Cairo, Egypt',
                   time: '2 hours ago',
                 ),
-                const SizedBox(height: 100),
+                SizedBox(height: (short * 0.2).clamp(56.0, 88.0)),
                 
                 // Clear History Button
                 Center(
                   child: Container(
-                    width: 280,
-                    height: 54,
+                    width: (w * 0.72).clamp(240.0, 320.0),
+                    height: (short * 0.145).clamp(48.0, 58.0),
                     decoration: BoxDecoration(
                       color: const Color(0xFFEEF2FF),
-                      borderRadius: BorderRadius.circular(27),
+                      borderRadius: BorderRadius.circular((short * 0.07).clamp(22.0, 28.0)),
                     ),
                     child: TextButton(
                       onPressed: () {},
                       child: Text(
                         appState.tr('Clear History', 'مسح السجل'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Color(0xFF273469),
-                          fontSize: 16,
+                          fontSize: (short * 0.04).clamp(14.0, 17.0),
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 100),
               ],
             ),
           ),
@@ -76,18 +82,21 @@ class WearerQrScanHistoryPage extends StatelessWidget {
   }
 
   Widget _buildScanItem({
+    required BuildContext context,
     required AppState appState,
     required String title,
     required String subtitle,
     required String location,
     required String time,
   }) {
+    final short = MediaQuery.of(context).size.shortestSide;
+    final w = MediaQuery.of(context).size.width;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all((short * 0.06).clamp(16.0, 24.0)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular((w * 0.06).clamp(16.0, 24.0)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -107,23 +116,23 @@ class WearerQrScanHistoryPage extends StatelessWidget {
             ),
             child: const Icon(LucideIcons.qrCode, color: Color(0xFF1B64F2), size: 24),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: (short * 0.04).clamp(14.0, 17.0),
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFF273469),
+                    color: const Color(0xFF273469),
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
                 RichText(
                   text: TextSpan(
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+                    style: TextStyle(fontSize: (short * 0.036).clamp(13.0, 15.0), color: Colors.grey.shade500),
                     children: [
                       TextSpan(text: appState.tr('Scanned by ', 'تم المسح بواسطة ')),
                       TextSpan(
@@ -136,11 +145,11 @@ class WearerQrScanHistoryPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: (short * 0.01).clamp(2.0, 6.0)),
                 Text(
                   '$location • $time',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: (short * 0.033).clamp(12.0, 14.0),
                     color: Colors.grey.shade400,
                     fontWeight: FontWeight.w500,
                   ),

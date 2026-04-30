@@ -51,36 +51,49 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
     return AnimatedBuilder(
       animation: appState,
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.06).clamp(16.0, 28.0);
+        final vPad = (short * 0.03).clamp(12.0, 20.0);
+        final bottomPad =
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.08).clamp(24.0, 40.0);
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-              child: Column(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                    Row(
                     children: [
                       VideoLogoWidget(),
-                      const SizedBox(width: 8),
+                      SizedBox(width: (short * 0.022).clamp(6.0, 12.0)),
                       CircleAvatar(
-                        radius: 16,
+                        radius: (short * 0.042).clamp(14.0, 18.0),
                         backgroundColor: const Color(0xFFE6F0FE),
                         backgroundImage: getUserAvatarProvider(appState.currentUser.imagePath),
                         onBackgroundImageError: (_, __) {},
                       ),
                       const Spacer(),
                       const LanguageToggle(),
-                      const SizedBox(width: 16),
+                      SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
                       Stack(
                         children: [
-                          const Icon(Icons.notifications_none, color: Color(0xFF1E3A8A), size: 28),
+                          Icon(Icons.notifications_none, color: const Color(0xFF1E3A8A), size: (short * 0.072).clamp(24.0, 30.0)),
                           Positioned(
                             right: 2,
                             top: 2,
                             child: Container(
-                              width: 10,
-                              height: 10,
+                              width: (short * 0.028).clamp(8.0, 12.0),
+                              height: (short * 0.028).clamp(8.0, 12.0),
                               decoration: const BoxDecoration(
                                 color: Colors.red,
                                 shape: BoxShape.circle,
@@ -91,7 +104,7 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
                   
                   // Back Button
                   GestureDetector(
@@ -112,46 +125,46 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                     ),
                   ),
                   
-                  const SizedBox(height: 20),
+                  SizedBox(height: (short * 0.05).clamp(14.0, 22.0)),
                   
                   // Title
                   Text(
                     appState.tr('Generate Your Profile', 'أنشئ ملفك الشخصي'),
-                    style: const TextStyle(
-                      fontSize: 24,
+                    style: TextStyle(
+                      fontSize: (short * 0.065).clamp(20.0, 26.0),
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF273469),
+                      color: const Color(0xFF273469),
                     ),
                   ),
                   
-                  const SizedBox(height: 16),
+                  SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                   
                   // Progress Bar
                   Row(
                     children: [
                       Expanded(
                         child: Container(
-                          height: 4,
+                          height: (short * 0.012).clamp(3.0, 5.0),
                           decoration: BoxDecoration(
                             color: const Color(0xFF273469),
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
                       Expanded(
                         child: Container(
-                          height: 4,
+                          height: (short * 0.012).clamp(3.0, 5.0),
                           decoration: BoxDecoration(
                             color: const Color(0xFF273469),
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
                       Expanded(
                         child: Container(
-                          height: 4,
+                          height: (short * 0.012).clamp(3.0, 5.0),
                           decoration: BoxDecoration(
                             color: Colors.grey.shade200,
                             borderRadius: BorderRadius.circular(2),
@@ -161,20 +174,20 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                     ],
                   ),
                   
-                  const SizedBox(height: 8),
+                  SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
                   
                   Text(
                     appState.tr('Step 2 of 3: Medical', 'الخطوة 2 من 3: المعلومات الطبية'),
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: (short * 0.036).clamp(13.0, 15.0),
                       color: Colors.grey.shade600,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
                   const Divider(color: Color(0xFFE5E7EB), thickness: 1),
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
                   // Form Fields
                   _buildLabelAndTextArea(
@@ -182,14 +195,14 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                     hintText: appState.tr('e.g., Additional safety information', 'مثال: معلومات سلامة إضافية'),
                     controller: _safetyNotesController,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
                   
                   _buildLabelAndTextArea(
                     label: appState.tr('Allergies', 'الحساسية'),
                     hintText: appState.tr('e.g., Penicillin, Peanuts, Shellfish', 'مثال: بنسلين، فول سوداني، مأكولات بحرية'),
                     controller: _allergiesController,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
                   
                   // Blood Type Picker
                   Text(
@@ -200,15 +213,15 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                       color: Color(0xFF273469),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 4,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: 1.4,
+                      crossAxisSpacing: (short * 0.024).clamp(8.0, 12.0),
+                      mainAxisSpacing: (short * 0.024).clamp(8.0, 12.0),
+                      childAspectRatio: (w / short) > 1.9 ? 1.7 : 1.4,
                     ),
                     itemCount: _bloodTypes.length,
                     itemBuilder: (context, index) {
@@ -219,7 +232,7 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                         child: Container(
                           decoration: BoxDecoration(
                             color: isSelected ? const Color(0xFF273469) : Colors.white,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular((w * 0.02).clamp(8.0, 10.0)),
                             border: Border.all(
                               color: isSelected ? const Color(0xFF273469) : Colors.grey.shade200,
                               width: 1.5,
@@ -229,7 +242,7 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                             child: Text(
                               type,
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: (short * 0.04).clamp(14.0, 17.0),
                                 fontWeight: FontWeight.w800,
                                 color: isSelected ? Colors.white : const Color(0xFF273469),
                               ),
@@ -239,7 +252,7 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
                   _buildLabelAndTextArea(
                     label: appState.tr('Medical Notes', 'الملاحظات الطبية'),
@@ -247,7 +260,7 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                     controller: _medicalNotesController,
                   ),
                   
-                  const SizedBox(height: 48),
+                  SizedBox(height: (short * 0.12).clamp(34.0, 52.0)),
                   // Continue Button
                   GestureDetector(
                     onTap: () {
@@ -271,23 +284,23 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                     },
                     child: Container(
                       width: double.infinity,
-                      height: 56,
+                      height: (short * 0.15).clamp(50.0, 60.0),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF0066CC), Color(0xFF273469)],
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                         ),
-                        borderRadius: BorderRadius.circular(28),
+                        borderRadius: BorderRadius.circular((short * 0.075).clamp(24.0, 30.0)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
                             appState.tr('Continue to hardware link', 'متابعة لربط الجهاز'),
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
-                              fontSize: 16,
+                              fontSize: (short * 0.04).clamp(14.0, 17.0),
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -298,9 +311,11 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                     ),
                   ),
                   
-                  const SizedBox(height: 80),
                 ],
               ),
+            ),
+                );
+              },
             ),
           ),
         );

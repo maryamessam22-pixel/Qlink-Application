@@ -88,7 +88,13 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
     return AnimatedBuilder(
       animation: appState,
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.06).clamp(16.0, 28.0);
+        final bottomPad = mq.viewInsets.bottom + mq.padding.bottom + (short * 0.22).clamp(72.0, 104.0);
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
           appBar: AppBar(
             backgroundColor: Colors.white,
@@ -107,9 +113,14 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
             ),
             centerTitle: false,
           ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(hPad, hPad, hPad, bottomPad),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Profile Picture Section
@@ -119,19 +130,19 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
                     child: Stack(
                       children: [
                         CircleAvatar(
-                          radius: 60,
+                          radius: (short * 0.16).clamp(50.0, 64.0),
                           backgroundImage: _buildAvatarProvider(appState.currentUser.imagePath),
                         ),
                         Positioned(
                           bottom: 0,
                           right: 0,
                           child: Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: EdgeInsets.all((short * 0.02).clamp(6.0, 10.0)),
                             decoration: const BoxDecoration(
                               color: Color(0xFF1B64F2),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                            child: Icon(Icons.camera_alt, color: Colors.white, size: (short * 0.046).clamp(16.0, 20.0)),
                           ),
                         ),
                       ],
@@ -170,7 +181,7 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
                   ),
                 ),
                 
-                const SizedBox(height: 40),
+                SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
 
                 // --- SECTION 1: ACCOUNT INFO ---
                 _buildSectionHeader(appState.tr('Account Information', 'معلومات الحساب')),
@@ -186,7 +197,7 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
                 _buildFieldLabel(appState.tr('Password', 'كلمة المرور')),
                 _buildTextField(controller: _passwordController, hint: '********', isPassword: true),
                 
-                const SizedBox(height: 40),
+                SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
 
                 // --- SECTION 2: IDENTITY INFO ---
                 _buildSectionHeader(appState.tr('Identity Information', 'معلومات الهوية')),
@@ -219,7 +230,7 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
                   label: Text(appState.tr('Add Contact', 'إضافة جهة اتصال')),
                 ),
 
-                const SizedBox(height: 40),
+                SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
 
                 // --- SECTION 3: MEDICAL INFO ---
                 _buildSectionHeader(appState.tr('Medical Information', 'المعلومات الطبية')),
@@ -235,15 +246,15 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
                 _buildFieldLabel(appState.tr('Medical Notes', 'الملاحظات الطبية')),
                 _buildTextField(controller: _medicalNotesController, hint: 'e.g., Diabetic', maxLines: 3),
 
-                const SizedBox(height: 60),
+                SizedBox(height: (short * 0.15).clamp(44.0, 64.0)),
                 
                 // Save Button
                 Container(
                   width: double.infinity,
-                  height: 60,
+                  height: (short * 0.16).clamp(54.0, 64.0),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1B64F2),
-                    borderRadius: BorderRadius.circular(30),
+                    borderRadius: BorderRadius.circular((short * 0.08).clamp(24.0, 32.0)),
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFF1B64F2).withValues(alpha: 0.2),
@@ -334,18 +345,19 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
                             appState.tr('Save Changes', 'حفظ التغييرات'),
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
-                              fontSize: 18,
+                              fontSize: (short * 0.046).clamp(16.0, 20.0),
                               fontWeight: FontWeight.w800,
                             ),
                           ),
                   ),
                 ),
-                
-                const SizedBox(height: 100),
               ],
             ),
+                ),
+              );
+            },
           ),
           bottomNavigationBar: const WearerBottomNav(),
         );
@@ -354,20 +366,21 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
   }
 
   Widget _buildSectionHeader(String title) {
+    final short = MediaQuery.of(context).size.shortestSide;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: EdgeInsets.only(bottom: (short * 0.06).clamp(16.0, 26.0)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 20,
+            style: TextStyle(
+              fontSize: (short * 0.052).clamp(18.0, 22.0),
               fontWeight: FontWeight.w900,
-              color: Color(0xFF1B64F2),
+              color: const Color(0xFF1B64F2),
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
           Container(height: 2, width: 40, color: const Color(0xFF1B64F2).withValues(alpha: 0.3)),
         ],
       ),
@@ -375,14 +388,15 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
   }
 
   Widget _buildFieldLabel(String label) {
+    final short = MediaQuery.of(context).size.shortestSide;
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      padding: EdgeInsets.only(left: 4, bottom: (short * 0.02).clamp(6.0, 10.0)),
       child: Text(
         label,
-        style: const TextStyle(
-          fontSize: 15,
+        style: TextStyle(
+          fontSize: (short * 0.038).clamp(14.0, 16.0),
           fontWeight: FontWeight.w800,
-          color: Color(0xFF273469),
+          color: const Color(0xFF273469),
         ),
       ),
     );
@@ -395,23 +409,29 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
     int maxLines = 1,
     Widget? suffixIcon,
   }) {
+    final short = MediaQuery.of(context).size.shortestSide;
+    final w = MediaQuery.of(context).size.width;
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFF7F9FC),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular((w * 0.03).clamp(10.0, 14.0)),
       ),
       child: TextField(
         controller: controller,
         obscureText: isPassword,
         maxLines: maxLines,
-        style: const TextStyle(
+        style: TextStyle(
           color: Color(0xFF273469),
           fontWeight: FontWeight.w600,
+          fontSize: (short * 0.038).clamp(14.0, 16.0),
         ),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: (short * 0.036).clamp(13.0, 15.0)),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: (short * 0.05).clamp(14.0, 22.0),
+            vertical: (short * 0.045).clamp(14.0, 20.0),
+          ),
           border: InputBorder.none,
           suffixIcon: suffixIcon,
         ),
@@ -420,14 +440,16 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
   }
 
   Widget _buildBloodTypePicker() {
+    final short = MediaQuery.of(context).size.shortestSide;
+    final w = MediaQuery.of(context).size.width;
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 1.5,
+        crossAxisSpacing: (short * 0.024).clamp(8.0, 12.0),
+        mainAxisSpacing: (short * 0.024).clamp(8.0, 12.0),
+        childAspectRatio: (w / short) > 1.9 ? 1.7 : 1.5,
       ),
       itemCount: _bloodTypes.length,
       itemBuilder: (context, index) {
@@ -438,7 +460,7 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
           child: Container(
             decoration: BoxDecoration(
               color: isSelected ? const Color(0xFF273469) : const Color(0xFFF7F9FC),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular((w * 0.02).clamp(8.0, 10.0)),
               border: Border.all(
                 color: isSelected ? const Color(0xFF273469) : Colors.transparent,
                 width: 1.5,
@@ -448,7 +470,7 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
               child: Text(
                 type,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: (short * 0.038).clamp(14.0, 16.0),
                   fontWeight: FontWeight.w800,
                   color: isSelected ? Colors.white : const Color(0xFF273469),
                 ),

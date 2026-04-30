@@ -17,34 +17,48 @@ class _WearerHealthPageState extends State<WearerHealthPage> {
     return AnimatedBuilder(
       animation: appState,
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.06).clamp(16.0, 28.0);
+        final topPad = (short * 0.12).clamp(20.0, 54.0);
+        final bottomPad = mq.padding.bottom + mq.viewInsets.bottom + (short * 0.24).clamp(80.0, 112.0);
+        final titleFs = (short * 0.07).clamp(22.0, 28.0);
+
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: const Color(0xFFF7F9FC),
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(hPad, topPad, hPad, bottomPad),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                   const WearerHeader(),
-                  const SizedBox(height: 32),
-                  
+                  SizedBox(height: (short * 0.08).clamp(22.0, 34.0)),
+
                   Text(
                     appState.tr('Health Monitoring', 'مراقبة الصحة'),
-                    style: const TextStyle(
-                      fontSize: 26,
+                    style: TextStyle(
+                      fontSize: titleFs,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF273469),
+                      color: const Color(0xFF273469),
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  
+                  SizedBox(height: (short * 0.08).clamp(22.0, 34.0)),
+
                   // Heart Rate Card
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(24),
+                    padding: EdgeInsets.all((short * 0.06).clamp(16.0, 24.0)),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular((w * 0.06).clamp(16.0, 24.0)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.02),
@@ -105,8 +119,8 @@ class _WearerHealthPageState extends State<WearerHealthPage> {
                     ),
                   ),
                   
-                  const SizedBox(height: 20),
-                  
+                  SizedBox(height: (short * 0.05).clamp(14.0, 22.0)),
+
                   // Secondary Status Info
                   Row(
                     children: [
@@ -119,7 +133,7 @@ class _WearerHealthPageState extends State<WearerHealthPage> {
                           appState: appState,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: (short * 0.04).clamp(10.0, 18.0)),
                       Expanded(
                         child: _buildInfoCard(
                           icon: LucideIcons.battery,
@@ -132,15 +146,15 @@ class _WearerHealthPageState extends State<WearerHealthPage> {
                     ],
                   ),
                   
-                  const SizedBox(height: 20),
-                  
+                  SizedBox(height: (short * 0.05).clamp(14.0, 22.0)),
+
                   // Sensors Status Card
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(24),
+                    padding: EdgeInsets.all((short * 0.06).clamp(16.0, 24.0)),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular((w * 0.06).clamp(16.0, 24.0)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.02),
@@ -187,13 +201,13 @@ class _WearerHealthPageState extends State<WearerHealthPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
-                        Row(
+                        SizedBox(height: (short * 0.06).clamp(16.0, 24.0)),
+                        Wrap(
+                          spacing: (short * 0.02).clamp(6.0, 10.0),
+                          runSpacing: (short * 0.02).clamp(6.0, 10.0),
                           children: [
                             _buildSensorPill('Optical', appState),
-                            const SizedBox(width: 8),
                             _buildSensorPill('Accelerometer', appState),
-                            const SizedBox(width: 8),
                             _buildSensorPill('GPS', appState),
                           ],
                         ),
@@ -201,8 +215,8 @@ class _WearerHealthPageState extends State<WearerHealthPage> {
                     ),
                   ),
                   
-                  const SizedBox(height: 32),
-                  
+                  SizedBox(height: (short * 0.08).clamp(22.0, 34.0)),
+
                   // Status Footer
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -215,21 +229,25 @@ class _WearerHealthPageState extends State<WearerHealthPage> {
                           shape: BoxShape.circle,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        appState.tr('All sensors are working normally.', 'جميع الحساسات تعمل بشكل طبيعي.'),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade500,
-                          fontWeight: FontWeight.w500,
+                      SizedBox(width: (short * 0.03).clamp(8.0, 14.0)),
+                      Expanded(
+                        child: Text(
+                          appState.tr('All sensors are working normally.', 'جميع الحساسات تعمل بشكل طبيعي.'),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: (short * 0.036).clamp(13.0, 15.0),
+                            color: Colors.grey.shade500,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  
-                  const SizedBox(height: 100),
-                ],
-              ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         );
@@ -244,38 +262,50 @@ class _WearerHealthPageState extends State<WearerHealthPage> {
     required String value,
     required AppState appState,
   }) {
+    final short = MediaQuery.of(context).size.shortestSide;
+    final w = MediaQuery.of(context).size.width;
+    final pad = (short * 0.05).clamp(14.0, 20.0);
+    final iconS = (short * 0.06).clamp(20.0, 26.0);
+    final labelFs = (short * 0.032).clamp(12.0, 14.0);
+    final valueFs = (short * 0.04).clamp(14.0, 17.0);
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(pad),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular((w * 0.05).clamp(14.0, 20.0)),
       ),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all((short * 0.026).clamp(8.0, 12.0)),
             decoration: BoxDecoration(
               color: iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: iconColor, size: 24),
+            child: Icon(icon, color: iconColor, size: iconS),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: (short * 0.03).clamp(8.0, 14.0)),
           Text(
             label,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: labelFs,
               color: Colors.grey.shade400,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: (short * 0.01).clamp(2.0, 6.0)),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 16,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: valueFs,
               fontWeight: FontWeight.w900,
-              color: Color(0xFF273469),
+              color: const Color(0xFF273469),
             ),
           ),
         ],
@@ -284,17 +314,21 @@ class _WearerHealthPageState extends State<WearerHealthPage> {
   }
 
   Widget _buildSensorPill(String label, AppState appState) {
+    final short = MediaQuery.of(context).size.shortestSide;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(
+        horizontal: (short * 0.04).clamp(12.0, 18.0),
+        vertical: (short * 0.02).clamp(6.0, 10.0),
+      ),
       decoration: BoxDecoration(
         color: const Color(0xFFF0FDF4),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular((short * 0.05).clamp(16.0, 22.0)),
       ),
       child: Text(
         appState.tr(label, label), // Assuming same for both for these technical terms
-        style: const TextStyle(
-          color: Color(0xFF16A34A),
-          fontSize: 12,
+        style: TextStyle(
+          color: const Color(0xFF16A34A),
+          fontSize: (short * 0.03).clamp(11.0, 13.0),
           fontWeight: FontWeight.w700,
         ),
       ),

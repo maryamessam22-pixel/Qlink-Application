@@ -54,6 +54,11 @@ class _WearerPublicPreviewQrPageState extends State<WearerPublicPreviewQrPage> {
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.06).clamp(16.0, 28.0);
+        final listBottom = mq.padding.bottom + (short * 0.08).clamp(24.0, 40.0);
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
@@ -123,36 +128,37 @@ class _WearerPublicPreviewQrPageState extends State<WearerPublicPreviewQrPage> {
               });
 
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(hPad, hPad, hPad, listBottom),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all((short * 0.04).clamp(12.0, 18.0)),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF7F9FC),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular((w * 0.05).clamp(14.0, 22.0)),
                         ),
                         child: Column(
                           children: [
                             _buildAvatar(profile),
-                            const SizedBox(height: 16),
+                            SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                             Text(
                               profile.profileName,
-                              style: const TextStyle(
-                                fontSize: 22,
+                              style: TextStyle(
+                                fontSize: (short * 0.058).clamp(20.0, 24.0),
                                 fontWeight: FontWeight.w900,
-                                color: Color(0xFF273469),
+                                color: const Color(0xFF273469),
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: (short * 0.01).clamp(2.0, 6.0)),
                             Text(
                               appState.tr(
                                   'Emergency Profile', 'ملف الطوارئ الشخصي'),
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: (short * 0.036).clamp(13.0, 15.0),
                                 color: Colors.grey.shade500,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -161,7 +167,7 @@ class _WearerPublicPreviewQrPageState extends State<WearerPublicPreviewQrPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
                     if (profile.bloodType.isNotEmpty)
                       _buildInfoTile(
                         appState,
@@ -192,7 +198,7 @@ class _WearerPublicPreviewQrPageState extends State<WearerPublicPreviewQrPage> {
                             : profile.medicalNotesEn,
                       ),
                     if (contacts.isNotEmpty) ...[
-                      const SizedBox(height: 24),
+                      SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
                       Text(
                         appState.tr(
                             'Emergency Contacts', 'جهات اتصال الطوارئ'),
@@ -202,10 +208,9 @@ class _WearerPublicPreviewQrPageState extends State<WearerPublicPreviewQrPage> {
                           color: Color(0xFF273469),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                       ...contacts,
                     ],
-                    const SizedBox(height: 100),
                   ],
                 ),
               );
@@ -219,18 +224,18 @@ class _WearerPublicPreviewQrPageState extends State<WearerPublicPreviewQrPage> {
   Widget _buildInfoTile(
       AppState appState, IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: EdgeInsets.only(bottom: (MediaQuery.of(context).size.shortestSide * 0.05).clamp(14.0, 22.0)),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all((MediaQuery.of(context).size.shortestSide * 0.03).clamp(10.0, 14.0)),
             decoration: const BoxDecoration(
               color: Color(0xFFEFF6FF),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: const Color(0xFF1B64F2), size: 24),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: (MediaQuery.of(context).size.shortestSide * 0.04).clamp(12.0, 18.0)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,17 +243,17 @@ class _WearerPublicPreviewQrPageState extends State<WearerPublicPreviewQrPage> {
                 Text(
                   label,
                   style: TextStyle(
-                      fontSize: 14,
+                      fontSize: (MediaQuery.of(context).size.shortestSide * 0.036).clamp(13.0, 15.0),
                       color: Colors.grey.shade500,
                       fontWeight: FontWeight.w600),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: (MediaQuery.of(context).size.shortestSide * 0.006).clamp(1.0, 4.0)),
                 Text(
                   value,
-                  style: const TextStyle(
-                      fontSize: 16,
+                  style: TextStyle(
+                      fontSize: (MediaQuery.of(context).size.shortestSide * 0.04).clamp(14.0, 17.0),
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF273469)),
+                      color: const Color(0xFF273469)),
                 ),
               ],
             ),
@@ -259,17 +264,19 @@ class _WearerPublicPreviewQrPageState extends State<WearerPublicPreviewQrPage> {
   }
 
   Widget _buildContactTile(String name, String phone) {
+    final short = MediaQuery.of(context).size.shortestSide;
+    final w = MediaQuery.of(context).size.width;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all((short * 0.04).clamp(12.0, 18.0)),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular((w * 0.04).clamp(12.0, 18.0)),
         border: Border.all(color: Colors.grey.shade100),
       ),
       child: Row(
         children: [
           const Icon(Icons.phone, color: Color(0xFF22C55E)),
-          const SizedBox(width: 16),
+          SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

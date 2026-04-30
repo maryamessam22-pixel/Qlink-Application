@@ -11,6 +11,11 @@ class WearerHelpCenterPage extends StatelessWidget {
     return AnimatedBuilder(
       animation: appState,
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.06).clamp(16.0, 28.0);
+        final bottomPad = mq.padding.bottom + (short * 0.22).clamp(72.0, 104.0);
         return Scaffold(
           backgroundColor: const Color(0xFFF7F9FC),
           appBar: AppBar(
@@ -30,16 +35,17 @@ class WearerHelpCenterPage extends StatelessWidget {
             ),
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(hPad, hPad, hPad, bottomPad),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.all((short * 0.06).clamp(16.0, 24.0)),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular((w * 0.06).clamp(16.0, 24.0)),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.02),
@@ -62,10 +68,10 @@ class WearerHelpCenterPage extends StatelessWidget {
                       const SizedBox(height: 12),
                       Text(
                         appState.tr('How do I pair my bracelet?', 'كيف أقوم بإقران سواري؟'),
-                        style: const TextStyle(
-                          fontSize: 18,
+                        style: TextStyle(
+                          fontSize: (short * 0.046).clamp(16.0, 20.0),
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFF273469),
+                          color: const Color(0xFF273469),
                         ),
                       ),
                       const SizedBox(height: 8),

@@ -26,6 +26,7 @@ class WearerMainPage extends StatelessWidget {
         final currentIndex = AppState().currentWearerIndex;
         
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: const Color(0xFFF7F9FC),
           body: IndexedStack(
             index: currentIndex,

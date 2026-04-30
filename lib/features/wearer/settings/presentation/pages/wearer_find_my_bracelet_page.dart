@@ -32,11 +32,18 @@ class _WearerFindMyBraceletPageState extends State<WearerFindMyBraceletPage> {
     return AnimatedBuilder(
       animation: appState,
       builder: (context, _) {
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.06).clamp(16.0, 28.0);
+        final bottomPad = mq.padding.bottom + (short * 0.22).clamp(72.0, 104.0);
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
           body: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(hPad, hPad, hPad, bottomPad),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -50,26 +57,26 @@ class _WearerFindMyBraceletPageState extends State<WearerFindMyBraceletPage> {
                           color: Color(0xFF273469),
                           size: 24,
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: (short * 0.02).clamp(6.0, 10.0)),
                         Text(
                           appState.tr('Find My Bracelet', 'البحث عن سواري'),
-                          style: const TextStyle(
-                            fontSize: 28,
+                          style: TextStyle(
+                            fontSize: (short * 0.075).clamp(24.0, 30.0),
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF273469),
+                            color: const Color(0xFF273469),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: (short * 0.08).clamp(22.0, 34.0)),
 
                   // Bracelet Info Card
                   Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: EdgeInsets.all((short * 0.05).clamp(14.0, 22.0)),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular((w * 0.05).clamp(14.0, 22.0)),
                       border: Border.all(color: Colors.grey.shade100, width: 2),
                       boxShadow: [
                         BoxShadow(
@@ -93,10 +100,10 @@ class _WearerFindMyBraceletPageState extends State<WearerFindMyBraceletPage> {
                         const SizedBox(height: 4),
                         Text(
                           'Qlink Bracelet',
-                          style: const TextStyle(
-                            fontSize: 24,
+                          style: TextStyle(
+                            fontSize: (short * 0.065).clamp(20.0, 26.0),
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF273469),
+                            color: const Color(0xFF273469),
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -198,14 +205,14 @@ class _WearerFindMyBraceletPageState extends State<WearerFindMyBraceletPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
                   // Info Message
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all((short * 0.04).clamp(12.0, 18.0)),
                     decoration: BoxDecoration(
                       color: const Color(0xFFEFF6FF),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular((w * 0.03).clamp(10.0, 14.0)),
                       border: Border.all(color: const Color(0xFFD1E9FF)),
                     ),
                     child: Text(
@@ -220,14 +227,14 @@ class _WearerFindMyBraceletPageState extends State<WearerFindMyBraceletPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
                   // Signal Strength
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all((short * 0.04).clamp(12.0, 18.0)),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular((w * 0.04).clamp(12.0, 18.0)),
                       border: Border.all(color: Colors.grey.shade100),
                     ),
                     child: Row(
@@ -275,19 +282,19 @@ class _WearerFindMyBraceletPageState extends State<WearerFindMyBraceletPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 48),
+                  SizedBox(height: (short * 0.12).clamp(34.0, 52.0)),
 
                   // Ring Bracelet Button
                   SizedBox(
                     width: double.infinity,
-                    height: 60,
+                    height: (short * 0.16).clamp(54.0, 64.0),
                     child: ElevatedButton(
                       onPressed: _isRinging ? null : _ringBracelet,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1B64F2),
                         disabledBackgroundColor: Colors.grey.shade300,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular((short * 0.08).clamp(24.0, 32.0)),
                         ),
                         elevation: _isRinging ? 0 : 4,
                       ),
@@ -306,9 +313,9 @@ class _WearerFindMyBraceletPageState extends State<WearerFindMyBraceletPage> {
                             _isRinging
                                 ? appState.tr('Ringing...', 'جاري الرنين...')
                                 : appState.tr('Ring My Bracelet', 'رن سواري'),
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
-                              fontSize: 16,
+                              fontSize: (short * 0.04).clamp(14.0, 17.0),
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -316,7 +323,7 @@ class _WearerFindMyBraceletPageState extends State<WearerFindMyBraceletPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
 
                   // Ringing info
                   Center(
@@ -331,12 +338,12 @@ class _WearerFindMyBraceletPageState extends State<WearerFindMyBraceletPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: (short * 0.08).clamp(22.0, 34.0)),
 
                   // Reconnect Button
                   SizedBox(
                     width: double.infinity,
-                    height: 50,
+                    height: (short * 0.14).clamp(46.0, 56.0),
                     child: OutlinedButton(
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -353,20 +360,19 @@ class _WearerFindMyBraceletPageState extends State<WearerFindMyBraceletPage> {
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xFFE5E7EB)),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
+                          borderRadius: BorderRadius.circular((short * 0.07).clamp(22.0, 28.0)),
                         ),
                       ),
                       child: Text(
                         appState.tr('Reconnect Bracelet', 'إعادة توصيل السوار'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Color(0xFF273469),
-                          fontSize: 16,
+                          fontSize: (short * 0.04).clamp(14.0, 17.0),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 100),
                 ],
               ),
             ),

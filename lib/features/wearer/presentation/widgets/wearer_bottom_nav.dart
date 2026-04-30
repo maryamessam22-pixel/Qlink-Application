@@ -13,13 +13,24 @@ class WearerBottomNav extends StatelessWidget {
       builder: (context, _) {
         final appState = AppState();
         final currentIndex = appState.currentWearerIndex;
-        
-        return Container(
-          margin: const EdgeInsets.all(24),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+
+        final mq = MediaQuery.of(context);
+        final w = mq.size.width;
+        final short = mq.size.shortestSide;
+        final margin = (w * 0.06).clamp(12.0, 24.0);
+        final hPad = (w * 0.06).clamp(12.0, 26.0);
+        final vPad = (short * 0.03).clamp(8.0, 14.0);
+        final radius = (short * 0.18).clamp(28.0, 38.0);
+        final barMinH = (short * 0.18).clamp(62.0, 78.0);
+
+        return SafeArea(
+          child: Container(
+          margin: EdgeInsets.all(margin),
+          padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
+          constraints: BoxConstraints(minHeight: barMinH),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(35),
+            borderRadius: BorderRadius.circular(radius),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),
@@ -37,6 +48,7 @@ class WearerBottomNav extends StatelessWidget {
               _buildNavItem(context, LucideIcons.settings, appState.tr('Settings', 'الإعدادات'), 3, currentIndex),
             ],
           ),
+        ),
         );
       },
     );
@@ -44,6 +56,11 @@ class WearerBottomNav extends StatelessWidget {
 
   Widget _buildNavItem(BuildContext context, IconData icon, String label, int index, int currentIndex) {
     bool isActive = currentIndex == index;
+    final short = MediaQuery.of(context).size.shortestSide;
+    final itemW = (short * 0.18).clamp(52.0, 68.0);
+    final iconS = (short * 0.062).clamp(20.0, 26.0);
+    final textFs = (short * 0.029).clamp(10.0, 12.0);
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
@@ -65,20 +82,22 @@ class WearerBottomNav extends StatelessWidget {
         }
       },
       child: SizedBox(
-        width: 60,
+        width: itemW,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
               color: isActive ? const Color(0xFF1B64F2) : Colors.grey.shade400,
-              size: 24,
+              size: iconS,
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: (short * 0.01).clamp(2.0, 5.0)),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: textFs,
                 color: isActive ? const Color(0xFF1B64F2) : Colors.grey.shade400,
                 fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
               ),
