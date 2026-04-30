@@ -109,6 +109,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         requestId: requestId,
         accept: accept,
       );
+      AppState().markProfilesDirty();
       await _loadWearerRequests();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

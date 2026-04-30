@@ -21,6 +21,7 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
   final ImagePicker _picker = ImagePicker();
   Uint8List? _selectedAvatarBytes;
   String? _selectedAvatarPath;
@@ -236,10 +237,20 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                     SizedBox(height: (shortest * 0.045).clamp(14.0, 22.0)),
                     TextField(
                       controller: _passwordController,
-                      obscureText: true,
+                      obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: 'Password',
                         prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                          icon: Icon(
+                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          ),
+                        ),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                     ),

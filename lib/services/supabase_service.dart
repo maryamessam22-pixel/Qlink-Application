@@ -504,6 +504,48 @@ class SupabaseService {
     }).toList();
   }
 
+  Future<List<Map<String, dynamic>>> fetchAcceptedWearerGuardians() async {
+    final wearerId = client.auth.currentUser?.id;
+    if (wearerId == null) return [];
+
+    final rows = await client
+        .from('wearer_link_requests')
+        .select('guardian_id, responded_at')
+        .eq('wearer_id', wearerId)
+        .eq('status', 'accepted')
+        .order('responded_at', ascending: false);
+
+    final accepted = List<Map<String, dynamic>>.from(rows as List);
+    if (accepted.isEmpty) return [];
+
+    final guardianIds = accepted
+        .map((e) => (e['guardian_id'] ?? '').toString())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    if (guardianIds.isEmpty) return [];
+
+    final guardians = await client
+        .from('profiles')
+        .select('id, full_name, email, avatar_url')
+        .inFilter('id', guardianIds);
+    final guardianMap = {
+      for (final g in List<Map<String, dynamic>>.from(guardians as List))
+        g['id'].toString(): g
+    };
+
+    return accepted.map((row) {
+      final guardian = guardianMap[(row['guardian_id'] ?? '').toString()];
+      return {
+        'guardian_id': row['guardian_id'],
+        'responded_at': row['responded_at'],
+        'guardian_name': guardian?['full_name'] ?? 'Guardian',
+        'guardian_email': guardian?['email'] ?? '',
+        'guardian_avatar_url': guardian?['avatar_url'] ?? '',
+      };
+    }).toList();
+  }
+
   Future<void> respondToWearerLinkRequest({
     required String requestId,
     required bool accept,

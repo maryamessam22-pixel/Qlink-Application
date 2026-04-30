@@ -1,12 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/services/supabase_service.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_header.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_hardware_link_page.dart';
 
-class WearerHomePage extends StatelessWidget {
+class WearerHomePage extends StatefulWidget {
   final bool isConnected;
   const WearerHomePage({super.key, this.isConnected = false});
+
+  @override
+  State<WearerHomePage> createState() => _WearerHomePageState();
+}
+
+class _WearerHomePageState extends State<WearerHomePage> {
+  late Future<List<Map<String, dynamic>>> _monitoringFuture;
+
+  void _refreshMonitoring() {
+    if (!mounted) return;
+    setState(() {
+      _monitoringFuture = SupabaseService().fetchAcceptedWearerGuardians();
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _monitoringFuture = SupabaseService().fetchAcceptedWearerGuardians();
+    AppState().addListener(_refreshMonitoring);
+  }
+
+  @override
+  void dispose() {
+    AppState().removeListener(_refreshMonitoring);
+    super.dispose();
+  }
 
   void _triggerSOS(BuildContext context) {
     final appState = AppState();
@@ -111,6 +139,80 @@ class WearerHomePage extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
+          SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
+          FutureBuilder<List<Map<String, dynamic>>>(
+            future: _monitoringFuture,
+            builder: (context, snapshot) {
+              final guardians = snapshot.data ?? const <Map<String, dynamic>>[];
+              if (guardians.isEmpty) return const SizedBox.shrink();
+              final first = guardians.first;
+              final guardianName = (first['guardian_name'] ?? 'Guardian').toString();
+              final guardianEmail = (first['guardian_email'] ?? '').toString();
+              return Container(
+                width: double.infinity,
+                padding: EdgeInsets.all((short * 0.045).clamp(12.0, 18.0)),
+                margin: EdgeInsets.only(bottom: (short * 0.04).clamp(12.0, 18.0)),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular((w * 0.04).clamp(12.0, 16.0)),
+                  border: Border.all(color: const Color(0xFFBFDBFE)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all((short * 0.025).clamp(8.0, 12.0)),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFDBEAFE),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.shield_outlined,
+                        color: const Color(0xFF1E3A8A),
+                        size: (short * 0.055).clamp(18.0, 24.0),
+                      ),
+                    ),
+                    SizedBox(width: (short * 0.03).clamp(8.0, 14.0)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            appState.tr('Monitored By', 'تتم متابعتك بواسطة'),
+                            style: TextStyle(
+                              fontSize: (short * 0.03).clamp(11.0, 13.0),
+                              color: const Color(0xFF1E3A8A),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          SizedBox(height: (short * 0.008).clamp(2.0, 4.0)),
+                          Text(
+                            guardianName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: (short * 0.04).clamp(14.0, 17.0),
+                              color: const Color(0xFF273469),
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          if (guardianEmail.isNotEmpty)
+                            Text(
+                              guardianEmail,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: (short * 0.03).clamp(11.0, 13.0),
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
           SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
           // System Status Card
@@ -166,13 +268,13 @@ class WearerHomePage extends StatelessWidget {
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: isConnected ? const Color(0xFF4ADE80) : Colors.grey.shade400,
+                          color: widget.isConnected ? const Color(0xFF4ADE80) : Colors.grey.shade400,
                           shape: BoxShape.circle,
                         ),
                       ),
                       SizedBox(width: (short * 0.02).clamp(6.0, 10.0)),
                       Text(
-                        isConnected 
+                        widget.isConnected 
                           ? appState.tr('Monitoring Active', 'المراقبة نشطة')
                           : appState.tr('Offline', 'غير متصل'),
                         style: TextStyle(
@@ -190,7 +292,7 @@ class WearerHomePage extends StatelessWidget {
           SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
           // Device Status Section
-          if (!isConnected)
+          if (!widget.isConnected)
             _buildNoDeviceCard(context, appState)
           else
             _buildConnectedDevicesGrid(context, appState),

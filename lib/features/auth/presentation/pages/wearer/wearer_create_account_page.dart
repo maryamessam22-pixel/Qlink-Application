@@ -27,6 +27,7 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
   final ImagePicker _picker = ImagePicker();
   Uint8List? _selectedAvatarBytes;
   String? _selectedAvatarPath;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -307,10 +308,20 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
                     SizedBox(height: (shortest * 0.045).clamp(14.0, 22.0)),
                     TextField(
                       controller: _passwordController,
-                      obscureText: true,
+                      obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: 'Password',
                         prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                          icon: Icon(
+                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          ),
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

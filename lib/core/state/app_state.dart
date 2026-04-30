@@ -147,7 +147,7 @@ class AppState extends ChangeNotifier {
 
   final List<ScanHistoryItem> _scanHistory = [
     ScanHistoryItem(
-      title: "Emergency Scan (Karam's Bracelete)",
+      title: 'Emergency Scan',
       scanner: '+20 123 456 7890',
       location: 'Cairo, Egypt',
       time: '2 hours ago',
