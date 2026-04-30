@@ -334,12 +334,37 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
   }
 
   Future<void> _dialPhone(String raw) async {
-    final cleaned = raw.replaceAll(RegExp(r'[^\d+]'), '');
+    final cleaned = _extractDialNumber(raw);
     if (cleaned.isEmpty) return;
     final uri = Uri(scheme: 'tel', path: cleaned);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
+  }
+
+  String _extractDialNumber(String raw) {
+    final text = raw.trim();
+    if (text.isEmpty) return '';
+    final match = RegExp(r'\+?\d[\d\s\-()]{6,}\d').firstMatch(text);
+    final candidate = (match?.group(0) ?? text).trim();
+    final cleaned = candidate.replaceAll(RegExp(r'[^\d+]'), '');
+    return RegExp(r'^\+?\d{7,15}$').hasMatch(cleaned) ? cleaned : '';
+  }
+
+  Widget _buildCallButton(String phone) {
+    return Material(
+      color: const Color(0xFF22C55E),
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: () => _dialPhone(phone),
+        customBorder: const CircleBorder(),
+        child: const SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(Icons.phone, color: Colors.white, size: 20),
+        ),
+      ),
+    );
   }
 
   Widget _buildInfoCard(String title, String content) {
@@ -394,56 +419,63 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
           ),
           const SizedBox(height: 16),
-          ...rows.map((row) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (row.title.isNotEmpty)
-                              Text(
-                                row.title,
-                                style: const TextStyle(color: Colors.white70, fontSize: 12),
-                              ),
-                            if (row.phone.isNotEmpty)
-                              Text(
-                                row.phone,
-                                style: const TextStyle(color: Colors.white, fontSize: 15, letterSpacing: 0.8),
-                              )
-                            else if (row.title.isNotEmpty)
-                              Text(
-                                row.title,
-                                style: const TextStyle(color: Colors.white, fontSize: 15),
-                              ),
-                          ],
-                        ),
-                      ),
-                      if (row.canDial)
-                        Material(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(8),
-                          child: InkWell(
-                            onTap: () => _dialPhone(row.phone),
-                            borderRadius: BorderRadius.circular(8),
-                            child: const Padding(
-                              padding: EdgeInsets.all(10),
-                              child: Icon(Icons.call, color: Colors.white, size: 18),
-                            ),
+          ...rows.map((row) {
+                final titleRaw = row.title.trim();
+                final phoneFromPhone = _extractDialNumber(row.phone);
+                final phoneFromTitle = _extractDialNumber(titleRaw);
+                final dialTarget = phoneFromPhone.isNotEmpty ? phoneFromPhone : phoneFromTitle;
+
+                var displayTitle = titleRaw;
+                if (dialTarget.isNotEmpty) {
+                  displayTitle = displayTitle.replaceAll(dialTarget, '').trim();
+                }
+                displayTitle = displayTitle
+                    .replaceAll(RegExp(r'[\r\n]+'), ' ')
+                    .replaceAll(RegExp(r'\s{2,}'), ' ')
+                    .trim();
+                if (looksLikePhoneField(displayTitle)) {
+                  displayTitle = '';
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (displayTitle.isNotEmpty)
+                                Text(
+                                  displayTitle,
+                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                ),
+                              if (dialTarget.isNotEmpty)
+                                Text(
+                                  dialTarget,
+                                  style: const TextStyle(color: Colors.white, fontSize: 15, letterSpacing: 0.8),
+                                )
+                              else if (displayTitle.isNotEmpty)
+                                Text(
+                                  displayTitle,
+                                  style: const TextStyle(color: Colors.white, fontSize: 15),
+                                ),
+                            ],
                           ),
                         ),
-                    ],
+                        if (dialTarget.isNotEmpty) _buildCallButton(dialTarget),
+                      ],
+                    ),
                   ),
-                ),
-              )),
+                );
+              }),
         ],
       ),
     );
@@ -461,7 +493,9 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
         children: [
           Text(AppState().tr('Emergency Contacts', 'جهات اتصال الطوارئ'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
           const SizedBox(height: 16),
-          ...contacts.map((contact) => Container(
+          ...contacts.map((contact) {
+            final dialTarget = _extractDialNumber(contact);
+            return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
@@ -474,21 +508,11 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
                     Expanded(
                       child: Text(contact, style: const TextStyle(color: Colors.white, fontSize: 14, letterSpacing: 1.1)),
                     ),
-                    Material(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(8),
-                      child: InkWell(
-                        onTap: () => _dialPhone(contact),
-                        borderRadius: BorderRadius.circular(8),
-                        child: const Padding(
-                          padding: EdgeInsets.all(10),
-                          child: Icon(Icons.call, color: Colors.white, size: 16),
-                        ),
-                      ),
-                    ),
+                    if (dialTarget.isNotEmpty) _buildCallButton(dialTarget),
                   ],
                 ),
-              )),
+              );
+          }),
         ],
       ),
     );

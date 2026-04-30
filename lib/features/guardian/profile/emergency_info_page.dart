@@ -3,7 +3,9 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/utils/emergency_profile_parse.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
+import 'package:q_link/core/models/patient_profile.dart';
 import 'package:q_link/features/guardian/profile/emergency_qr_page.dart';
+import 'package:q_link/features/guardian/vault/vault_detail_page.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
 import 'package:q_link/services/supabase_service.dart';
 
@@ -94,6 +96,9 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
           .map((c) => c.text.trim())
           .where((t) => t.isNotEmpty)
           .toList();
+      final normalizedBirthYear = _birthYearController.text
+          .trim()
+          .replaceAll(RegExp(r'[^\d]'), '');
 
       final contactsJson = emergencyContactsJsonFromFlatLines(updatedContacts);
       final dialRows = emergencyDialRowsFromContactsJson(contactsJson);
@@ -102,7 +107,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
         id: widget.profile.id,
         name: _nameController.text.trim(),
         relationship: _relationshipController.text.trim(),
-        birthYear: _birthYearController.text.trim(),
+        birthYear: normalizedBirthYear,
         bloodType: _bloodTypeController.text.trim(),
         allergies: _allergiesController.text.trim(),
         condition: _conditionController.text.trim(),
@@ -119,9 +124,9 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
         await SupabaseService().client.from('patient_profiles').update({
           'profile_name': updatedProfile.name,
           'relationship_to_guardian': updatedProfile.relationship,
-          'birth_year': parseBirthYearFromRowField(updatedProfile.birthYear) ??
-              int.tryParse(updatedProfile.birthYear) ??
-              0,
+          'birth_year': parseBirthYearFromRowField(updatedProfile.birthYear)
+              ?? int.tryParse(updatedProfile.birthYear.replaceAll(RegExp(r'[^\d]'), ''))
+              ?? 0,
           'blood_type': updatedProfile.bloodType,
           'allergies_en': updatedProfile.allergies,
           'medical_notes_en': updatedProfile.condition,
@@ -381,7 +386,9 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                             Expanded(
                               child: _buildVitalItem(
                                 appState.tr('Birth Year', 'سنة الميلاد'),
-                                _birthYearController.text.isEmpty ? appState.tr('N/A', 'غير متوفر') : widget.profile.birthYear,
+                                _birthYearController.text.trim().isEmpty
+                                    ? appState.tr('N/A', 'غير متوفر')
+                                    : _birthYearController.text.trim(),
                                 controller: _birthYearController,
                               ),
                             ),
@@ -423,6 +430,73 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                         _buildLargeButton(
                           AppState().tr('Enter Medical Vault', 'دخول الخزنة الطبية'),
                           LucideIcons.lock,
+                          onPressed: () {
+                            final contacts = widget.profile.emergencyContacts;
+                            final mappedContacts = contacts.asMap().entries.map((e) {
+                              return {
+                                'name': e.key == 0
+                                    ? AppState().tr('Primary contact', 'جهة الاتصال الأساسية')
+                                    : '${AppState().tr('Contact', 'جهة اتصال')} ${e.key + 1}',
+                                'phone': e.value,
+                              };
+                            }).toList();
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => VaultDetailPage(
+                                  profile: PatientProfile(
+                                    id: widget.profile.id ?? '',
+                                    guardianId: '',
+                                    profileName: widget.profile.name,
+                                    relationshipToGuardian: widget.profile.relationship,
+                                    birthYear: parseBirthYearFromRowField(widget.profile.birthYear) ??
+                                        int.tryParse(_birthYearController.text.trim()) ??
+                                        0,
+                                    age: 0,
+                                    emergencyContacts: {
+                                      'primary': {
+                                        'name': mappedContacts.isNotEmpty
+                                            ? mappedContacts[0]['name']
+                                            : '',
+                                        'phone': mappedContacts.isNotEmpty
+                                            ? mappedContacts[0]['phone']
+                                            : '',
+                                        'relation': widget.profile.relationship,
+                                      },
+                                    },
+                                    bloodType: widget.profile.bloodType,
+                                    safetyNotesEn: '',
+                                    allergiesEn: widget.profile.allergies,
+                                    medicalNotesEn: widget.profile.condition,
+                                    medicalNotesAr: '',
+                                    status: widget.profile.hasDevice,
+                                    avatarUrl: widget.profile.imagePath,
+                                    deviceCode: widget.profile.devices.isNotEmpty
+                                        ? widget.profile.devices.first.code
+                                        : '',
+                                    seoSlug: '',
+                                    metaTitleEn: '',
+                                    metaDescriptionEn: '',
+                                    featuredImageAltEn: '',
+                                    safetyNotesAr: '',
+                                    allergiesAr: '',
+                                    metaTitleAr: '',
+                                    metaDescriptionAr: '',
+                                    featuredImageAltAr: '',
+                                    createdAt: DateTime.now(),
+                                  ),
+                                  documents: [
+                                    {
+                                      'title': AppState().tr('Medical Document', 'وثيقة طبية'),
+                                      'subtitle': 'PDF • 1.2 MB',
+                                      'type': 'PDF',
+                                    },
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
 
                         SizedBox(height: (short * 0.03).clamp(8.0, 16.0)),
@@ -455,6 +529,9 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
           if (_isEditing)
             TextField(
               controller: controller,
+              keyboardType: controller == _birthYearController
+                  ? TextInputType.number
+                  : TextInputType.text,
               decoration: const InputDecoration(isDense: true, border: UnderlineInputBorder()),
               style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
             )
