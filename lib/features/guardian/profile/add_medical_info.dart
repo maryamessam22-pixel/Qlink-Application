@@ -1,12 +1,10 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 import 'package:q_link/features/guardian/profile/connect_device_page.dart';
 import 'package:q_link/core/state/app_state.dart';
-import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/services/supabase_service.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
-import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
+import 'package:q_link/features/shared/widgets/header_widget.dart';
 
 class AddMedicalInfoPage extends StatefulWidget {
   final String name;
@@ -133,50 +131,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
   }
 
   Widget _buildAppBar() {
-    final mq = MediaQuery.of(context);
-    final short = mq.size.shortestSide;
-    final w = mq.size.width;
-    final avR = (short * 0.042).clamp(14.0, 18.0);
-    final notif = (short * 0.068).clamp(24.0, 30.0);
-    final dot = (short * 0.028).clamp(8.0, 11.0);
-
-    return Row(
-      children: [
-        const VideoLogoWidget(),
-        SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
-        CircleAvatar(
-          radius: avR,
-          backgroundColor: const Color(0xFFE6F0FE),
-          backgroundImage: getUserAvatarProvider(AppState().currentUser.imagePath),
-          onBackgroundImageError: (_, __) {},
-        ),
-        const Spacer(),
-        const LanguageToggle(),
-        SizedBox(width: (w * 0.04).clamp(10.0, 18.0)),
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Icon(
-              Icons.notifications_none,
-              color: const Color(0xFF1E3A8A),
-              size: notif,
-            ),
-            Positioned(
-              right: 0,
-              top: 0,
-              child: Container(
-                width: dot,
-                height: dot,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
+    return const HeaderWidget();
   }
 
   Widget _buildBackButton() {

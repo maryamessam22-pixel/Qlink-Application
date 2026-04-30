@@ -4,11 +4,8 @@ import 'package:q_link/core/models/patient_profile.dart';
 import 'package:q_link/services/supabase_service.dart';
 import 'package:q_link/features/guardian/home/main_page.dart';
 import 'package:q_link/core/state/app_state.dart';
-import 'package:q_link/core/widgets/language_toggle.dart';
-import 'package:q_link/features/guardian/profile/syncing_page.dart';
-import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
-import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
+import 'package:q_link/features/shared/widgets/header_widget.dart';
 import 'package:uuid/uuid.dart';
 
 class ConnectDevicePage extends StatefulWidget {
@@ -73,7 +70,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
       final guardianId = SupabaseService().client.auth.currentUser?.id;
 
       if (guardianId != null) {
-        final newProfileId = Uuid().v4();
+        final newProfileId = const Uuid().v4();
 
         String avatarUrl = '';
         if (widget.avatarBytes != null && widget.avatarBytes!.isNotEmpty) {
@@ -201,26 +198,12 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
       }
       
       if (mounted) {
-        Navigator.push(
-          context,
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) => SyncingPage(
-              title: AppState().tr(withDevice ? 'Syncing to Hardware' : 'Finalizing Profile', withDevice ? 'تتم المزامنة مع الجهاز' : 'تجهيز الملف النهائي'),
-              subtitle: AppState().tr(
-                withDevice ? 'Encrypting data into bracelet\'s hardware ID' : 'Saving medical information and creating QR ID', 
-                withDevice ? 'تشفير البيانات في معرف جهاز السوار' : 'حفظ المعلومات الطبية وإنشاء رمز الاستجابة السريعة (QR)'
-              ),
-              onComplete: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (_) => const MainPage(),
-                    settings: const RouteSettings(name: 'MainPage'),
-                  ),
-                  (route) => false,
-                );
-              },
-            ),
+            builder: (_) => const MainPage(),
+            settings: const RouteSettings(name: 'MainPage'),
           ),
+          (route) => false,
         );
       }
     } catch (e) {
@@ -310,50 +293,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   }
 
   Widget _buildAppBar() {
-    final mq = MediaQuery.of(context);
-    final short = mq.size.shortestSide;
-    final w = mq.size.width;
-    final avR = (short * 0.042).clamp(14.0, 18.0);
-    final notif = (short * 0.068).clamp(24.0, 30.0);
-    final dot = (short * 0.028).clamp(8.0, 11.0);
-
-    return Row(
-      children: [
-        const VideoLogoWidget(),
-        SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
-        CircleAvatar(
-          radius: avR,
-          backgroundColor: const Color(0xFFE6F0FE),
-          backgroundImage: getUserAvatarProvider(AppState().currentUser.imagePath),
-          onBackgroundImageError: (_, __) {},
-        ),
-        const Spacer(),
-        const LanguageToggle(),
-        SizedBox(width: (w * 0.04).clamp(10.0, 18.0)),
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Icon(
-              Icons.notifications_none,
-              color: const Color(0xFF1E3A8A),
-              size: notif,
-            ),
-            Positioned(
-              right: 0,
-              top: 0,
-              child: Container(
-                width: dot,
-                height: dot,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
+    return const HeaderWidget();
   }
 
   Widget _buildBackButton() {
@@ -608,7 +548,6 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           if (widget.targetProfileIndex == null) {
              _createProfileAndNavigate(withDevice: true);
           } else {
-             // Logic for adding a device to an existing patient profile
              setState(() => _isLoading = true);
              try {
                 String deviceType = _selectedDeviceType!;
@@ -632,11 +571,10 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
                   if (guardianId == null) {
                     throw Exception('Not logged in. Please sign in again.');
                   }
-                  // Update the status in the central profile table
+                  
                   await SupabaseService().client.from('patient_profiles')
                     .update({'status': true}).eq('id', profileId);
 
-                  // Update Dashboard Tables
                   String linkedName = widget.targetProfileIndex! < AppState().profileCount ? AppState().profiles[widget.targetProfileIndex!].name : 'Unknown';
 
                   await SupabaseService().client.from('devices').insert({
@@ -672,20 +610,13 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
                 AppState().markProfilesDirty();
 
                 if (!mounted) return;
-                Navigator.push(
-                  context,
+                Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
-                    builder: (context) => SyncingPage(
-                      title: AppState().tr('Syncing to Hardware', 'تتم المزامنة مع الجهاز'),
-                      subtitle: AppState().tr('Encrypting data into bracelet\'s hardware ID', 'تشفير البيانات في معرف جهاز السوار'),
-                      onComplete: () {
-                        Navigator.pop(context);
-                      },
-                    ),
+                    builder: (_) => const MainPage(),
+                    settings: const RouteSettings(name: 'MainPage'),
                   ),
-                ).then((_) {
-                  if (mounted) Navigator.pop(context, true);
-                });
+                  (route) => false,
+                );
              } catch (e) {
                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
              } finally {

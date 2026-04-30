@@ -38,7 +38,7 @@ class _SyncingPageState extends State<SyncingPage> {
       }
     }
     await Future.delayed(const Duration(milliseconds: 500));
-    widget.onComplete();
+    if (mounted) widget.onComplete();
   }
 
   @override
