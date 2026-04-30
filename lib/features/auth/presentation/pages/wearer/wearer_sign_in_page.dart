@@ -49,7 +49,7 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter email and password')),
+        SnackBar(content: Text(AppState().tr('Please enter email and password', 'يرجى إدخال البريد الإلكتروني وكلمة المرور'))),
       );
       return;
     }
@@ -109,7 +109,7 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid email or password')),
+          SnackBar(content: Text(AppState().tr('Invalid email or password', 'البريد الإلكتروني أو كلمة المرور غير صحيحة'))),
         );
       }
     } finally {
@@ -180,7 +180,7 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                     ),
                     SizedBox(height: (shortest * 0.03).clamp(12.0, 24.0)),
                     Text(
-                      'Wearer Sign In',
+                      AppState().tr('Wearer Sign In', 'تسجيل دخول المرافق'),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: titleSize,
@@ -229,7 +229,7 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                     TextField(
                       controller: _emailController,
                       decoration: InputDecoration(
-                        labelText: 'Email',
+                        labelText: AppState().tr('Email', 'البريد الإلكتروني'),
                         prefixIcon: const Icon(Icons.email_outlined),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
@@ -239,7 +239,7 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: AppState().tr('Password', 'كلمة المرور'),
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           onPressed: () {
@@ -274,7 +274,7 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                               ),
                             )
                           : Text(
-                              'Sign In',
+                              AppState().tr('Sign In', 'تسجيل الدخول'),
                               style: TextStyle(
                                 fontSize: (mq.size.width * 0.045).clamp(15.0, 19.0),
                                 color: Colors.white,
@@ -289,7 +289,7 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                       spacing: 4,
                       runSpacing: 8,
                       children: [
-                        const Text("Don't have an account? "),
+                        Text(AppState().tr("Don't have an account? ", 'ليس لديك حساب؟ ')),
                         GestureDetector(
                           onTap: () => Navigator.pushReplacement(
                             context,
@@ -297,9 +297,9 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                               builder: (context) => const WearerCreateAccountPage(),
                             ),
                           ),
-                          child: const Text(
-                            'Sign Up',
-                            style: TextStyle(
+                          child: Text(
+                            AppState().tr('Sign Up', 'إنشاء حساب'),
+                            style: const TextStyle(
                               color: Color(0xFF1B64F2),
                               fontWeight: FontWeight.bold,
                             ),

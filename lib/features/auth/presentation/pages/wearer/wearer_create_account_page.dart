@@ -54,13 +54,13 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
 
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
+        SnackBar(content: Text(AppState().tr('Please fill in all fields', 'يرجى ملء جميع الحقول'))),
       );
       return;
     }
     if (!_emailRegex.hasMatch(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid email address')),
+        SnackBar(content: Text(AppState().tr('Please enter a valid email address', 'يرجى إدخال بريد إلكتروني صحيح'))),
       );
       return;
     }
@@ -123,8 +123,11 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
           SnackBar(
             content: Text(
               isInvalidEmail
-                  ? 'Invalid email format. Example: name@email.com'
-                  : 'Sign up failed: ${e.message}',
+                  ? AppState().tr(
+                      'Invalid email format. Example: name@email.com',
+                      'صيغة البريد الإلكتروني غير صحيحة. مثال: name@email.com',
+                    )
+                  : AppState().tr('Sign up failed: ${e.message}', 'فشل إنشاء الحساب: ${e.message}'),
             ),
           ),
         );
@@ -133,7 +136,7 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ).showSnackBar(SnackBar(content: Text(AppState().tr('Error: $e', 'خطأ: $e'))));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -238,7 +241,7 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
                     ),
                     SizedBox(height: (shortest * 0.03).clamp(12.0, 24.0)),
                     Text(
-                      'Wearer Sign Up',
+                      AppState().tr('Wearer Sign Up', 'تسجيل حساب المرافق'),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: titleSize,
@@ -287,7 +290,7 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
                     TextField(
                       controller: _nameController,
                       decoration: InputDecoration(
-                        labelText: 'Full Name',
+                        labelText: AppState().tr('Full Name', 'الاسم الكامل'),
                         prefixIcon: const Icon(Icons.person_outline),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -298,7 +301,7 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
                     TextField(
                       controller: _emailController,
                       decoration: InputDecoration(
-                        labelText: 'Email',
+                        labelText: AppState().tr('Email', 'البريد الإلكتروني'),
                         prefixIcon: const Icon(Icons.email_outlined),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -310,7 +313,7 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: AppState().tr('Password', 'كلمة المرور'),
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           onPressed: () {
@@ -349,7 +352,7 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
                               ),
                             )
                           : Text(
-                              'Create Account',
+                              AppState().tr('Create Account', 'إنشاء حساب'),
                               style: TextStyle(
                                 fontSize: (mq.size.width * 0.045).clamp(15.0, 19.0),
                                 color: Colors.white,
@@ -364,7 +367,7 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
                       spacing: 4,
                       runSpacing: 8,
                       children: [
-                        const Text("Already have an account? "),
+                        Text(AppState().tr("Already have an account? ", 'لديك حساب بالفعل؟ ')),
                         GestureDetector(
                           onTap: () => Navigator.pushReplacement(
                             context,
@@ -372,9 +375,9 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
                               builder: (context) => const WearerSignInPage(),
                             ),
                           ),
-                          child: const Text(
-                            'Sign In',
-                            style: TextStyle(
+                          child: Text(
+                            AppState().tr('Sign In', 'تسجيل الدخول'),
+                            style: const TextStyle(
                               color: Color(0xFF1B64F2),
                               fontWeight: FontWeight.bold,
                             ),
