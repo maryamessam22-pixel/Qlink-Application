@@ -120,7 +120,7 @@ class _WearerQrPageState extends State<WearerQrPage> {
     final short = mq.size.shortestSide;
     final w = mq.size.width;
     final hPad = (w * 0.06).clamp(16.0, 28.0);
-    final bottomPad = mq.padding.bottom + (short * 0.22).clamp(72.0, 104.0);
+    final bottomPad = mq.padding.bottom + (short * 0.06).clamp(18.0, 28.0);
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.fromLTRB(hPad, hPad, hPad, bottomPad),

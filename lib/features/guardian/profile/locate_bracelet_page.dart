@@ -209,7 +209,7 @@ class _LocateBraceletPageState extends State<LocateBraceletPage> with SingleTick
                       (w * 0.07).clamp(20.0, 36.0),
                       (short * 0.07).clamp(22.0, 36.0),
                       (w * 0.07).clamp(20.0, 36.0),
-                      mq.viewInsets.bottom + mq.padding.bottom + (short * 0.26).clamp(80.0, 112.0),
+                      mq.viewInsets.bottom + mq.padding.bottom + (short * 0.06).clamp(18.0, 28.0),
                     ),
                     child: Column(
                       children: [

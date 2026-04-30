@@ -79,7 +79,7 @@ class _PrivacyControlPageState extends State<PrivacyControlPage> {
         final hPad = (w * 0.055).clamp(16.0, 28.0);
         final vPad = (short * 0.028).clamp(12.0, 20.0);
         final bottomPad =
-            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.26).clamp(80.0, 112.0);
+            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.06).clamp(18.0, 28.0);
 
         return Scaffold(
           resizeToAvoidBottomInset: true,

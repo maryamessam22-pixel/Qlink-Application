@@ -22,7 +22,7 @@ class _WearerHealthPageState extends State<WearerHealthPage> {
         final w = mq.size.width;
         final hPad = (w * 0.06).clamp(16.0, 28.0);
         final topPad = (short * 0.12).clamp(20.0, 54.0);
-        final bottomPad = mq.padding.bottom + mq.viewInsets.bottom + (short * 0.24).clamp(80.0, 112.0);
+        final bottomPad = mq.padding.bottom + mq.viewInsets.bottom + (short * 0.06).clamp(18.0, 28.0);
         final titleFs = (short * 0.07).clamp(22.0, 28.0);
 
         return Scaffold(

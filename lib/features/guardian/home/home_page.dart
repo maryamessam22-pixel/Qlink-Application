@@ -50,6 +50,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _showLinkExistingWearerDialog() async {
     final appState = AppState();
     final controller = TextEditingController();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     await showDialog(
       context: context,
       builder: (dialogCtx) {
@@ -57,89 +58,188 @@ class _HomePageState extends State<HomePage> {
           builder: (context, setDialogState) {
             final kb = MediaQuery.viewInsetsOf(context).bottom;
             return AlertDialog(
-            title: Text(appState.tr('Link Existing Wearer', 'ربط مستخدم Wearer موجود')),
-            content: SingleChildScrollView(
-              padding: EdgeInsets.only(bottom: kb),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    appState.tr(
-                      'Enter wearer account email to send a link request.',
-                      'أدخل بريد حساب الـ Wearer لإرسال طلب الربط.',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: controller,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      hintText: appState.tr('wearer@email.com', 'wearer@email.com'),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ],
+              title: Text(
+                appState.tr('Link Existing Wearer', 'ربط مستخدم Wearer موجود'),
               ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: _sendingLinkRequest ? null : () => Navigator.pop(dialogCtx),
-                child: Text(appState.tr('Cancel', 'إلغاء')),
+              content: SingleChildScrollView(
+                padding: EdgeInsets.only(bottom: kb),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      appState.tr(
+                        'Enter wearer account email to send a link request.',
+                        'أدخل بريد حساب الـ Wearer لإرسال طلب الربط.',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: controller,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        hintText: appState.tr(
+                          'wearer@email.com',
+                          'wearer@email.com',
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              ElevatedButton(
-                onPressed: _sendingLinkRequest
-                    ? null
-                    : () async {
-                        final email = controller.text.trim();
-                        if (email.isEmpty || !email.contains('@')) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(appState.tr('Enter a valid email.', 'أدخل بريداً صحيحاً.'))),
-                          );
-                          return;
-                        }
-                        setState(() => _sendingLinkRequest = true);
-                        setDialogState(() {});
-                        try {
-                          await SupabaseService().sendWearerLinkRequestByEmail(email);
-                          if (mounted) {
-                            Navigator.pop(dialogCtx);
-                            ScaffoldMessenger.of(context).showSnackBar(
+              actions: [
+                TextButton(
+                  onPressed: _sendingLinkRequest
+                      ? null
+                      : () => Navigator.pop(dialogCtx),
+                  child: Text(appState.tr('Cancel', 'إلغاء')),
+                ),
+                ElevatedButton(
+                  onPressed: _sendingLinkRequest
+                      ? null
+                      : () async {
+                          final email = controller.text.trim();
+                          if (email.isEmpty || !email.contains('@')) {
+                            scaffoldMessenger.showSnackBar(
                               SnackBar(
                                 content: Text(
                                   appState.tr(
-                                    'Request sent successfully.',
-                                    'تم إرسال الطلب بنجاح.',
+                                    'Enter a valid email.',
+                                    'أدخل بريداً صحيحاً.',
                                   ),
                                 ),
                               ),
                             );
+                            return;
                           }
-                        } catch (e) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-                            );
+                          final dialogNavigator = Navigator.of(dialogCtx);
+                          setState(() => _sendingLinkRequest = true);
+                          setDialogState(() {});
+                          try {
+                            await SupabaseService()
+                                .sendWearerLinkRequestByEmail(email);
+                            if (mounted) {
+                              dialogNavigator.pop();
+                              scaffoldMessenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    appState.tr(
+                                      'Request sent successfully.',
+                                      'تم إرسال الطلب بنجاح.',
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              scaffoldMessenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    e.toString().replaceFirst(
+                                      'Exception: ',
+                                      '',
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (mounted) {
+                              setState(() => _sendingLinkRequest = false);
+                              setDialogState(() {});
+                            }
                           }
-                        } finally {
-                          if (mounted) {
-                            setState(() => _sendingLinkRequest = false);
-                            setDialogState(() {});
-                          }
-                        }
-                      },
-                child: _sendingLinkRequest
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(appState.tr('Send Request', 'إرسال الطلب')),
-              ),
-            ],
-          );
+                        },
+                  child: _sendingLinkRequest
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(appState.tr('Send Request', 'إرسال الطلب')),
+                ),
+              ],
+            );
           },
         );
       },
+    );
+  }
+
+  Future<void> _navigateToConnectBracelet(List<PatientProfile> profiles) async {
+    final navigator = Navigator.of(context);
+    if (profiles.length == 1) {
+      await navigator.push(
+        MaterialPageRoute(
+          builder: (context) => ConnectDevicePage(
+            targetProfileIndex: 0,
+            targetProfileId: profiles[0].id,
+          ),
+        ),
+      );
+      return;
+    }
+
+    int selectedIndex = 0;
+    final chosenProfileIndex = await showDialog<int>(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(AppState().tr('Select profile', 'اختر الملف الشخصي')),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: profiles.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final profile = entry.value;
+                    return RadioListTile<int>(
+                      value: index,
+                      groupValue: selectedIndex,
+                      title: Text(profile.profileName),
+                      subtitle: Text(profile.relationshipToGuardian),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedIndex = value ?? 0;
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: Text(AppState().tr('Cancel', 'إلغاء')),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogCtx, selectedIndex);
+                  },
+                  child: Text(AppState().tr('Connect', 'ربط')),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted || chosenProfileIndex == null) {
+      return;
+    }
+
+    await navigator.push(
+      MaterialPageRoute(
+        builder: (context) => ConnectDevicePage(
+          targetProfileIndex: chosenProfileIndex,
+          targetProfileId: profiles[chosenProfileIndex].id,
+        ),
+      ),
     );
   }
 
@@ -168,7 +268,8 @@ class _HomePageState extends State<HomePage> {
         child: Image.asset(
           url,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _buildInitials(profile.profileName, initialsFs),
+          errorBuilder: (_, __, ___) =>
+              _buildInitials(profile.profileName, initialsFs),
         ),
       );
     }
@@ -179,7 +280,8 @@ class _HomePageState extends State<HomePage> {
       child: Image.network(
         url,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildInitials(profile.profileName, initialsFs),
+        errorBuilder: (_, __, ___) =>
+            _buildInitials(profile.profileName, initialsFs),
       ),
     );
   }
@@ -208,7 +310,9 @@ class _HomePageState extends State<HomePage> {
             final hPad = (w * 0.05).clamp(16.0, 24.0);
             final vPad = (short * 0.035).clamp(12.0, 20.0);
             final scrollBottom =
-                mq.viewInsets.bottom + mq.padding.bottom + (short * 0.26).clamp(80.0, 112.0);
+                mq.viewInsets.bottom +
+                mq.padding.bottom +
+                (short * 0.06).clamp(18.0, 28.0);
             final welcomeFs = (w * 0.058).clamp(18.0, 26.0);
             final taglineFs = (w * 0.036).clamp(12.0, 15.0);
             final cardPad = (short * 0.04).clamp(12.0, 18.0);
@@ -267,664 +371,727 @@ class _HomePageState extends State<HomePage> {
                                     padding: EdgeInsets.all(cardPad),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFE6F0FE),
-                                      borderRadius: BorderRadius.circular(cardRadius),
+                                      borderRadius: BorderRadius.circular(
+                                        cardRadius,
+                                      ),
                                     ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        const Icon(
-                                          Icons.devices_outlined,
-                                          color: Color(0xFF1B64F2),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const Icon(
+                                              Icons.devices_outlined,
+                                              color: Color(0xFF1B64F2),
+                                            ),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    (activeDeviceCount > 0
+                                                            ? const Color(
+                                                                0xFF0E9F6E,
+                                                              )
+                                                            : const Color(
+                                                                0xFFD1D5DB,
+                                                              ))
+                                                        .withValues(alpha: 0.5),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                appState.tr(
+                                                  activeDeviceCount > 0
+                                                      ? 'ONLINE'
+                                                      : 'OFFLINE',
+                                                  activeDeviceCount > 0
+                                                      ? 'متصل'
+                                                      : 'غير متصل',
+                                                ),
+                                                style: TextStyle(
+                                                  fontSize: (w * 0.026).clamp(
+                                                    9.0,
+                                                    11.0,
+                                                  ),
+                                                  fontWeight: FontWeight.bold,
+                                                  color: activeDeviceCount > 0
+                                                      ? Colors.white
+                                                      : const Color(0xFF4B5563),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
+                                        SizedBox(
+                                          height: (short * 0.04).clamp(
+                                            12.0,
+                                            18.0,
                                           ),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                (activeDeviceCount > 0
-                                                        ? const Color(
-                                                            0xFF0E9F6E,
-                                                          )
-                                                        : const Color(
-                                                            0xFFD1D5DB,
-                                                          ))
-                                                    .withValues(alpha: 0.5),
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
+                                        ),
+                                        Text(
+                                          '$activeDeviceCount',
+                                          style: TextStyle(
+                                            fontSize: statNumFs,
+                                            fontWeight: FontWeight.bold,
+                                            color: const Color(0xFF1B64F2),
                                           ),
-                                          child: Text(
-                                            appState.tr(
-                                              activeDeviceCount > 0
-                                                  ? 'ONLINE'
-                                                  : 'OFFLINE',
-                                              activeDeviceCount > 0
-                                                  ? 'متصل'
-                                                  : 'غير متصل',
-                                            ),
-                                            style: TextStyle(
-                                              fontSize: (w * 0.026).clamp(9.0, 11.0),
-                                              fontWeight: FontWeight.bold,
-                                              color: activeDeviceCount > 0
-                                                  ? Colors.white
-                                                  : const Color(0xFF4B5563),
-                                            ),
+                                        ),
+                                        Text(
+                                          appState.tr(
+                                            'Active Devices',
+                                            'أجهزة نشطة',
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: statLabelFs,
+                                            color: const Color(0xFF1B64F2),
                                           ),
                                         ),
                                       ],
                                     ),
-                                    SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
-                                    Text(
-                                      '$activeDeviceCount',
-                                      style: TextStyle(
-                                        fontSize: statNumFs,
-                                        fontWeight: FontWeight.bold,
-                                        color: const Color(0xFF1B64F2),
+                                  ),
+                                ),
+                                SizedBox(width: (w * 0.04).clamp(12.0, 18.0)),
+                                Expanded(
+                                  child: Container(
+                                    padding: EdgeInsets.all(cardPad),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE2F8EE),
+                                      borderRadius: BorderRadius.circular(
+                                        cardRadius,
                                       ),
                                     ),
-                                    Text(
-                                      appState.tr(
-                                        'Active Devices',
-                                        'أجهزة نشطة',
-                                      ),
-                                      style: TextStyle(
-                                        fontSize: statLabelFs,
-                                        color: const Color(0xFF1B64F2),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: (w * 0.04).clamp(12.0, 18.0)),
-                            Expanded(
-                              child: Container(
-                                padding: EdgeInsets.all(cardPad),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE2F8EE),
-                                  borderRadius: BorderRadius.circular(cardRadius),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Icon(
-                                          Icons.group_outlined,
-                                          color: Color(0xFF0E9F6E),
+                                        const Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Icon(
+                                              Icons.group_outlined,
+                                              color: Color(0xFF0E9F6E),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(
+                                          height: (short * 0.04).clamp(
+                                            12.0,
+                                            18.0,
+                                          ),
+                                        ),
+                                        Text(
+                                          '$actualProfileCount',
+                                          style: TextStyle(
+                                            fontSize: statNumFs,
+                                            fontWeight: FontWeight.bold,
+                                            color: const Color(0xFF0E9F6E),
+                                          ),
+                                        ),
+                                        Text(
+                                          appState.tr(
+                                            'Protected Members',
+                                            'الأعضاء المحميون',
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: statLabelFs,
+                                            color: const Color(0xFF0E9F6E),
+                                          ),
                                         ),
                                       ],
                                     ),
-                                    SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
-                                    Text(
-                                      '$actualProfileCount',
-                                      style: TextStyle(
-                                        fontSize: statNumFs,
-                                        fontWeight: FontWeight.bold,
-                                        color: const Color(0xFF0E9F6E),
-                                      ),
-                                    ),
-                                    Text(
-                                      appState.tr(
-                                        'Protected Members',
-                                        'الأعضاء المحميون',
-                                      ),
-                                      style: TextStyle(
-                                        fontSize: statLabelFs,
-                                        color: const Color(0xFF0E9F6E),
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-                        SizedBox(height: (short * 0.05).clamp(16.0, 24.0)),
-                        Container(
-                          padding: EdgeInsets.all(cardPad),
-                          decoration: BoxDecoration(
-                            color: activeDeviceCount > 0
-                                ? const Color(0xFFDEF7EC)
-                                : const Color(0xFFEAF8F0),
-                            border: Border.all(
-                              color: activeDeviceCount > 0
-                                  ? const Color(0xFF84E1BC)
-                                  : const Color(0xFFB4E6C9),
-                            ),
-                            borderRadius: BorderRadius.circular((short * 0.032).clamp(10.0, 14.0)),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.check_circle,
-                                size: (short * 0.055).clamp(20.0, 26.0),
+                            SizedBox(height: (short * 0.05).clamp(16.0, 24.0)),
+                            Container(
+                              padding: EdgeInsets.all(cardPad),
+                              decoration: BoxDecoration(
                                 color: activeDeviceCount > 0
-                                    ? const Color(0xFF0E9F6E)
-                                    : const Color(0xFF0E9F6E),
-                              ),
-                              SizedBox(width: (w * 0.03).clamp(8.0, 14.0)),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      appState.tr(
-                                        'System Status',
-                                        'حالة النظام',
-                                      ),
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0E9F6E),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      activeDeviceCount > 0
-                                          ? appState.tr(
-                                              'System fully active. $activeDeviceCount device(s) linked.',
-                                              'النظام يعمل بالكامل. $activeDeviceCount جهاز متصل.',
-                                            )
-                                          : appState.tr(
-                                              'No devices connected till now. No alerts detected.',
-                                              'لا توجد أجهزة متصلة حتى الآن. لم يتم رصد أي تنبيهات.',
-                                            ),
-                                      style: TextStyle(
-                                        fontSize: statLabelFs,
-                                        color: Colors.grey.shade700,
-                                      ),
-                                    ),
-                                  ],
+                                    ? const Color(0xFFDEF7EC)
+                                    : const Color(0xFFEAF8F0),
+                                border: Border.all(
+                                  color: activeDeviceCount > 0
+                                      ? const Color(0xFF84E1BC)
+                                      : const Color(0xFFB4E6C9),
+                                ),
+                                borderRadius: BorderRadius.circular(
+                                  (short * 0.032).clamp(10.0, 14.0),
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                SizedBox(height: (short * 0.06).clamp(20.0, 28.0)),
-                FutureBuilder<List<PatientProfile>>(
-                  future: _profilesFuture,
-                  builder: (context, snapshot) {
-                    final appState = AppState();
-                    final profiles = snapshot.data ?? [];
-                    if (profiles.isEmpty &&
-                        snapshot.connectionState != ConnectionState.waiting) {
-                      return const SizedBox.shrink();
-                    }
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                appState.tr('Protected Member', 'العضو المحمي'),
-                                style: TextStyle(
-                                  fontSize: (w * 0.045).clamp(16.0, 19.0),
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF1E3A8A),
-                                ),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const AddProfileIdentityPage(),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    size: (short * 0.055).clamp(20.0, 26.0),
+                                    color: activeDeviceCount > 0
+                                        ? const Color(0xFF0E9F6E)
+                                        : const Color(0xFF0E9F6E),
                                   ),
-                                );
-                              },
-                              child: Text(
-                                appState.tr('+ Add Member', '+ إضافة عضو'),
-                                style: const TextStyle(
-                                  color: Color(0xFF1B64F2),
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                  SizedBox(width: (w * 0.03).clamp(8.0, 14.0)),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          appState.tr(
+                                            'System Status',
+                                            'حالة النظام',
+                                          ),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF0E9F6E),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          activeDeviceCount > 0
+                                              ? appState.tr(
+                                                  'System fully active. $activeDeviceCount device(s) linked.',
+                                                  'النظام يعمل بالكامل. $activeDeviceCount جهاز متصل.',
+                                                )
+                                              : appState.tr(
+                                                  'No devices connected till now. No alerts detected.',
+                                                  'لا توجد أجهزة متصلة حتى الآن. لم يتم رصد أي تنبيهات.',
+                                                ),
+                                          style: TextStyle(
+                                            fontSize: statLabelFs,
+                                            color: Colors.grey.shade700,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
-                        ),
-                        SizedBox(height: (short * 0.03).clamp(10.0, 14.0)),
-                        if (snapshot.connectionState == ConnectionState.waiting)
-                          const Center(child: CircularProgressIndicator())
-                        else
-                          ...profiles.asMap().entries.map((entry) {
-                            return _buildProtectedMemberCard(
-                              context,
-                              entry.key,
-                              entry.value,
-                            );
-                          }),
-                        SizedBox(height: (short * 0.06).clamp(18.0, 28.0)),
-                      ],
-                    );
-                  },
-                ),
-
-                // Create Profile Card (only when there are no profiles yet)
-                FutureBuilder<List<PatientProfile>>(
-                  future: _profilesFuture,
-                  builder: (context, snapshot) {
-                    final profiles = snapshot.data ?? [];
-                    final loading = snapshot.connectionState == ConnectionState.waiting;
-                    if (loading || profiles.isNotEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    return Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF0E9F6E), Color(0xFF046C4E)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                AppState().tr(
-                                  'Create a Profile',
-                                  'إنشاء ملف تعريف',
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                AppState().tr(
-                                  'Create a medical ID for a loved one to activate their emergency QR protection immediately.',
-                                  'أنشئ بطاقة معرف طبية لأحد أحبائك لتفعيل الحماية الطارئة QR فوراً.',
-                                ),
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  height: 1.4,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const AddProfileIdentityPage(),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 14,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.add_box,
-                                        color: Color(0xFF0E9F6E),
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        AppState().tr(
-                                          'Add Profile',
-                                          'إضافة الملف ',
-                                        ),
-                                        style: const TextStyle(
-                                          color: Color(0xFF0E9F6E),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    );
-                  },
-                ),
-
-                // Connect Bracelet Card (uses Supabase profile list — AppState.profileCount can be out of sync)
-                FutureBuilder<List<PatientProfile>>(
-                  future: _profilesFuture,
-                  builder: (context, snapshot) {
-                    return AnimatedBuilder(
-                      animation: AppState(),
-                      builder: (context, _) {
+                        );
+                      },
+                    ),
+                    SizedBox(height: (short * 0.06).clamp(20.0, 28.0)),
+                    FutureBuilder<List<PatientProfile>>(
+                      future: _profilesFuture,
+                      builder: (context, snapshot) {
                         final appState = AppState();
+                        final profiles = snapshot.data ?? [];
+                        if (profiles.isEmpty &&
+                            snapshot.connectionState !=
+                                ConnectionState.waiting) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    appState.tr(
+                                      'Protected Member',
+                                      'العضو المحمي',
+                                    ),
+                                    style: TextStyle(
+                                      fontSize: (w * 0.045).clamp(16.0, 19.0),
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF1E3A8A),
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const AddProfileIdentityPage(),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    appState.tr('+ Add Member', '+ إضافة عضو'),
+                                    style: const TextStyle(
+                                      color: Color(0xFF1B64F2),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: (short * 0.03).clamp(10.0, 14.0)),
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting)
+                              const Center(child: CircularProgressIndicator())
+                            else
+                              ...profiles.asMap().entries.map((entry) {
+                                return _buildProtectedMemberCard(
+                                  context,
+                                  entry.key,
+                                  entry.value,
+                                );
+                              }),
+                            SizedBox(height: (short * 0.06).clamp(18.0, 28.0)),
+                          ],
+                        );
+                      },
+                    ),
+
+                    // Create Profile Card (only when there are no profiles yet)
+                    FutureBuilder<List<PatientProfile>>(
+                      future: _profilesFuture,
+                      builder: (context, snapshot) {
                         final profiles = snapshot.data ?? [];
                         final loading =
                             snapshot.connectionState == ConnectionState.waiting;
-
-                        return Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF4285F4), Color(0xFF273469)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                appState.tr('Connect a Bracelet', 'توصيل سوار'),
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                        if (loading || profiles.isNotEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF0E9F6E),
+                                    Color(0xFF046C4E),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                 ),
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                appState.tr(
-                                  'Pair a Qlink bracelet to start protecting your loved ones in real time and expand your safety circle.',
-                                  'قم بإقران سوار كيولينك للبدء في حماية أحبائك في الوقت الفعلي وتوسيع دائرة الأمان.',
-                                ),
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  height: 1.4,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              GestureDetector(
-                                onTap: () {
-                                  if (loading) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          appState.tr(
-                                            'Loading profiles…',
-                                            'جاري تحميل الملفات…',
-                                          ),
-                                        ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    AppState().tr(
+                                      'Create a Profile',
+                                      'إنشاء ملف تعريف',
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    AppState().tr(
+                                      'Create a medical ID for a loved one to activate their emergency QR protection immediately.',
+                                      'أنشئ بطاقة معرف طبية لأحد أحبائك لتفعيل الحماية الطارئة QR فوراً.',
+                                    ),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.9,
                                       ),
-                                    );
-                                    return;
-                                  }
-                                  if (profiles.isEmpty) {
-                                    showDialog<void>(
-                                      context: context,
-                                      builder: (dialogContext) => AlertDialog(
-                                        title: Text(
-                                          appState.tr(
-                                            'Profile required',
-                                            'مطلوب ملف تعريف',
-                                          ),
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const AddProfileIdentityPage(),
                                         ),
-                                        content: Text(
-                                          appState.tr(
-                                            'You must first create a profile to connect a bracelet.',
-                                            'يجب أولاً إنشاء ملف تعريف لتوصيل سوار.',
+                                      );
+                                    },
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 14,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.add_box,
+                                            color: Color(0xFF0E9F6E),
+                                            size: 20,
                                           ),
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(dialogContext),
-                                            child: Text(
-                                              appState.tr('OK', 'حسناً'),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            AppState().tr(
+                                              'Add Profile',
+                                              'إضافة الملف ',
                                             ),
-                                          ),
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.pop(dialogContext);
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const AddProfileIdentityPage(),
-                                                ),
-                                              );
-                                            },
-                                            child: Text(
-                                              appState.tr(
-                                                'Create profile',
-                                                'إنشاء ملف تعريف',
-                                              ),
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                            style: const TextStyle(
+                                              color: Color(0xFF0E9F6E),
+                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
                                         ],
                                       ),
-                                    );
-                                    return;
-                                  }
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const ConnectDevicePage(),
                                     ),
-                                  );
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.add,
-                                        color: Color(0xFF273469),
-                                        size: 24,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        appState.deviceCount > 0
-                                            ? appState.tr(
-                                                'Add Bracelet',
-                                                'إضافة سوار',
-                                              )
-                                            : appState.tr(
-                                                'Add First Bracelet',
-                                                'إضافة أول سوار',
-                                              ),
-                                        style: const TextStyle(
-                                          color: Color(0xFF273469),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
                         );
                       },
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // Add / Link Wearer
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF7E22CE), Color(0xFF5B21B6)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppState().tr('Add a Wearer', 'إضافة مستخدم Wearer'),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+
+                    // Connect Bracelet Card (uses Supabase profile list — AppState.profileCount can be out of sync)
+                    FutureBuilder<List<PatientProfile>>(
+                      future: _profilesFuture,
+                      builder: (context, snapshot) {
+                        return AnimatedBuilder(
+                          animation: AppState(),
+                          builder: (context, _) {
+                            final appState = AppState();
+                            final profiles = snapshot.data ?? [];
+                            final loading =
+                                snapshot.connectionState ==
+                                ConnectionState.waiting;
+
+                            return Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF4285F4),
+                                    Color(0xFF273469),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    appState.tr(
+                                      'Connect a Bracelet',
+                                      'توصيل سوار',
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    appState.tr(
+                                      'Pair a Qlink bracelet to start protecting your loved ones in real time and expand your safety circle.',
+                                      'قم بإقران سوار كيولينك للبدء في حماية أحبائك في الوقت الفعلي وتوسيع دائرة الأمان.',
+                                    ),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.9,
+                                      ),
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  GestureDetector(
+                                    onTap: () {
+                                      if (loading) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              appState.tr(
+                                                'Loading profiles…',
+                                                'جاري تحميل الملفات…',
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      if (profiles.isEmpty) {
+                                        showDialog<void>(
+                                          context: context,
+                                          builder: (dialogContext) => AlertDialog(
+                                            title: Text(
+                                              appState.tr(
+                                                'Create profile first',
+                                                'أنشئ ملف تعريف أولاً',
+                                              ),
+                                            ),
+                                            content: Text(
+                                              appState.tr(
+                                                'Create profile first to connect a bracelet.',
+                                                'أنشئ ملف تعريف أولاً لتوصيل سوار.',
+                                              ),
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(
+                                                  dialogContext,
+                                                ),
+                                                child: Text(
+                                                  appState.tr('OK', 'حسناً'),
+                                                ),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(dialogContext);
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          const AddProfileIdentityPage(),
+                                                    ),
+                                                  );
+                                                },
+                                                child: Text(
+                                                  appState.tr(
+                                                    'Create profile',
+                                                    'إنشاء ملف تعريف',
+                                                  ),
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      _navigateToConnectBracelet(profiles);
+                                    },
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 14,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.add,
+                                            color: Color(0xFF273469),
+                                            size: 24,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            appState.tr(
+                                              'Add Bracelet',
+                                              'إضافة سوار',
+                                            ),
+                                            style: const TextStyle(
+                                              color: Color(0xFF273469),
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Add / Link Wearer
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7E22CE), Color(0xFF5B21B6)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        AppState().tr(
-                          'Create a new wearer account or link an existing one to your safety circle.',
-                          'أنشئ حساب Wearer جديداً أو اربط حساباً موجوداً بدائرة الأمان الخاصة بك.',
-                        ),
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.white.withValues(alpha: 0.9),
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const WearerIdentityPage(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppState().tr(
+                              'Add a Wearer',
+                              'إضافة مستخدم Wearer',
                             ),
-                          );
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.person_add_alt_1, color: Color(0xFF6D28D9), size: 20),
-                              const SizedBox(width: 8),
-                              Text(
-                                AppState().tr('Add New Wearer', 'إضافة Wearer جديد'),
-                                style: const TextStyle(
-                                  color: Color(0xFF6D28D9),
-                                  fontWeight: FontWeight.bold,
+                          const SizedBox(height: 8),
+                          Text(
+                            AppState().tr(
+                              'Create a new wearer account or link an existing one to your safety circle.',
+                              'أنشئ حساب Wearer جديداً أو اربط حساباً موجوداً بدائرة الأمان الخاصة بك.',
+                            ),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.white.withValues(alpha: 0.9),
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const WearerIdentityPage(),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.person_add_alt_1,
+                                    color: Color(0xFF6D28D9),
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    AppState().tr(
+                                      'Add New Wearer',
+                                      'إضافة Wearer جديد',
+                                    ),
+                                    style: const TextStyle(
+                                      color: Color(0xFF6D28D9),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Center(
+                            child: TextButton.icon(
+                              onPressed: _sendingLinkRequest
+                                  ? null
+                                  : _showLinkExistingWearerDialog,
+                              icon: const Icon(Icons.link, size: 18),
+                              label: Text(
+                                AppState().tr(
+                                  'Link Existing Wearer',
+                                  'ربط Wearer موجود',
                                 ),
                               ),
-                            ],
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                      Center(
-                        child: TextButton.icon(
-                          onPressed: _sendingLinkRequest ? null : _showLinkExistingWearerDialog,
-                          icon: const Icon(Icons.link, size: 18),
-                          label: Text(AppState().tr('Link Existing Wearer', 'ربط Wearer موجود')),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
+                    ),
+                    const SizedBox(height: 24),
 
-                // Recent Activity Section
-                FutureBuilder<List<PatientProfile>>(
-                  future: _profilesFuture,
-                  builder: (context, snapshot) {
-                    final appState = AppState();
-                    final profiles = snapshot.data ?? [];
-                    final hasActiveDevice = profiles.any((p) => p.status);
+                    // Recent Activity Section
+                    FutureBuilder<List<PatientProfile>>(
+                      future: _profilesFuture,
+                      builder: (context, snapshot) {
+                        final appState = AppState();
+                        final profiles = snapshot.data ?? [];
+                        final hasActiveDevice = profiles.any((p) => p.status);
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Flexible(
-                              child: Text(
-                                appState.tr('Recent Activity', 'النشاط الأخير'),
-                                style: TextStyle(
-                                  fontSize: (w * 0.045).clamp(16.0, 19.0),
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF1E3A8A),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    appState.tr(
+                                      'Recent Activity',
+                                      'النشاط الأخير',
+                                    ),
+                                    style: TextStyle(
+                                      fontSize: (w * 0.045).clamp(16.0, 19.0),
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF1E3A8A),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {},
-                              child: Text(
-                                hasActiveDevice
-                                    ? appState.tr('View All', 'عرض الكل')
-                                    : appState.tr('See all', 'عرض الكل'),
-                                style: TextStyle(
-                                  color: hasActiveDevice
-                                      ? const Color(0xFF1B64F2)
-                                      : Colors.grey,
-                                  fontWeight: FontWeight.bold,
+                                TextButton(
+                                  onPressed: () {},
+                                  child: Text(
+                                    hasActiveDevice
+                                        ? appState.tr('View All', 'عرض الكل')
+                                        : appState.tr('See all', 'عرض الكل'),
+                                    style: TextStyle(
+                                      color: hasActiveDevice
+                                          ? const Color(0xFF1B64F2)
+                                          : Colors.grey,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
+                            const SizedBox(height: 12),
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting)
+                              const Center(child: CircularProgressIndicator())
+                            else if (!hasActiveDevice)
+                              _buildEmptyActivity(context)
+                            else
+                              _buildRealActivity(context, profiles),
                           ],
-                        ),
-                        const SizedBox(height: 12),
-                        if (snapshot.connectionState == ConnectionState.waiting)
-                          const Center(child: CircularProgressIndicator())
-                        else if (!hasActiveDevice)
-                          _buildEmptyActivity(context)
-                        else
-                          _buildRealActivity(context, profiles),
-                      ],
-                    );
-                  },
+                        );
+                      },
+                    ),
+                    SizedBox(height: (short * 0.05).clamp(16.0, 28.0)),
+                  ],
                 ),
-                SizedBox(height: (short * 0.05).clamp(16.0, 28.0)),
-              ],
-            ),
-          ),
-        );
+              ),
+            );
           },
         ),
       ),
     );
   }
 
-  void _showDeleteProfileConfirm(BuildContext context, int index, PatientProfile profile) {
+  void _showDeleteProfileConfirm(
+    BuildContext context,
+    int index,
+    PatientProfile profile,
+  ) {
     final appState = AppState();
     showDialog(
       context: context,
@@ -1011,11 +1178,15 @@ class _HomePageState extends State<HomePage> {
                 height: avatarOuter,
                 decoration: BoxDecoration(
                   color: const Color(0xFF273469),
-                  borderRadius: BorderRadius.circular((short * 0.032).clamp(10.0, 14.0)),
+                  borderRadius: BorderRadius.circular(
+                    (short * 0.032).clamp(10.0, 14.0),
+                  ),
                 ),
                 alignment: Alignment.center,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular((short * 0.032).clamp(10.0, 14.0)),
+                  borderRadius: BorderRadius.circular(
+                    (short * 0.032).clamp(10.0, 14.0),
+                  ),
                   child: _buildProfileAvatar(context, profile),
                 ),
               ),
@@ -1073,7 +1244,11 @@ class _HomePageState extends State<HomePage> {
                     color: Colors.red.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.delete_outline, color: Colors.red, size: (short * 0.055).clamp(18.0, 24.0)),
+                  child: Icon(
+                    Icons.delete_outline,
+                    color: Colors.red,
+                    size: (short * 0.055).clamp(18.0, 24.0),
+                  ),
                 ),
               ),
             ],
@@ -1085,13 +1260,18 @@ class _HomePageState extends State<HomePage> {
                 child: OutlinedButton(
                   onPressed: () {
                     // Navigate to profile management - passing converted data for now
-                    final dialRows = emergencyDialRowsFromContactsJson(profile.emergencyContacts);
+                    final dialRows = emergencyDialRowsFromContactsJson(
+                      profile.emergencyContacts,
+                    );
                     final List<String> emergencyContactsList = [];
                     if (dialRows.isNotEmpty) {
                       for (final d in dialRows) {
                         if (d.phone.isNotEmpty) {
-                          emergencyContactsList
-                              .add(d.title.isNotEmpty ? '${d.title}\n${d.phone}' : d.phone);
+                          emergencyContactsList.add(
+                            d.title.isNotEmpty
+                                ? '${d.title}\n${d.phone}'
+                                : d.phone,
+                          );
                         } else if (d.title.isNotEmpty) {
                           emergencyContactsList.add(d.title);
                         }
@@ -1118,20 +1298,27 @@ class _HomePageState extends State<HomePage> {
                       matchedDevices = [
                         DeviceData(
                           deviceType: 'Qlink Smart Bracelet "Pulse"',
-                          code: 'QLINK-PULSE-${profile.id.substring(0, 6).toUpperCase()}',
+                          code:
+                              'QLINK-PULSE-${profile.id.substring(0, 6).toUpperCase()}',
                           connectedAt: profile.createdAt,
                         ),
                       ];
                     }
 
                     VisibilitySettings? mergedVisibility;
-                    final cachedVis = AppState().qrVisibilitySettingsFor(profile.id);
+                    final cachedVis = AppState().qrVisibilitySettingsFor(
+                      profile.id,
+                    );
                     if (cachedVis != null) {
                       mergedVisibility = VisibilitySettings.copyOf(cachedVis);
                     } else {
                       for (final ap in AppState().profiles) {
-                        if (ap.id != null && ap.id!.isNotEmpty && ap.id == profile.id) {
-                          mergedVisibility = VisibilitySettings.copyOf(ap.visibility);
+                        if (ap.id != null &&
+                            ap.id!.isNotEmpty &&
+                            ap.id == profile.id) {
+                          mergedVisibility = VisibilitySettings.copyOf(
+                            ap.visibility,
+                          );
                           break;
                         }
                       }
@@ -1147,7 +1334,9 @@ class _HomePageState extends State<HomePage> {
                             name: profile.profileName,
                             imagePath: profile.avatarUrl,
                             relationship: profile.relationshipToGuardian,
-                            birthYear: birthYearStringFromRowField(profile.birthYear),
+                            birthYear: birthYearStringFromRowField(
+                              profile.birthYear,
+                            ),
                             bloodType: profile.bloodType,
                             condition: profile.medicalNotesEn,
                             allergies: profile.allergiesEn,
@@ -1166,11 +1355,15 @@ class _HomePageState extends State<HomePage> {
                     });
                   },
                   style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: (short * 0.032).clamp(10.0, 14.0)),
+                    padding: EdgeInsets.symmetric(
+                      vertical: (short * 0.032).clamp(10.0, 14.0),
+                    ),
                     side: const BorderSide(color: Color(0xFFF3F4F6)),
                     backgroundColor: const Color(0xFFF9FAFB),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular((short * 0.022).clamp(6.0, 10.0)),
+                      borderRadius: BorderRadius.circular(
+                        (short * 0.022).clamp(6.0, 10.0),
+                      ),
                     ),
                   ),
                   child: Text(
@@ -1202,7 +1395,9 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: (short * 0.032).clamp(10.0, 14.0)),
+                          padding: EdgeInsets.symmetric(
+                            vertical: (short * 0.032).clamp(10.0, 14.0),
+                          ),
                           side: BorderSide(
                             color: Colors.purple.withValues(alpha: 0.1),
                           ),
@@ -1210,7 +1405,9 @@ class _HomePageState extends State<HomePage> {
                             alpha: 0.05,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular((short * 0.022).clamp(6.0, 10.0)),
+                            borderRadius: BorderRadius.circular(
+                              (short * 0.022).clamp(6.0, 10.0),
+                            ),
                           ),
                         ),
                       )
@@ -1219,16 +1416,17 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  ConnectDevicePage(
-                                    targetProfileIndex: index,
-                                    targetProfileId: profile.id,
-                                  ),
+                              builder: (context) => ConnectDevicePage(
+                                targetProfileIndex: index,
+                                targetProfileId: profile.id,
+                              ),
                             ),
                           );
                         },
                         style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: (short * 0.032).clamp(10.0, 14.0)),
+                          padding: EdgeInsets.symmetric(
+                            vertical: (short * 0.032).clamp(10.0, 14.0),
+                          ),
                           side: BorderSide(
                             color: Colors.purple.withValues(alpha: 0.1),
                           ),
@@ -1236,7 +1434,9 @@ class _HomePageState extends State<HomePage> {
                             alpha: 0.05,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular((short * 0.022).clamp(6.0, 10.0)),
+                            borderRadius: BorderRadius.circular(
+                              (short * 0.022).clamp(6.0, 10.0),
+                            ),
                           ),
                         ),
                         child: Text(
@@ -1256,7 +1456,10 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text(
                 appState.tr('Last update: Today', 'آخر تحديث: اليوم'),
-                style: TextStyle(fontSize: (w * 0.028).clamp(10.0, 12.0), color: Colors.grey.shade500),
+                style: TextStyle(
+                  fontSize: (w * 0.028).clamp(10.0, 12.0),
+                  color: Colors.grey.shade500,
+                ),
               ),
             ],
           ),
@@ -1288,7 +1491,10 @@ class _HomePageState extends State<HomePage> {
             Text(
               AppState().tr('No activity yet', 'لا يوجد نشاط بعد'),
               style: TextStyle(
-                fontSize: (MediaQuery.sizeOf(context).width * 0.034).clamp(12.0, 14.0),
+                fontSize: (MediaQuery.sizeOf(context).width * 0.034).clamp(
+                  12.0,
+                  14.0,
+                ),
                 color: Colors.grey.shade500,
               ),
             ),
@@ -1298,7 +1504,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildRealActivity(BuildContext context, List<PatientProfile> profiles) {
+  Widget _buildRealActivity(
+    BuildContext context,
+    List<PatientProfile> profiles,
+  ) {
     final firstName = profiles.isNotEmpty ? profiles.first.profileName : '—';
     final appState = AppState();
     final mq = MediaQuery.of(context);
@@ -1356,7 +1565,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF1B64F2),
-                          borderRadius: BorderRadius.circular((short * 0.055).clamp(16.0, 22.0)),
+                          borderRadius: BorderRadius.circular(
+                            (short * 0.055).clamp(16.0, 22.0),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -1427,7 +1638,9 @@ class _HomePageState extends State<HomePage> {
             padding: EdgeInsets.all((short * 0.028).clamp(8.0, 12.0)),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular((short * 0.028).clamp(8.0, 12.0)),
+              borderRadius: BorderRadius.circular(
+                (short * 0.028).clamp(8.0, 12.0),
+              ),
             ),
             child: Icon(icon, color: color, size: iconSz),
           ),
