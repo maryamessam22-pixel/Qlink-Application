@@ -258,9 +258,13 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        // Show sync overlay for at least 2 seconds
+        await Future.delayed(const Duration(seconds: 15));
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -715,7 +719,11 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
                 ).showSnackBar(SnackBar(content: Text('Error: $e')));
               }
             } finally {
-              if (mounted) setState(() => _isLoading = false);
+              if (mounted) {
+                // Show sync overlay for at least 2 seconds
+                await Future.delayed(const Duration(seconds: 2));
+                if (mounted) setState(() => _isLoading = false);
+              }
             }
           }
         },
