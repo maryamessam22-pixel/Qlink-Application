@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/services/supabase_service.dart';
 
 class QrScanHistoryPage extends StatefulWidget {
   const QrScanHistoryPage({super.key});
@@ -10,13 +11,51 @@ class QrScanHistoryPage extends StatefulWidget {
 }
 
 class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
+  Future<void> _clearStoredQrHistory() async {
+    final userId = SupabaseService().client.auth.currentUser?.id;
+    if (userId == null || userId.isEmpty) return;
+    await SupabaseService().client.from('notifications').delete().eq('guardian_id', userId).eq('type', 'qr_scan');
+  }
+  Future<List<ScanHistoryItem>> _fetchStoredQrHistory() async {
+    try {
+      final userId = SupabaseService().client.auth.currentUser?.id;
+      if (userId == null || userId.isEmpty) return AppState().scanHistory;
+
+      final rows = await SupabaseService()
+          .client
+          .from('notifications')
+          .select('title, body, created_at')
+          .eq('guardian_id', userId)
+          .eq('type', 'qr_scan')
+          .order('created_at', ascending: false);
+
+      final list = <ScanHistoryItem>[];
+      for (final row in List<Map<String, dynamic>>.from(rows as List)) {
+        final body = (row['body'] ?? '').toString();
+        final scanner = body.startsWith('Scanned by ')
+            ? body.replaceFirst('Scanned by ', '').trim()
+            : AppState().tr('Unknown', 'غير معروف');
+        list.add(
+          ScanHistoryItem(
+            title: (row['title'] ?? 'Emergency Scan').toString(),
+            scanner: scanner,
+            location: 'Cairo, Egypt',
+            time: 'Just now',
+          ),
+        );
+      }
+      return list;
+    } catch (_) {
+      return AppState().scanHistory;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: AppState(),
       builder: (context, _) {
         final appState = AppState();
-        final history = appState.scanHistory;
         final mq = MediaQuery.of(context);
         final short = mq.size.shortestSide;
         final w = mq.size.width;
@@ -74,8 +113,12 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
                   const Divider(color: Color(0xFFF3F4F6), thickness: 1),
 
                   Expanded(
-                    child: history.isEmpty
-                    ? Center(
+                    child: FutureBuilder<List<ScanHistoryItem>>(
+                      future: _fetchStoredQrHistory(),
+                      builder: (context, snapshot) {
+                        final history = snapshot.data ?? appState.scanHistory;
+                        if (history.isEmpty) {
+                          return Center(
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: hPad),
                           child: Text(
@@ -87,8 +130,9 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
                             ),
                           ),
                         ),
-                      )
-                    : ListView.builder(
+                      );
+                        }
+                        return ListView.builder(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: EdgeInsets.fromLTRB(hPad, (short * 0.02).clamp(8.0, 14.0), hPad, (short * 0.02).clamp(8.0, 14.0)),
                         itemCount: history.length,
@@ -160,7 +204,9 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
                             ),
                           );
                         },
-                      ),
+                      );
+                      },
+                    ),
                   ),
 
                   Padding(
@@ -173,10 +219,13 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
+                          await _clearStoredQrHistory();
                           appState.clearScanHistory();
+                          if (!mounted) return;
+                          setState(() {});
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(appState.tr('History cleared', 'تم مسح السجل'))),
+                            SnackBar(content: Text(appState.tr('History cleared', '?? ??? ?????'))),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -206,3 +255,4 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
     );
   }
 }
+

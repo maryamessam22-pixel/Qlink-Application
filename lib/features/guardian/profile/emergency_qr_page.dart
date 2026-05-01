@@ -7,6 +7,7 @@ import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/guardian/profile/public_preview_qr_page.dart';
 import 'package:q_link/features/shared/helpers/emergency_qr_scan.dart';
 import 'package:q_link/services/supabase_service.dart';
+import 'package:uuid/uuid.dart';
 
 class EmergencyQrPage extends StatefulWidget {
   final ProfileData profile;
@@ -505,13 +506,28 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
             ElevatedButton(
               onPressed: () {
                 final phoneNumber = phoneController.text.trim();
+                final scannerPhone =
+                    phoneNumber.isNotEmpty ? phoneNumber : '+20 123 456 7890';
                 
                 appState.addScanHistory(ScanHistoryItem(
                   title: "Emergency Scan (${widget.profile.name}'s Bracelete)",
-                  scanner: phoneNumber.isNotEmpty ? phoneNumber : '+20 123 456 7890',
+                  scanner: scannerPhone,
                   location: 'Cairo, Egypt',
                   time: 'Just now',
                 ));
+
+                final guardianId = SupabaseService().client.auth.currentUser?.id;
+                if (guardianId != null && guardianId.isNotEmpty) {
+                  SupabaseService().client.from('notifications').insert({
+                    'id': const Uuid().v4(),
+                    'guardian_id': guardianId,
+                    'profile_id': widget.profile.id ?? guardianId,
+                    'title': 'Emergency Scan',
+                    'body': 'Scanned by $scannerPhone',
+                    'type': 'qr_scan',
+                    'is_read': false,
+                  });
+                }
 
                 Navigator.pop(context);
                 Navigator.push(

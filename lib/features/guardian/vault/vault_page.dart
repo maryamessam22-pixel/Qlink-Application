@@ -93,26 +93,10 @@ class _VaultPageState extends State<VaultPage> {
                                           ? appState.tr('SECURE', 'آمن')
                                           : appState.tr('ALERT', 'تنبيه');
 
-                                      return _buildProfileCard(
-                                        name: profile.profileName,
-                                        role: appState.tr(
-                                            profile.relationshipToGuardian, profile.relationshipToGuardian),
-                                        imagePath: profile.avatarUrl,
-                                        recordCount: 5, // Mock for now, could be fetched
-                                        lastUpdate: appState.tr('Latest', 'الأحدث'),
+                                      return _buildProfileCardWithDynamicMeta(
+                                        profile: profile,
                                         statusLabel: statusLabel,
                                         statusColor: statusColor,
-                                        onOpenVault: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => VaultDetailPage(
-                                                profile: profile,
-                                                documents: const [],
-                                              ),
-                                            ),
-                                          );
-                                        },
                                       );
                                     },
                                   ),
@@ -317,6 +301,48 @@ class _VaultPageState extends State<VaultPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildProfileCardWithDynamicMeta({
+    required PatientProfile profile,
+    required String statusLabel,
+    required Color statusColor,
+  }) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: SupabaseService().fetchVaultDocuments(profile.id),
+      builder: (context, snapshot) {
+        final appState = AppState();
+        final docs = snapshot.data ?? const <Map<String, dynamic>>[];
+        final recordCount = docs.length;
+        final lastUpdate = recordCount > 0
+            ? appState.tr('Latest', 'Ø§Ù„Ø£Ø­Ø¯Ø«')
+            : appState.tr('No updates', 'Ù„Ø§ ØªØ­Ø¯ÙŠØ«Ø§Øª');
+
+        return _buildProfileCard(
+          name: profile.profileName,
+          role: appState.tr(
+            profile.relationshipToGuardian,
+            profile.relationshipToGuardian,
+          ),
+          imagePath: profile.avatarUrl,
+          recordCount: recordCount,
+          lastUpdate: lastUpdate,
+          statusLabel: statusLabel,
+          statusColor: statusColor,
+          onOpenVault: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => VaultDetailPage(
+                  profile: profile,
+                  documents: const [],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -624,3 +650,4 @@ class _VaultPageState extends State<VaultPage> {
     );
   }
 }
+

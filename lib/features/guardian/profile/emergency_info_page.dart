@@ -33,7 +33,8 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
   late TextEditingController _birthYearController;
   late TextEditingController _conditionController;
   late TextEditingController _allergiesController;
-  late List<TextEditingController> _contactControllers;
+  late List<TextEditingController> _contactNameControllers;
+  late List<TextEditingController> _contactPhoneControllers;
 
   Widget _buildAvatar(String path, String name, double size) {
     Widget fallback = Text(
@@ -62,11 +63,25 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
     _birthYearController = TextEditingController(text: widget.profile.birthYear);
     _conditionController = TextEditingController(text: widget.profile.condition);
     _allergiesController = TextEditingController(text: widget.profile.allergies);
-    _contactControllers = widget.profile.emergencyContacts
-        .map((c) => TextEditingController(text: c))
-        .toList();
-    if (_contactControllers.isEmpty) {
-      _contactControllers.add(TextEditingController());
+    _contactNameControllers = [];
+    _contactPhoneControllers = [];
+    if (widget.profile.emergencyDialRows.isNotEmpty) {
+      for (final row in widget.profile.emergencyDialRows) {
+        _contactNameControllers.add(TextEditingController(text: row.title));
+        _contactPhoneControllers.add(TextEditingController(text: row.phone));
+      }
+    } else {
+      for (final c in widget.profile.emergencyContacts) {
+        final parts = c.split('\n');
+        final name = parts.isNotEmpty ? parts.first.trim() : '';
+        final phone = parts.length > 1 ? parts.last.trim() : '';
+        _contactNameControllers.add(TextEditingController(text: name));
+        _contactPhoneControllers.add(TextEditingController(text: phone));
+      }
+    }
+    if (_contactNameControllers.isEmpty) {
+      _contactNameControllers.add(TextEditingController());
+      _contactPhoneControllers.add(TextEditingController());
     }
   }
 
@@ -78,7 +93,10 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
     _birthYearController.dispose();
     _conditionController.dispose();
     _allergiesController.dispose();
-    for (var c in _contactControllers) {
+    for (final c in _contactNameControllers) {
+      c.dispose();
+    }
+    for (final c in _contactPhoneControllers) {
       c.dispose();
     }
     super.dispose();
@@ -92,10 +110,16 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
 
     try {
       // 1. Update local AppState
-      final updatedContacts = _contactControllers
-          .map((c) => c.text.trim())
-          .where((t) => t.isNotEmpty)
-          .toList();
+      final updatedContacts = <String>[];
+      for (var i = 0; i < _contactNameControllers.length; i++) {
+        final name = _contactNameControllers[i].text.trim();
+        final phone = i < _contactPhoneControllers.length
+            ? _contactPhoneControllers[i].text.trim()
+            : '';
+        if (name.isEmpty && phone.isEmpty) continue;
+        if (name.isNotEmpty) updatedContacts.add(name);
+        if (phone.isNotEmpty) updatedContacts.add(phone);
+      }
       final parsedBirthYear = parseBirthYearFromRowField(_birthYearController.text);
       final normalizedBirthYear = parsedBirthYear == null ? '' : '$parsedBirthYear';
 
@@ -583,7 +607,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
           ),
           const SizedBox(height: 16),
           if (_isEditing) ...[
-            ..._contactControllers.asMap().entries.map((e) {
+            ..._contactNameControllers.asMap().entries.map((e) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
@@ -603,8 +627,10 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
                         icon: const Icon(Icons.remove_circle, color: Colors.red),
                         onPressed: () {
                           setState(() {
-                            _contactControllers[e.key].dispose();
-                            _contactControllers.removeAt(e.key);
+                            _contactNameControllers[e.key].dispose();
+                            _contactPhoneControllers[e.key].dispose();
+                            _contactNameControllers.removeAt(e.key);
+                            _contactPhoneControllers.removeAt(e.key);
                           });
                         },
                       ),
@@ -615,7 +641,8 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
             TextButton.icon(
               onPressed: () {
                 setState(() {
-                  _contactControllers.add(TextEditingController());
+                  _contactNameControllers.add(TextEditingController());
+                  _contactPhoneControllers.add(TextEditingController());
                 });
               },
               icon: const Icon(Icons.add),
@@ -794,3 +821,6 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
     );
   }
 }
+
+
+

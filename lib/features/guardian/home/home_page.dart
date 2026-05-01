@@ -19,12 +19,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Future<List<PatientProfile>> _profilesFuture;
+  late Future<List<Map<String, dynamic>>> _notificationsFuture;
+  late Future<Map<String, Map<String, double>>> _locationsFuture;
   bool _sendingLinkRequest = false;
 
   @override
   void initState() {
     super.initState();
     _profilesFuture = SupabaseService().fetchPatientProfiles();
+    _notificationsFuture = SupabaseService().client
+        .from('notifications')
+        .select('title, body, created_at, type')
+        .order('created_at', ascending: false)
+        .limit(20);
+    _locationsFuture = SupabaseService().fetchLatestProfileLocations();
     AppState().addListener(_checkProfileRefresh);
   }
 
@@ -44,6 +52,12 @@ class _HomePageState extends State<HomePage> {
   void _refreshProfiles() {
     setState(() {
       _profilesFuture = SupabaseService().fetchPatientProfiles();
+      _notificationsFuture = SupabaseService().client
+          .from('notifications')
+          .select('title, body, created_at, type')
+          .order('created_at', ascending: false)
+          .limit(20);
+      _locationsFuture = SupabaseService().fetchLatestProfileLocations();
     });
   }
 
@@ -1071,7 +1085,12 @@ class _HomePageState extends State<HomePage> {
                             else if (!hasActiveDevice)
                               _buildEmptyActivity(context)
                             else
-                              _buildRealActivity(context, profiles),
+                              _buildRealActivity(
+                                context,
+                                profiles,
+                                _notificationsFuture,
+                                _locationsFuture,
+                              ),
                           ],
                         );
                       },
@@ -1507,99 +1526,97 @@ class _HomePageState extends State<HomePage> {
   Widget _buildRealActivity(
     BuildContext context,
     List<PatientProfile> profiles,
+    Future<List<Map<String, dynamic>>> notificationsFuture,
+    Future<Map<String, Map<String, double>>> locationsFuture,
   ) {
-    final firstName = profiles.isNotEmpty ? profiles.first.profileName : '—';
+    final firstName = profiles.isNotEmpty ? profiles.first.profileName : '-';
     final appState = AppState();
     final mq = MediaQuery.of(context);
     final short = mq.size.shortestSide;
     final w = mq.size.width;
     final bannerH = (mq.size.height * 0.19).clamp(120.0, 200.0);
 
-    return Column(
-      children: [
-        _buildActivityRow(
-          context,
-          icon: Icons.error_outline,
-          color: Colors.red,
-          title: appState.tr('Emergency', 'طوارئ'),
-          subtitle: appState.tr('Emergency QR Scanned', 'تم مسح رمز QR الطارئ'),
-          details: firstName,
-          time: '',
-        ),
-        SizedBox(height: (short * 0.03).clamp(10.0, 14.0)),
-        _buildActivityRow(
-          context,
-          icon: Icons.location_on_outlined,
-          color: Colors.green,
-          title: appState.tr('Safe Zone', 'منطقة آمنة'),
-          subtitle: appState.tr('Safe Zone Entry', 'دخول منطقة آمنة'),
-          details: firstName,
-          time: '',
-        ),
-        SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
-        ClipRRect(
-          borderRadius: BorderRadius.circular((short * 0.04).clamp(14.0, 18.0)),
-          child: Stack(
-            children: [
-              Image.asset(
-                'assets/images/home_bg.png',
-                height: bannerH,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-              AnimatedBuilder(
-                animation: AppState(),
-                builder: (context, _) {
-                  final appState = AppState();
-                  return Container(
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: notificationsFuture,
+      builder: (context, notiSnap) {
+        final notifications = notiSnap.data ?? const <Map<String, dynamic>>[];
+        final qrScans = notifications.where((n) => (n['type'] ?? '').toString() == 'qr_scan').toList();
+        final emergencySubtitle = qrScans.isNotEmpty
+            ? (qrScans.first['body'] ?? appState.tr('Emergency QR Scanned', 'تم مسح رمز QR الطارئ')).toString()
+            : appState.tr('Emergency QR Scanned', 'تم مسح رمز QR الطارئ');
+
+        return Column(
+          children: [
+            _buildActivityRow(
+              context,
+              icon: Icons.error_outline,
+              color: Colors.red,
+              title: appState.tr('Emergency', 'طوارئ'),
+              subtitle: emergencySubtitle,
+              details: firstName,
+              time: '',
+            ),
+            SizedBox(height: (short * 0.03).clamp(10.0, 14.0)),
+            _buildActivityRow(
+              context,
+              icon: Icons.location_on_outlined,
+              color: Colors.green,
+              title: appState.tr('Safe Zone', 'منطقة آمنة'),
+              subtitle: appState.tr('Safe Zone Entry', 'دخول منطقة آمنة'),
+              details: firstName,
+              time: '',
+            ),
+            SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
+            ClipRRect(
+              borderRadius: BorderRadius.circular((short * 0.04).clamp(14.0, 18.0)),
+              child: Stack(
+                children: [
+                  Image.asset(
+                    'assets/images/home_bg.png',
                     height: bannerH,
                     width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.1),
-                    ),
-                    child: Center(
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: (w * 0.03).clamp(10.0, 14.0),
-                          vertical: (short * 0.016).clamp(4.0, 8.0),
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1B64F2),
-                          borderRadius: BorderRadius.circular(
-                            (short * 0.055).clamp(16.0, 22.0),
+                    fit: BoxFit.cover,
+                  ),
+                  FutureBuilder<Map<String, Map<String, double>>>(
+                    future: locationsFuture,
+                    builder: (context, locSnap) {
+                      final activePins = (locSnap.data ?? const <String, Map<String, double>>{}).length;
+                      final pinText = activePins <= 1
+                          ? appState.tr('1 active pin near you', 'دبوس نشط واحد بالقرب منك')
+                          : '$activePins ${appState.tr('active pins near you', 'دبابيس نشطة بالقرب منك')}';
+                      return Container(
+                        height: bannerH,
+                        width: double.infinity,
+                        decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.1)),
+                        child: Center(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: (w * 0.03).clamp(10.0, 14.0),
+                              vertical: (short * 0.016).clamp(4.0, 8.0),
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1B64F2),
+                              borderRadius: BorderRadius.circular((short * 0.055).clamp(16.0, 22.0)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.person_pin_circle, color: Colors.white, size: (short * 0.042).clamp(14.0, 18.0)),
+                                SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
+                                Text(pinText, style: TextStyle(color: Colors.white, fontSize: (w * 0.028).clamp(10.0, 12.0), fontWeight: FontWeight.bold)),
+                              ],
+                            ),
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.person_pin_circle,
-                              color: Colors.white,
-                              size: (short * 0.042).clamp(14.0, 18.0),
-                            ),
-                            SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
-                            Text(
-                              appState.tr(
-                                '1 active pin near you',
-                                'دبوس نشط واحد بالقرب منك',
-                              ),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: (w * 0.028).clamp(10.0, 12.0),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
