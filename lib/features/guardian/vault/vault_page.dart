@@ -12,10 +12,18 @@ class VaultPage extends StatefulWidget {
   const VaultPage({super.key});
 
   @override
-  State<VaultPage> createState() => _VaultPageState();
-}
+  State<VaultPage> createState() => _VaultPageState();}
 
 class _VaultPageState extends State<VaultPage> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -64,6 +72,8 @@ class _VaultPageState extends State<VaultPage> {
                           future: SupabaseService().fetchPatientProfiles(),
                           builder: (context, snapshot) {
                             final profiles = snapshot.data ?? [];
+                            final q = _searchQuery.trim().toLowerCase();
+                            final filtered = q.isEmpty ? profiles : profiles.where((p) => p.profileName.toLowerCase().contains(q) || p.relationshipToGuardian.toLowerCase().contains(q)).toList();
 
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -72,21 +82,21 @@ class _VaultPageState extends State<VaultPage> {
                                 SizedBox(height: (short * 0.05).clamp(16.0, 24.0)),
                                 _buildSearchBar(),
                                 SizedBox(height: (short * 0.055).clamp(18.0, 28.0)),
-                                _buildMonitoredProfilesHeader(profiles.length),
+                                _buildMonitoredProfilesHeader(filtered.length),
                                 SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                                 if (snapshot.connectionState == ConnectionState.waiting)
                                   const Center(child: CircularProgressIndicator(color: Color(0xFF1B64F2)))
-                                else if (profiles.isEmpty)
+                                else if (filtered.isEmpty)
                                   Center(child: Text(appState.tr('No profiles found', 'لا توجد ملفات حالياً')))
                                 else
                                   ListView.separated(
                                     shrinkWrap: true,
                                     physics: const NeverScrollableScrollPhysics(),
-                                    itemCount: profiles.length,
+                                    itemCount: filtered.length,
                                     separatorBuilder: (_, __) =>
                                         SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
                                     itemBuilder: (context, index) {
-                                      final profile = profiles[index];
+                                      final profile = filtered[index];
                                       final statusColor =
                                           profile.status ? const Color(0xFF22C55E) : const Color(0xFFEF4444);
                                       final statusLabel = profile.status
@@ -244,12 +254,20 @@ class _VaultPageState extends State<VaultPage> {
           ),
           SizedBox(width: (short * 0.026).clamp(8.0, 12.0)),
           Expanded(
-            child: Text(
-              appState.tr('Search records or profiles', 'ابحث في السجلات أو الملفات'),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            child: TextField(
+              controller: _searchController,
+              onChanged: (v) => setState(() => _searchQuery = v),
+              decoration: InputDecoration(
+                hintText: appState.tr('Search records or profiles', '???? ?? ??????? ?? ???????'),
+                hintStyle: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: (short * 0.036).clamp(13.0, 15.0),
+                ),
+                border: InputBorder.none,
+                isDense: true,
+              ),
               style: TextStyle(
-                color: Colors.grey.shade400,
+                color: const Color(0xFF1F2937),
                 fontSize: (short * 0.036).clamp(13.0, 15.0),
               ),
             ),
@@ -258,7 +276,6 @@ class _VaultPageState extends State<VaultPage> {
       ),
     );
   }
-
   Widget _buildMonitoredProfilesHeader(int count) {
     final appState = AppState();
     final short = MediaQuery.of(context).size.shortestSide;
@@ -650,4 +667,5 @@ class _VaultPageState extends State<VaultPage> {
     );
   }
 }
+
 

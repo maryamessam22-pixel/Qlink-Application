@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:q_link/core/models/patient_profile.dart';
 import 'package:q_link/core/utils/emergency_profile_parse.dart';
 import 'package:q_link/services/supabase_service.dart';
@@ -1544,6 +1546,9 @@ class _HomePageState extends State<HomePage> {
         final emergencySubtitle = qrScans.isNotEmpty
             ? (qrScans.first['body'] ?? appState.tr('Emergency QR Scanned', 'تم مسح رمز QR الطارئ')).toString()
             : appState.tr('Emergency QR Scanned', 'تم مسح رمز QR الطارئ');
+        final emergencyTime = qrScans.isNotEmpty
+            ? appState.tr('10:30 AM', '10:30 ص')
+            : '';
 
         return Column(
           children: [
@@ -1553,8 +1558,8 @@ class _HomePageState extends State<HomePage> {
               color: Colors.red,
               title: appState.tr('Emergency', 'طوارئ'),
               subtitle: emergencySubtitle,
-              details: firstName,
-              time: '',
+              details: '$firstName • ${appState.tr('Downtown Metro', 'وسط المدينة')}',
+              time: emergencyTime,
             ),
             SizedBox(height: (short * 0.03).clamp(10.0, 14.0)),
             _buildActivityRow(
@@ -1563,55 +1568,81 @@ class _HomePageState extends State<HomePage> {
               color: Colors.green,
               title: appState.tr('Safe Zone', 'منطقة آمنة'),
               subtitle: appState.tr('Safe Zone Entry', 'دخول منطقة آمنة'),
-              details: firstName,
-              time: '',
+              details: '${appState.tr(firstName, firstName)} ${appState.tr('arrived at Home', 'وصل إلى المنزل')}',
+              time: appState.tr('Yesterday', 'أمس'),
             ),
             SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
             ClipRRect(
-              borderRadius: BorderRadius.circular((short * 0.04).clamp(14.0, 18.0)),
-              child: Stack(
-                children: [
-                  Image.asset(
-                    'assets/images/home_bg.png',
-                    height: bannerH,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                  FutureBuilder<Map<String, Map<String, double>>>(
-                    future: locationsFuture,
-                    builder: (context, locSnap) {
-                      final activePins = (locSnap.data ?? const <String, Map<String, double>>{}).length;
-                      final pinText = activePins <= 1
-                          ? appState.tr('1 active pin near you', 'دبوس نشط واحد بالقرب منك')
-                          : '$activePins ${appState.tr('active pins near you', 'دبابيس نشطة بالقرب منك')}';
-                      return Container(
+              borderRadius: BorderRadius.circular(12),
+              child: FutureBuilder<Map<String, Map<String, double>>>(
+                future: locationsFuture,
+                builder: (context, locSnap) {
+                  final locations = locSnap.data ?? const <String, Map<String, double>>{};
+                  final activePins = locations.length;
+                  final pinText = activePins <= 1
+                      ? appState.tr('1 active pin near you', 'دبوس نشط قريب منك')
+                      : '$activePins ${appState.tr('active pins near you', 'دبابيس نشطة قريبة منك')}';
+                  final points = locations.values
+                      .map((m) => LatLng(m['lat'] ?? 30.0444, m['lng'] ?? 31.2357))
+                      .toList();
+                  final center = points.isNotEmpty ? points.first : const LatLng(30.0444, 31.2357);
+
+                  return Stack(
+                    children: [
+                      SizedBox(
                         height: bannerH,
                         width: double.infinity,
-                        decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.1)),
-                        child: Center(
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: (w * 0.03).clamp(10.0, 14.0),
-                              vertical: (short * 0.016).clamp(4.0, 8.0),
+                        child: FlutterMap(
+                          options: MapOptions(
+                            initialCenter: center,
+                            initialZoom: points.isNotEmpty ? 12 : 10,
+                          ),
+                          children: [
+                            TileLayer(
+                              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.qlink.app',
                             ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1B64F2),
-                              borderRadius: BorderRadius.circular((short * 0.055).clamp(16.0, 22.0)),
+                            MarkerLayer(
+                              markers: points.map((p) => Marker(
+                                point: p,
+                                width: 28,
+                                height: 28,
+                                child: const Icon(Icons.location_pin, color: Color(0xFF1B64F2), size: 28),
+                              )).toList(),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.person_pin_circle, color: Colors.white, size: (short * 0.042).clamp(14.0, 18.0)),
-                                SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
-                                Text(pinText, style: TextStyle(color: Colors.white, fontSize: (w * 0.028).clamp(10.0, 12.0), fontWeight: FontWeight.bold)),
-                              ],
-                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        height: bannerH,
+                        width: double.infinity,
+                        color: Colors.black.withValues(alpha: 0.08),
+                      ),
+                      Positioned(
+                        left: 10,
+                        bottom: 10,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: (w * 0.03).clamp(10.0, 14.0),
+                            vertical: (short * 0.016).clamp(4.0, 8.0),
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1B64F2),
+                            borderRadius: BorderRadius.circular((short * 0.055).clamp(16.0, 22.0)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.person_pin_circle, color: Colors.white, size: (short * 0.042).clamp(14.0, 18.0)),
+                              SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
+                              Text(pinText, style: TextStyle(color: Colors.white, fontSize: (w * 0.028).clamp(10.0, 12.0), fontWeight: FontWeight.bold)),
+                            ],
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ],
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],

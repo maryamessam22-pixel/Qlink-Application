@@ -11,6 +11,17 @@ class QrScanHistoryPage extends StatefulWidget {
 }
 
 class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
+  String _extractScanner(String body) {
+    final b = body.trim();
+    if (b.isEmpty) return '';
+    if (b.startsWith('Scanned by ')) return b.replaceFirst('Scanned by ', '').trim();
+    final m = RegExp(r'\+?\d[\d\s\-()]{6,}\d').firstMatch(b);
+    if (m != null) {
+      final v = (m.group(0) ?? '').trim();
+      if (v.isNotEmpty) return v;
+    }
+    return '';
+  }
   Future<void> _clearStoredQrHistory() async {
     final userId = SupabaseService().client.auth.currentUser?.id;
     if (userId == null || userId.isEmpty) return;
@@ -32,8 +43,9 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
       final list = <ScanHistoryItem>[];
       for (final row in List<Map<String, dynamic>>.from(rows as List)) {
         final body = (row['body'] ?? '').toString();
-        final scanner = body.startsWith('Scanned by ')
-            ? body.replaceFirst('Scanned by ', '').trim()
+        final extracted = _extractScanner(body);
+        final scanner = extracted.isNotEmpty
+            ? extracted
             : AppState().tr('Unknown', 'غير معروف');
         list.add(
           ScanHistoryItem(
@@ -255,4 +267,5 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
     );
   }
 }
+
 

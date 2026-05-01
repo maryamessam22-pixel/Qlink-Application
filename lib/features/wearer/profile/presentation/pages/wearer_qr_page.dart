@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -41,6 +42,19 @@ class _WearerQrPageState extends State<WearerQrPage> {
   void dispose() {
     _scannerController.dispose();
     super.dispose();
+  }
+
+  Future<void> _shareQrCode(AppState appState) async {
+    final tuple = await _myQrPack;
+    final payload = tuple.$2;
+    if (payload == null || payload.isEmpty) return;
+    await Clipboard.setData(ClipboardData(text: payload));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(appState.tr('QR code link copied', 'تم نسخ رابط رمز QR')),
+      ),
+    );
   }
 
   @override
@@ -238,7 +252,7 @@ class _WearerQrPageState extends State<WearerQrPage> {
               ],
             ),
             child: TextButton.icon(
-              onPressed: () {},
+              onPressed: () => _shareQrCode(appState),
               icon: const Icon(LucideIcons.share2, color: Colors.white, size: 20),
               label: Text(
                 appState.tr('Share QR Code', 'مشاركة رمز QR'),

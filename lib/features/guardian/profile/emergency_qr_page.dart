@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -267,7 +268,7 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () => _shareQrCode(appState),
                       icon: Icon(LucideIcons.share2, size: (short * 0.045).clamp(16.0, 20.0)),
                       label: Text(
                         appState.tr('Share QR Code', 'مشاركة رمز QR'),
@@ -389,7 +390,7 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: (w * 0.12).clamp(40.0, 72.0)),
                     child: OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: () => _shareQrCode(appState),
                       icon: Icon(LucideIcons.keyboard, size: (short * 0.045).clamp(16.0, 20.0)),
                       label: Text(appState.tr('Enter Code Manually', 'أدخل الرمز يدوياً')),
                       style: OutlinedButton.styleFrom(
@@ -414,6 +415,21 @@ class _EmergencyQrPageState extends State<EmergencyQrPage> {
           ],
         );
       },
+    );
+  }
+
+  Future<void> _shareQrCode(AppState appState) async {
+    final payload = _displayQrPayload.isNotEmpty
+        ? _displayQrPayload
+        : 'qlink-profile-${widget.profile.name}';
+    await Clipboard.setData(ClipboardData(text: payload));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          appState.tr('QR code link copied', 'تم نسخ رابط رمز QR'),
+        ),
+      ),
     );
   }
 
