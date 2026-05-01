@@ -65,8 +65,8 @@ class _VaultPageState extends State<VaultPage> {
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
                       child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight,
+                        constraints: const BoxConstraints(
+                          minHeight: 0,
                         ),
                         child: FutureBuilder<List<PatientProfile>>(
                           future: SupabaseService().fetchPatientProfiles(),

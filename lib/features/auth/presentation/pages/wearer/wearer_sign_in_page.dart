@@ -143,37 +143,46 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: GestureDetector(
-                        onTap: () {
-                          if (Navigator.canPop(context)) {
-                            Navigator.pop(context);
-                          } else {
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute<void>(
-                                builder: (_) => const ChooseRolePage(),
+                    Builder(builder: (context) {
+                      final isAr = AppState().isArabic;
+                      return Align(
+                        alignment: isAr ? Alignment.centerRight : Alignment.centerLeft,
+                        child: GestureDetector(
+                          onTap: () {
+                            if (Navigator.canPop(context)) {
+                              Navigator.pop(context);
+                            } else {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const ChooseRolePage(),
+                                ),
+                              );
+                            }
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (!isAr) ...[
+                                Icon(Icons.arrow_back, color: Colors.grey.shade700, size: 22),
+                                const SizedBox(width: 4),
+                              ],
+                              Text(
+                                AppState().tr('Back', 'رجوع'),
+                                style: TextStyle(
+                                  color: Colors.grey.shade700,
+                                  fontSize: (mq.size.width * 0.04).clamp(14.0, 17.0),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            );
-                          }
-                        },
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.arrow_back, color: Colors.grey.shade700, size: 22),
-                            const SizedBox(width: 4),
-                            Text(
-                              AppState().tr('Back', 'رجوع'),
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontSize: (mq.size.width * 0.04).clamp(14.0, 17.0),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
+                              if (isAr) ...[
+                                const SizedBox(width: 4),
+                                Icon(Icons.arrow_forward, color: Colors.grey.shade700, size: 22),
+                              ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    }),
                     SizedBox(height: (shortest * 0.03).clamp(12.0, 24.0)),
                     Center(
                       child: Image.asset('assets/images/qlink_logo.png', height: logoH),

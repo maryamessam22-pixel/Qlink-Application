@@ -253,7 +253,15 @@ class _SignInPageState extends State<SignInPage> {
                       ),
                       SizedBox(height: (shortest * 0.04).clamp(16.0, 32.0)),
                       Text(
-                        '${widget.role} Hub',
+                        () {
+                          final r = widget.role.toLowerCase();
+                          if (r == 'guardian' || r == 'admin') {
+                            return appState.tr('Guardian Hub', 'مركز الوصي');
+                          } else if (r == 'wearer') {
+                            return appState.tr('Wearer Hub', 'مركز المستخدم');
+                          }
+                          return appState.tr('${widget.role} Hub', 'مركز الدخول');
+                        }(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'Century Gothic',

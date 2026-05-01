@@ -24,6 +24,7 @@ class _MapPageState extends State<MapPage> {
   late Future<List<PatientProfile>> _profilesFuture;
   late Future<Map<String, Map<String, double>>> _locationsFuture;
   List<PatientProfile> _profiles = [];
+  String _searchQuery = '';
 
   // Placeholder offsets around Cairo since no real GPS data exists yet
   static const List<LatLng> _placeholderCoords = [
@@ -115,9 +116,10 @@ class _MapPageState extends State<MapPage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final activeProfiles = (snapshot.data ?? [])
-              .where((p) => p.status)
-              .toList();
+          final allProfiles = snapshot.data ?? [];
+          final displayProfiles = _searchQuery.isEmpty 
+              ? allProfiles 
+              : allProfiles.where((p) => p.profileName.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
 
           final markers = <Marker>[];
 
@@ -126,8 +128,8 @@ class _MapPageState extends State<MapPage> {
             builder: (context, locSnapshot) {
               final locations = locSnapshot.data ?? const <String, Map<String, double>>{};
               markers.clear();
-              for (int i = 0; i < activeProfiles.length; i++) {
-                final profile = activeProfiles[i];
+              for (int i = 0; i < displayProfiles.length; i++) {
+                final profile = displayProfiles[i];
                 final loc = locations[profile.id];
                 final coord = (loc != null)
                     ? LatLng(loc['lat']!, loc['lng']!)
@@ -140,7 +142,7 @@ class _MapPageState extends State<MapPage> {
                     context,
                     name: profile.profileName.toUpperCase(),
                     avatarUrl: profile.avatarUrl,
-                    hasStatusDot: true,
+                    hasStatusDot: profile.status,
                     maxLabelWidth: markerWidth - 4,
                   ),
                 ));
@@ -458,6 +460,11 @@ class _MapPageState extends State<MapPage> {
                   vertical: (barH * 0.2).clamp(8.0, 14.0),
                 ),
               ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
               onSubmitted: (value) {
                 if (value.isNotEmpty) _performSearch(value);
               },
@@ -638,25 +645,32 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  void _performSearch(String query) {
+  void _performSearch(String query) async {
     if (query.isEmpty || _profiles.isEmpty) return;
     final q = query.toLowerCase();
 
     // Find first matching profile by name
     for (int i = 0; i < _profiles.length; i++) {
       if (_profiles[i].profileName.toLowerCase().contains(q)) {
-        final coord = _placeholderCoords[i % _placeholderCoords.length];
-        // Exact coordinates come from app_locations when available.
+        final profile = _profiles[i];
+        final locations = await _locationsFuture;
+        final loc = locations[profile.id];
+        final coord = (loc != null)
+            ? LatLng(loc['lat']!, loc['lng']!)
+            : _placeholderCoords[i % _placeholderCoords.length];
+            
         _mapController.move(coord, 16.0);
 
         final appState = AppState();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(appState.tr(
-            'Centering on ${_profiles[i].profileName}',
-            'التركيز على ${_profiles[i].profileName}',
-          )),
-          duration: const Duration(seconds: 2),
-        ));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(appState.tr(
+              'Centering on ${_profiles[i].profileName}',
+              'التركيز على ${_profiles[i].profileName}',
+            )),
+            duration: const Duration(seconds: 2),
+          ));
+        }
         return;
       }
     }

@@ -89,8 +89,8 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
         final hPad = (w * 0.055).clamp(16.0, 28.0);
         final vPad = (short * 0.028).clamp(12.0, 20.0);
         final barH = (short * 0.175).clamp(56.0, 78.0);
-        final vMargin = (short * 0.038).clamp(10.0, 20.0);
-        final navReserve = barH + vMargin * 2 + (short * 0.12).clamp(28.0, 44.0);
+
+        final navReserve = barH + (short * 0.04).clamp(12.0, 20.0);
         final bottomPad = mq.viewInsets.bottom + mq.padding.bottom + navReserve;
         final gapL = (short * 0.055).clamp(18.0, 28.0);
         final gapM = (short * 0.05).clamp(16.0, 24.0);
@@ -106,7 +106,7 @@ class _VaultDetailPageState extends State<VaultDetailPage> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    constraints: const BoxConstraints(minHeight: 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

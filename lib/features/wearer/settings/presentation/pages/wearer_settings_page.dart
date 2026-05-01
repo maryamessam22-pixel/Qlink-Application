@@ -208,7 +208,7 @@ class _WearerSettingsPageState extends State<WearerSettingsPage> {
                     ),
                   ),
 
-                  SizedBox(height: (short * 0.12).clamp(34.0, 52.0)),
+                  SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
 
                   // Logout Button
                   SizedBox(

@@ -11,6 +11,9 @@ import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/guardian/profile/profile_management_page.dart';
 import 'package:q_link/features/shared/widgets/header_widget.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_identity_page.dart';
+import 'package:q_link/features/guardian/map/map_page.dart';
+import 'package:q_link/features/guardian/profile/quick_create_wearer_page.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -980,9 +983,11 @@ class _HomePageState extends State<HomePage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const WearerIdentityPage(),
+                                  builder: (_) => const QuickCreateWearerPage(),
                                 ),
-                              );
+                              ).then((_) {
+                                _refreshProfiles();
+                              });
                             },
                             child: Container(
                               width: double.infinity,
@@ -1542,35 +1547,99 @@ class _HomePageState extends State<HomePage> {
       future: notificationsFuture,
       builder: (context, notiSnap) {
         final notifications = notiSnap.data ?? const <Map<String, dynamic>>[];
-        final qrScans = notifications.where((n) => (n['type'] ?? '').toString() == 'qr_scan').toList();
-        final emergencySubtitle = qrScans.isNotEmpty
-            ? (qrScans.first['body'] ?? appState.tr('Emergency QR Scanned', 'تم مسح رمز QR الطارئ')).toString()
-            : appState.tr('Emergency QR Scanned', 'تم مسح رمز QR الطارئ');
-        final emergencyTime = qrScans.isNotEmpty
-            ? appState.tr('10:30 AM', '10:30 ص')
-            : '';
+        
+        List<Widget> activityWidgets = [];
+        if (notiSnap.connectionState == ConnectionState.waiting) {
+          activityWidgets.add(
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          );
+        } else if (notifications.isEmpty) {
+          activityWidgets.add(
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Text(
+                appState.tr('No recent notifications', 'لا توجد إشعارات حديثة'),
+                style: TextStyle(color: Colors.grey.shade600),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        } else {
+          for (int i = 0; i < notifications.length && i < 3; i++) {
+            final n = notifications[i];
+            final type = (n['type'] ?? '').toString();
+            final nTitle = (n['title'] ?? '').toString();
+            final nBody = (n['body'] ?? '').toString();
+            final createdAt = n['created_at'];
+            
+            DateTime? timeDate;
+            if (createdAt != null) {
+              timeDate = DateTime.tryParse(createdAt.toString());
+            }
+            
+            String timeStr = '';
+            if (timeDate != null) {
+              final now = DateTime.now();
+              final diff = now.difference(timeDate);
+              if (diff.inDays > 0) {
+                timeStr = appState.tr('${diff.inDays}d ago', 'منذ ${diff.inDays} يوم');
+              } else if (diff.inHours > 0) {
+                timeStr = appState.tr('${diff.inHours}h ago', 'منذ ${diff.inHours} ساعة');
+              } else if (diff.inMinutes > 0) {
+                timeStr = appState.tr('${diff.inMinutes}m ago', 'منذ ${diff.inMinutes} دقيقة');
+              } else {
+                timeStr = appState.tr('Just now', 'الآن');
+              }
+            }
+
+            IconData iconData = Icons.notifications_none;
+            Color iconColor = const Color(0xFF1B64F2);
+            String headerTitle = appState.tr('Alert', 'تنبيه');
+            
+            if (type == 'qr_scan' || type == 'emergency') {
+              iconData = Icons.error_outline;
+              iconColor = Colors.red;
+              headerTitle = appState.tr('Emergency', 'طوارئ');
+            } else if (type == 'zone_entry' || type == 'safe_zone' || type == 'zone_exit') {
+              iconData = Icons.location_on_outlined;
+              iconColor = Colors.green;
+              headerTitle = appState.tr('Location', 'الموقع');
+            } else if (type == 'device_status') {
+              iconData = Icons.battery_alert;
+              iconColor = Colors.orange;
+              headerTitle = appState.tr('Device', 'الجهاز');
+            } else if (type == 'link_request') {
+              iconData = Icons.link;
+              iconColor = Colors.purple;
+              headerTitle = appState.tr('Request', 'طلب');
+            }
+
+            activityWidgets.add(
+              _buildActivityRow(
+                context,
+                icon: iconData,
+                color: iconColor,
+                title: headerTitle,
+                subtitle: nTitle.isNotEmpty ? nTitle : headerTitle,
+                details: nBody,
+                time: timeStr,
+              ),
+            );
+            
+            if (i < notifications.length - 1 && i < 2) {
+              activityWidgets.add(SizedBox(height: (short * 0.03).clamp(10.0, 14.0)));
+            }
+          }
+        }
 
         return Column(
           children: [
-            _buildActivityRow(
-              context,
-              icon: Icons.error_outline,
-              color: Colors.red,
-              title: appState.tr('Emergency', 'طوارئ'),
-              subtitle: emergencySubtitle,
-              details: '$firstName • ${appState.tr('Downtown Metro', 'وسط المدينة')}',
-              time: emergencyTime,
-            ),
-            SizedBox(height: (short * 0.03).clamp(10.0, 14.0)),
-            _buildActivityRow(
-              context,
-              icon: Icons.location_on_outlined,
-              color: Colors.green,
-              title: appState.tr('Safe Zone', 'منطقة آمنة'),
-              subtitle: appState.tr('Safe Zone Entry', 'دخول منطقة آمنة'),
-              details: '${appState.tr(firstName, firstName)} ${appState.tr('arrived at Home', 'وصل إلى المنزل')}',
-              time: appState.tr('Yesterday', 'أمس'),
-            ),
+            ...activityWidgets,
             SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -1578,70 +1647,109 @@ class _HomePageState extends State<HomePage> {
                 future: locationsFuture,
                 builder: (context, locSnap) {
                   final locations = locSnap.data ?? const <String, Map<String, double>>{};
-                  final activePins = locations.length;
+                  final displayProfiles = profiles;
+                  final activePins = displayProfiles.length;
                   final pinText = activePins <= 1
-                      ? appState.tr('1 active pin near you', 'دبوس نشط قريب منك')
-                      : '$activePins ${appState.tr('active pins near you', 'دبابيس نشطة قريبة منك')}';
-                  final points = locations.values
-                      .map((m) => LatLng(m['lat'] ?? 30.0444, m['lng'] ?? 31.2357))
-                      .toList();
+                      ? appState.tr('1 profile pin near you', 'دبوس ملف شخصي قريب منك')
+                      : '$activePins ${appState.tr('profile pins near you', 'دبابيس ملفات شخصية قريبة منك')}';
+                  
+                  const placeholderCoords = [
+                    LatLng(30.0500, 31.2300),
+                    LatLng(30.0350, 31.2450),
+                    LatLng(30.0430, 31.2180),
+                    LatLng(30.0560, 31.2560),
+                    LatLng(30.0280, 31.2340),
+                  ];
+
+                  final markerWidth = (short * 0.26).clamp(72.0, 118.0);
+                  final avatarBox = (short * 0.132).clamp(44.0, 58.0);
+                  final gapAfterAvatar = (short * 0.015).clamp(4.0, 8.0);
+                  final nameFs = (short * 0.022).clamp(8.0, 11.0);
+                  final labelPadV = (short * 0.005).clamp(1.0, 4.0) * 2;
+                  final markerHeight = (avatarBox +
+                          gapAfterAvatar +
+                          labelPadV +
+                          nameFs * 1.45 +
+                          10)
+                      .clamp(markerWidth * 1.12, markerWidth * 1.55);
+
+                  final markers = <Marker>[];
+                  final points = <LatLng>[];
+
+                  for (int i = 0; i < displayProfiles.length; i++) {
+                    final profile = displayProfiles[i];
+                    final loc = locations[profile.id];
+                    final coord = (loc != null)
+                        ? LatLng(loc['lat']!, loc['lng']!)
+                        : placeholderCoords[i % placeholderCoords.length];
+                    points.add(coord);
+                    markers.add(Marker(
+                      point: coord,
+                      width: markerWidth,
+                      height: markerHeight,
+                      child: _buildProfileMarker(
+                        context,
+                        name: profile.profileName.toUpperCase(),
+                        avatarUrl: profile.avatarUrl,
+                        hasStatusDot: profile.status,
+                        maxLabelWidth: markerWidth - 4,
+                      ),
+                    ));
+                  }
+
                   final center = points.isNotEmpty ? points.first : const LatLng(30.0444, 31.2357);
 
                   return Stack(
-                    children: [
-                      SizedBox(
-                        height: bannerH,
-                        width: double.infinity,
-                        child: FlutterMap(
-                          options: MapOptions(
-                            initialCenter: center,
-                            initialZoom: points.isNotEmpty ? 12 : 10,
-                          ),
-                          children: [
-                            TileLayer(
-                              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                              userAgentPackageName: 'com.qlink.app',
+                      children: [
+                        SizedBox(
+                          height: bannerH,
+                          width: double.infinity,
+                          child: FlutterMap(
+                            options: MapOptions(
+                              initialCenter: center,
+                              initialZoom: points.isNotEmpty ? 12 : 10,
+                              interactionOptions: const InteractionOptions(
+                                flags: InteractiveFlag.all,
+                              ),
                             ),
-                            MarkerLayer(
-                              markers: points.map((p) => Marker(
-                                point: p,
-                                width: 28,
-                                height: 28,
-                                child: const Icon(Icons.location_pin, color: Color(0xFF1B64F2), size: 28),
-                              )).toList(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        height: bannerH,
-                        width: double.infinity,
-                        color: Colors.black.withValues(alpha: 0.08),
-                      ),
-                      Positioned(
-                        left: 10,
-                        bottom: 10,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: (w * 0.03).clamp(10.0, 14.0),
-                            vertical: (short * 0.016).clamp(4.0, 8.0),
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1B64F2),
-                            borderRadius: BorderRadius.circular((short * 0.055).clamp(16.0, 22.0)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.person_pin_circle, color: Colors.white, size: (short * 0.042).clamp(14.0, 18.0)),
-                              SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
-                              Text(pinText, style: TextStyle(color: Colors.white, fontSize: (w * 0.028).clamp(10.0, 12.0), fontWeight: FontWeight.bold)),
+                              TileLayer(
+                                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                userAgentPackageName: 'com.qlink.app',
+                              ),
+                              MarkerLayer(markers: markers),
                             ],
                           ),
                         ),
-                      ),
-                    ],
-                  );
+                        Container(
+                          height: bannerH,
+                          width: double.infinity,
+                          color: Colors.black.withValues(alpha: 0.08),
+                        ),
+                        Positioned(
+                          left: 10,
+                          bottom: 10,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: (w * 0.03).clamp(10.0, 14.0),
+                              vertical: (short * 0.016).clamp(4.0, 8.0),
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1B64F2),
+                              borderRadius: BorderRadius.circular((short * 0.055).clamp(16.0, 22.0)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.person_pin_circle, color: Colors.white, size: (short * 0.042).clamp(14.0, 18.0)),
+                                SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
+                                Text(pinText, style: TextStyle(color: Colors.white, fontSize: (w * 0.028).clamp(10.0, 12.0), fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
                 },
               ),
             ),
@@ -1739,6 +1847,116 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+    );
+  }
+  Widget _buildProfileMarker(
+    BuildContext context, {
+    required String name,
+    required String avatarUrl,
+    bool hasStatusDot = false,
+    double? maxLabelWidth,
+  }) {
+    final short = MediaQuery.sizeOf(context).shortestSide;
+    final avatarBox = (short * 0.132).clamp(44.0, 58.0);
+    final borderW = (short * 0.007).clamp(2.0, 3.5);
+    final innerR = (avatarBox * 0.42).clamp(18.0, 25.0);
+    final initialFs = (avatarBox * 0.32).clamp(14.0, 19.0);
+    final dot = (short * 0.03).clamp(9.0, 14.0);
+    final nameFs = (short * 0.022).clamp(8.0, 11.0);
+
+    ImageProvider? imageProvider;
+    if (avatarUrl.isNotEmpty) {
+      if (avatarUrl.startsWith('assets')) {
+        imageProvider = AssetImage(avatarUrl);
+      } else if (avatarUrl.startsWith('http')) {
+        imageProvider = NetworkImage(avatarUrl);
+      }
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: avatarBox,
+              height: avatarBox,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFE8D5C4), width: borderW),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: (short * 0.02).clamp(6.0, 10.0),
+                    offset: Offset(0, (short * 0.008).clamp(2.0, 4.0)),
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: innerR,
+                backgroundColor: const Color(0xFF273469),
+                backgroundImage: imageProvider,
+                child: imageProvider == null
+                    ? Text(
+                        name.isNotEmpty ? name[0] : '?',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: initialFs,
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+            if (hasStatusDot)
+              Positioned(
+                right: (short * 0.005).clamp(1.0, 3.0),
+                bottom: (short * 0.005).clamp(1.0, 3.0),
+                child: Container(
+                  width: dot,
+                  height: dot,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF22C55E),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: (dot * 0.14).clamp(1.5, 2.5)),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        SizedBox(height: (short * 0.015).clamp(4.0, 8.0)),
+        Container(
+          constraints: maxLabelWidth != null
+              ? BoxConstraints(maxWidth: maxLabelWidth)
+              : null,
+          padding: EdgeInsets.symmetric(
+            horizontal: (short * 0.016).clamp(4.0, 8.0),
+            vertical: (short * 0.005).clamp(1.0, 4.0),
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular((short * 0.028).clamp(8.0, 12.0)),
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.center,
+            child: Text(
+              name,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: nameFs,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFF374151),
+                letterSpacing: 0.5,
+                height: 1.1,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
