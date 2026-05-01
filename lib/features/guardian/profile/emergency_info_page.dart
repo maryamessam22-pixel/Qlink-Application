@@ -96,9 +96,8 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
           .map((c) => c.text.trim())
           .where((t) => t.isNotEmpty)
           .toList();
-      final normalizedBirthYear = _birthYearController.text
-          .trim()
-          .replaceAll(RegExp(r'[^\d]'), '');
+      final parsedBirthYear = parseBirthYearFromRowField(_birthYearController.text);
+      final normalizedBirthYear = parsedBirthYear == null ? '' : '$parsedBirthYear';
 
       final contactsJson = emergencyContactsJsonFromFlatLines(updatedContacts);
       final dialRows = emergencyDialRowsFromContactsJson(contactsJson);
@@ -124,9 +123,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
         await SupabaseService().client.from('patient_profiles').update({
           'profile_name': updatedProfile.name,
           'relationship_to_guardian': updatedProfile.relationship,
-          'birth_year': parseBirthYearFromRowField(updatedProfile.birthYear)
-              ?? int.tryParse(updatedProfile.birthYear.replaceAll(RegExp(r'[^\d]'), ''))
-              ?? 0,
+          'birth_year': parsedBirthYear ?? 0,
           'blood_type': updatedProfile.bloodType,
           'allergies_en': updatedProfile.allergies,
           'medical_notes_en': updatedProfile.condition,
@@ -530,7 +527,7 @@ class _EmergencyInfoPageState extends State<EmergencyInfoPage> {
             TextField(
               controller: controller,
               keyboardType: controller == _birthYearController
-                  ? TextInputType.number
+                  ? TextInputType.datetime
                   : TextInputType.text,
               decoration: const InputDecoration(isDense: true, border: UnderlineInputBorder()),
               style: TextStyle(fontSize: 16, color: Colors.grey.shade700),

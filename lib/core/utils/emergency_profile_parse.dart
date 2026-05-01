@@ -18,26 +18,41 @@ String birthYearStringFromRowField(dynamic v) {
 int? parseBirthYearFromRowField(dynamic v) {
   if (v == null) return null;
   final nowY = DateTime.now().year;
+  bool isValidYear(int year) => year >= 1700 && year <= nowY;
+
   if (v is int) {
-    if (v >= 1900 && v <= nowY) return v;
+    if (isValidYear(v)) return v;
     return null;
   }
   if (v is num) {
     final i = v.toInt();
-    if (i >= 1900 && i <= nowY) return i;
+    if (isValidYear(i)) return i;
     return null;
   }
   if (v is String) {
     final t = v.trim();
     if (t.isEmpty) return null;
+
+    // Accept ISO-like strings directly.
     final dt = DateTime.tryParse(t);
-    if (dt != null && dt.year >= 1900 && dt.year <= nowY) return dt.year;
+    if (dt != null && isValidYear(dt.year)) return dt.year;
+
+    // Accept plain 4-digit year.
     final i = int.tryParse(t);
-    if (i != null && i >= 1900 && i <= nowY) return i;
+    if (i != null && isValidYear(i)) return i;
+
+    // Accept separators with year-first (YYYY-MM-DD / YYYY/MM/DD).
     final parts = t.split(RegExp(r'[-/]'));
     if (parts.isNotEmpty) {
       final yi = int.tryParse(parts.first);
-      if (yi != null && yi >= 1900 && yi <= nowY) return yi;
+      if (yi != null && isValidYear(yi)) return yi;
+    }
+
+    // Accept common day/month/year by extracting a valid 4-digit year anywhere.
+    final yearMatch = RegExp(r'(19\d{2}|20\d{2})').allMatches(t);
+    for (final m in yearMatch) {
+      final yi = int.tryParse(m.group(0) ?? '');
+      if (yi != null && isValidYear(yi)) return yi;
     }
   }
   return null;

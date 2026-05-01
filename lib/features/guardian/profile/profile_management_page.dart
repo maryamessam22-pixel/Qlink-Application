@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/utils/emergency_profile_parse.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/bottom_nav_widget.dart';
 import 'package:q_link/features/guardian/profile/emergency_info_page.dart';
@@ -34,6 +35,7 @@ class ProfileManagementPage extends StatefulWidget {
 class _ProfileManagementPageState extends State<ProfileManagementPage> {
   late TextEditingController _nameController;
   late TextEditingController _relationshipController;
+  late TextEditingController _birthYearController;
   bool _isEditing = false;
   final ImagePicker _picker = ImagePicker();
   Uint8List? _selectedProfileImageBytes;
@@ -47,6 +49,7 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
     _relationshipController = TextEditingController(
       text: widget.profile.relationship,
     );
+    _birthYearController = TextEditingController(text: widget.profile.birthYear);
     _selectedProfileImagePath = widget.profile.imagePath;
   }
 
@@ -54,6 +57,7 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
   void dispose() {
     _nameController.dispose();
     _relationshipController.dispose();
+    _birthYearController.dispose();
     super.dispose();
   }
 
@@ -62,6 +66,8 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
     setState(() => _isSaving = true);
     widget.profile.name = _nameController.text;
     widget.profile.relationship = _relationshipController.text;
+    final parsedBirthYear = parseBirthYearFromRowField(_birthYearController.text);
+    widget.profile.birthYear = parsedBirthYear == null ? '' : '$parsedBirthYear';
 
     if (widget.profile.id != null && widget.profile.id!.isNotEmpty) {
       try {
@@ -83,6 +89,7 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
             .update({
               'profile_name': _nameController.text,
               'relationship_to_guardian': _relationshipController.text,
+              'birth_year': parsedBirthYear ?? 0,
               'avatar_url': widget.profile.imagePath,
             })
             .eq('id', widget.profile.id!);
@@ -332,6 +339,36 @@ class _ProfileManagementPageState extends State<ProfileManagementPage> {
                                         color: Color(0xFF1B64F2),
                                       ),
                                     ),
+                              if (_isEditing) ...[
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: _birthYearController,
+                                  keyboardType: TextInputType.datetime,
+                                  decoration: InputDecoration(
+                                    labelText: appState.tr(
+                                      'Birth Year',
+                                      'سنة الميلاد',
+                                    ),
+                                    hintText: appState.tr(
+                                      'e.g., 1945',
+                                      'مثال: 1945',
+                                    ),
+                                    helperText: appState.tr(
+                                      'Format: YYYY or DD/MM/YYYY',
+                                      'الصيغة: YYYY أو DD/MM/YYYY',
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              ],
                               const SizedBox(height: 16),
                               _isEditing
                                   ? Row(
