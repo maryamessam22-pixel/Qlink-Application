@@ -36,22 +36,66 @@ class _WearerHomePageState extends State<WearerHomePage> {
     super.dispose();
   }
 
-  void _triggerSOS(BuildContext context) {
+  Future<void> _triggerSOS(BuildContext context) async {
     final appState = AppState();
+    final wearerName = appState.currentUser.name.trim().isEmpty
+        ? 'Wearer'
+        : appState.currentUser.name.trim();
+
+    // Check if there are accepted guardians first
+    final acceptedGuardians = await SupabaseService()
+        .fetchAcceptedWearerGuardians();
+    if (acceptedGuardians.isEmpty) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            appState.tr(
+              'No guardians connected. You need to accept a link request first.',
+              'لا توجد حراس متصلين. تحتاج إلى قبول طلب رابط أولاً.',
+            ),
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final sentCount = await SupabaseService()
+          .notifyAcceptedGuardiansFromWearer(
+            title: 'SOS Emergency',
+            body: '$wearerName pressed the SOS button. Check on them now.',
+            type: 'wearer_sos',
+          );
+      debugPrint('[SOS] Notification sent to $sentCount guardians');
+    } catch (e) {
+      debugPrint('Could not send SOS notification: $e');
+    }
+
+    if (!context.mounted) return;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded, color: Color(0xFFEF4444), size: 28),
+            const Icon(
+              Icons.warning_amber_rounded,
+              color: Color(0xFFEF4444),
+              size: 28,
+            ),
             const SizedBox(width: 8),
-            Flexible(child: Text(appState.tr('SOS Activated!', 'تم تفعيل الطوارئ!'))),
+            Flexible(
+              child: Text(appState.tr('SOS Activated!', 'تم تفعيل الطوارئ!')),
+            ),
           ],
         ),
-        content: Text(appState.tr(
-          'Emergency alert has been sent to your guardian and emergency contacts.',
-          'تم إرسال إنذار الطوارئ إلى وليك وجهات اتصال الطوارئ.',
-        )),
+        content: Text(
+          appState.tr(
+            'Emergency alert has been sent to your guardian and emergency contacts.',
+            'تم إرسال إنذار الطوارئ إلى وليك وجهات اتصال الطوارئ.',
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -62,8 +106,44 @@ class _WearerHomePageState extends State<WearerHomePage> {
     );
   }
 
-  void _callEmergencyContact(BuildContext context) {
+  Future<void> _callEmergencyContact(BuildContext context) async {
     final appState = AppState();
+    final wearerName = appState.currentUser.name.trim().isEmpty
+        ? 'Wearer'
+        : appState.currentUser.name.trim();
+
+    // Check if there are accepted guardians first
+    final acceptedGuardians = await SupabaseService()
+        .fetchAcceptedWearerGuardians();
+    if (acceptedGuardians.isEmpty) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            appState.tr(
+              'No guardians connected. You need to accept a link request first.',
+              'لا توجد حراس متصلين. تحتاج إلى قبول طلب رابط أولاً.',
+            ),
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final sentCount = await SupabaseService()
+          .notifyAcceptedGuardiansFromWearer(
+            title: 'Emergency Call Started',
+            body: '$wearerName tapped Call Emergency Contact.',
+            type: 'wearer_emergency_call',
+          );
+      debugPrint('[Emergency Call] Notification sent to $sentCount guardians');
+    } catch (e) {
+      debugPrint('Could not send call notification: $e');
+    }
+
+    if (!context.mounted) return;
     final profiles = appState.profiles;
     String phone = '';
     if (profiles.isNotEmpty && profiles.first.emergencyContacts.isNotEmpty) {
@@ -75,7 +155,9 @@ class _WearerHomePageState extends State<WearerHomePage> {
         context: context,
         builder: (ctx) => AlertDialog(
           title: Text(appState.tr('Emergency Contact', 'جهة اتصال الطوارئ')),
-          content: Text(appState.tr('Calling: $phone', 'جاري الاتصال بـ: $phone')),
+          content: Text(
+            appState.tr('Calling: $phone', 'جاري الاتصال بـ: $phone'),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
@@ -86,10 +168,14 @@ class _WearerHomePageState extends State<WearerHomePage> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(appState.tr(
-          'No emergency contact found. Add one in your profile.',
-          'لا يوجد جهة اتصال طوارئ. أضف واحدة في ملفك الشخصي.',
-        ))),
+        SnackBar(
+          content: Text(
+            appState.tr(
+              'No emergency contact found. Add one in your profile.',
+              'لا يوجد جهة اتصال طوارئ. أضف واحدة في ملفك الشخصي.',
+            ),
+          ),
+        ),
       );
     }
   }
@@ -99,330 +185,431 @@ class _WearerHomePageState extends State<WearerHomePage> {
     return AnimatedBuilder(
       animation: AppState(),
       builder: (context, _) {
-    final appState = AppState();
-    final mq = MediaQuery.of(context);
-    final short = mq.size.shortestSide;
-    final w = mq.size.width;
-    final hPad = (w * 0.06).clamp(16.0, 28.0);
-    final topPad = (short * 0.12).clamp(20.0, 54.0);
-    final bottomPad = mq.padding.bottom + mq.viewInsets.bottom + (short * 0.06).clamp(18.0, 28.0);
+        final appState = AppState();
+        final mq = MediaQuery.of(context);
+        final short = mq.size.shortestSide;
+        final w = mq.size.width;
+        final hPad = (w * 0.06).clamp(16.0, 28.0);
+        final topPad = (short * 0.12).clamp(20.0, 54.0);
+        final bottomPad =
+            mq.padding.bottom +
+            mq.viewInsets.bottom +
+            (short * 0.06).clamp(18.0, 28.0);
 
-    return SafeArea(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(hPad, topPad, hPad, bottomPad),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: constraints.maxHeight),
-        child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const WearerHeader(),
-          SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+        return SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(hPad, topPad, hPad, bottomPad),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const WearerHeader(),
+                      SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
-          // Greeting
-          Text(
-            appState.tr('Hello, ${appState.currentUser.name}', 'مرحباً، ${appState.currentUser.name}'),
-            style: TextStyle(
-              fontSize: (short * 0.065).clamp(20.0, 26.0),
-              fontWeight: FontWeight.w900,
-              color: const Color(0xFF273469),
-            ),
-          ),
-          SizedBox(height: (short * 0.01).clamp(2.0, 6.0)),
-          Text(
-            appState.tr('Your Safety Circle Command Center', 'مركز قيادة دائرة سلامتك'),
-            style: TextStyle(
-              fontSize: (short * 0.036).clamp(13.0, 15.0),
-              color: Colors.grey.shade500,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
-          FutureBuilder<List<Map<String, dynamic>>>(
-            future: _monitoringFuture,
-            builder: (context, snapshot) {
-              final guardians = snapshot.data ?? const <Map<String, dynamic>>[];
-              if (guardians.isEmpty) return const SizedBox.shrink();
-              final first = guardians.first;
-              final guardianName = (first['guardian_name'] ?? 'Guardian').toString();
-              final guardianEmail = (first['guardian_email'] ?? '').toString();
-              return Container(
-                width: double.infinity,
-                padding: EdgeInsets.all((short * 0.045).clamp(12.0, 18.0)),
-                margin: EdgeInsets.only(bottom: (short * 0.04).clamp(12.0, 18.0)),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular((w * 0.04).clamp(12.0, 16.0)),
-                  border: Border.all(color: const Color(0xFFBFDBFE)),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all((short * 0.025).clamp(8.0, 12.0)),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFDBEAFE),
-                        shape: BoxShape.circle,
+                      // Greeting
+                      Text(
+                        appState.tr(
+                          'Hello, ${appState.currentUser.name}',
+                          'مرحباً، ${appState.currentUser.name}',
+                        ),
+                        style: TextStyle(
+                          fontSize: (short * 0.065).clamp(20.0, 26.0),
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF273469),
+                        ),
                       ),
-                      child: Icon(
-                        Icons.shield_outlined,
-                        color: const Color(0xFF1E3A8A),
-                        size: (short * 0.055).clamp(18.0, 24.0),
+                      SizedBox(height: (short * 0.01).clamp(2.0, 6.0)),
+                      Text(
+                        appState.tr(
+                          'Your Safety Circle Command Center',
+                          'مركز قيادة دائرة سلامتك',
+                        ),
+                        style: TextStyle(
+                          fontSize: (short * 0.036).clamp(13.0, 15.0),
+                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    SizedBox(width: (short * 0.03).clamp(8.0, 14.0)),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            appState.tr('Monitored By', 'تتم متابعتك بواسطة'),
-                            style: TextStyle(
-                              fontSize: (short * 0.03).clamp(11.0, 13.0),
-                              color: const Color(0xFF1E3A8A),
-                              fontWeight: FontWeight.w700,
+                      SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
+                      FutureBuilder<List<Map<String, dynamic>>>(
+                        future: _monitoringFuture,
+                        builder: (context, snapshot) {
+                          final guardians =
+                              snapshot.data ?? const <Map<String, dynamic>>[];
+                          if (guardians.isEmpty) return const SizedBox.shrink();
+                          final first = guardians.first;
+                          var guardianName = (first['guardian_name'] ?? '')
+                              .toString()
+                              .trim();
+                          // If full_name is empty, use email instead
+                          if (guardianName.isEmpty) {
+                            guardianName =
+                                (first['guardian_email'] ?? 'Guardian')
+                                    .toString()
+                                    .trim();
+                          }
+                          final guardianEmail = (first['guardian_email'] ?? '')
+                              .toString();
+                          return Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(
+                              (short * 0.045).clamp(12.0, 18.0),
                             ),
+                            margin: EdgeInsets.only(
+                              bottom: (short * 0.04).clamp(12.0, 18.0),
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(
+                                (w * 0.04).clamp(12.0, 16.0),
+                              ),
+                              border: Border.all(
+                                color: const Color(0xFFBFDBFE),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(
+                                    (short * 0.025).clamp(8.0, 12.0),
+                                  ),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFDBEAFE),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.shield_outlined,
+                                    color: const Color(0xFF1E3A8A),
+                                    size: (short * 0.055).clamp(18.0, 24.0),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: (short * 0.03).clamp(8.0, 14.0),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        appState.tr(
+                                          'Monitored By',
+                                          'تتم متابعتك بواسطة',
+                                        ),
+                                        style: TextStyle(
+                                          fontSize: (short * 0.03).clamp(
+                                            11.0,
+                                            13.0,
+                                          ),
+                                          color: const Color(0xFF1E3A8A),
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: (short * 0.008).clamp(2.0, 4.0),
+                                      ),
+                                      Text(
+                                        guardianName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: (short * 0.04).clamp(
+                                            14.0,
+                                            17.0,
+                                          ),
+                                          color: const Color(0xFF273469),
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      if (guardianEmail.isNotEmpty &&
+                                          guardianEmail != guardianName)
+                                        Text(
+                                          guardianEmail,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: (short * 0.03).clamp(
+                                              11.0,
+                                              13.0,
+                                            ),
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+
+                      // System Status Card
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(
+                          (short * 0.06).clamp(16.0, 24.0),
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          SizedBox(height: (short * 0.008).clamp(2.0, 4.0)),
-                          Text(
-                            guardianName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          borderRadius: BorderRadius.circular(
+                            (w * 0.06).clamp(16.0, 24.0),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF4F46E5,
+                              ).withValues(alpha: 0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              appState.tr('System Status', 'حالة النظام'),
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.8),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
+                            Text(
+                              appState.tr('You are Safe', 'أنت في أمان'),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: (short * 0.07).clamp(22.0, 28.0),
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      color: widget.isConnected
+                                          ? const Color(0xFF4ADE80)
+                                          : Colors.grey.shade400,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: (short * 0.02).clamp(6.0, 10.0),
+                                  ),
+                                  Text(
+                                    widget.isConnected
+                                        ? appState.tr(
+                                            'Monitoring Active',
+                                            'المراقبة نشطة',
+                                          )
+                                        : appState.tr('Offline', 'غير متصل'),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: (short * 0.03).clamp(
+                                        11.0,
+                                        13.0,
+                                      ),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+
+                      // Device Status Section
+                      if (!widget.isConnected)
+                        _buildNoDeviceCard(context, appState)
+                      else
+                        _buildConnectedDevicesGrid(context, appState),
+
+                      SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+
+                      // Emergency Buttons
+                      GestureDetector(
+                        onTap: () => _triggerSOS(context),
+                        onLongPress: () => _triggerSOS(context),
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(
+                            vertical: (short * 0.05).clamp(16.0, 22.0),
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444),
+                            borderRadius: BorderRadius.circular(
+                              (w * 0.04).clamp(14.0, 18.0),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFFEF4444,
+                                ).withValues(alpha: 0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                appState.tr('SOS Emergency', 'طوارئ SOS'),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: (short * 0.052).clamp(18.0, 22.0),
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              SizedBox(height: (short * 0.01).clamp(2.0, 6.0)),
+                              Text(
+                                appState.tr(
+                                  'Press and hold for 3 seconds',
+                                  'اضغط مع الاستمرار لمدة 3 ثوانٍ',
+                                ),
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  fontSize: (short * 0.03).clamp(11.0, 13.0),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
+                      Container(
+                        width: double.infinity,
+                        height: (short * 0.17).clamp(56.0, 68.0),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF22C55E),
+                          borderRadius: BorderRadius.circular(
+                            (w * 0.04).clamp(14.0, 18.0),
+                          ),
+                        ),
+                        child: TextButton.icon(
+                          onPressed: () => _callEmergencyContact(context),
+                          icon: Icon(
+                            LucideIcons.phone,
+                            color: Colors.white,
+                            size: (short * 0.055).clamp(20.0, 24.0),
+                          ),
+                          label: Text(
+                            appState.tr(
+                              'Call Emergency Contact',
+                              'اتصل بجهة اتصال الطوارئ',
+                            ),
                             style: TextStyle(
+                              color: Colors.white,
                               fontSize: (short * 0.04).clamp(14.0, 17.0),
-                              color: const Color(0xFF273469),
                               fontWeight: FontWeight.w800,
                             ),
                           ),
-                          if (guardianEmail.isNotEmpty)
-                            Text(
-                              guardianEmail,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: (short * 0.03).clamp(11.0, 13.0),
-                                color: Colors.grey.shade600,
+                        ),
+                      ),
+
+                      SizedBox(height: (short * 0.08).clamp(22.0, 34.0)),
+
+                      // Recent Activity
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            appState.tr('Recent Activity', 'النشاط الأخير'),
+                            style: TextStyle(
+                              fontSize: (short * 0.046).clamp(16.0, 20.0),
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF273469),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {},
+                            child: Text(
+                              appState.tr('View All', 'عرض الكل'),
+                              style: const TextStyle(
+                                color: Color(0xFF1B64F2),
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
+                          ),
                         ],
                       ),
-                    ),
-                  ],
+                      SizedBox(height: (short * 0.03).clamp(8.0, 14.0)),
+                      if (appState.scanHistory.isEmpty)
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            vertical: (short * 0.08).clamp(24.0, 34.0),
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(
+                              (w * 0.04).clamp(14.0, 18.0),
+                            ),
+                            border: Border.all(color: Colors.grey.shade100),
+                          ),
+                          child: Center(
+                            child: Text(
+                              appState.tr(
+                                'No activity yet',
+                                'لا يوجد نشاط بعد',
+                              ),
+                              style: TextStyle(
+                                color: Colors.grey.shade400,
+                                fontSize: (short * 0.036).clamp(13.0, 15.0),
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        ...appState.scanHistory
+                            .take(5)
+                            .map(
+                              (item) => Padding(
+                                padding: EdgeInsets.only(
+                                  bottom: (short * 0.03).clamp(8.0, 14.0),
+                                ),
+                                child: _buildActivityItem(
+                                  context: context,
+                                  icon: LucideIcons.qrCode,
+                                  iconColor: const Color(0xFF1B64F2),
+                                  title: item.title,
+                                  subtitle: item.time,
+                                  status: item.location,
+                                  appState: appState,
+                                ),
+                              ),
+                            ),
+                    ],
+                  ),
                 ),
               );
             },
           ),
-          SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
-
-          // System Status Card
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all((short * 0.06).clamp(16.0, 24.0)),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular((w * 0.06).clamp(16.0, 24.0)),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF4F46E5).withValues(alpha: 0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  appState.tr('System Status', 'حالة النظام'),
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
-                Text(
-                  appState.tr('You are Safe', 'أنت في أمان'),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: (short * 0.07).clamp(22.0, 28.0),
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: widget.isConnected ? const Color(0xFF4ADE80) : Colors.grey.shade400,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      SizedBox(width: (short * 0.02).clamp(6.0, 10.0)),
-                      Text(
-                        widget.isConnected 
-                          ? appState.tr('Monitoring Active', 'المراقبة نشطة')
-                          : appState.tr('Offline', 'غير متصل'),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: (short * 0.03).clamp(11.0, 13.0),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
-
-          // Device Status Section
-          if (!widget.isConnected)
-            _buildNoDeviceCard(context, appState)
-          else
-            _buildConnectedDevicesGrid(context, appState),
-
-          SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
-
-          // Emergency Buttons
-          GestureDetector(
-            onTap: () => _triggerSOS(context),
-            onLongPress: () => _triggerSOS(context),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: (short * 0.05).clamp(16.0, 22.0)),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEF4444),
-                borderRadius: BorderRadius.circular((w * 0.04).clamp(14.0, 18.0)),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFEF4444).withValues(alpha:0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    appState.tr('SOS Emergency', 'طوارئ SOS'),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: (short * 0.052).clamp(18.0, 22.0),
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  SizedBox(height: (short * 0.01).clamp(2.0, 6.0)),
-                  Text(
-                    appState.tr('Press and hold for 3 seconds', 'اضغط مع الاستمرار لمدة 3 ثوانٍ'),
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: (short * 0.03).clamp(11.0, 13.0),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
-          Container(
-            width: double.infinity,
-            height: (short * 0.17).clamp(56.0, 68.0),
-            decoration: BoxDecoration(
-              color: const Color(0xFF22C55E),
-              borderRadius: BorderRadius.circular((w * 0.04).clamp(14.0, 18.0)),
-            ),
-            child: TextButton.icon(
-              onPressed: () => _callEmergencyContact(context),
-              icon: Icon(LucideIcons.phone, color: Colors.white, size: (short * 0.055).clamp(20.0, 24.0)),
-              label: Text(
-                appState.tr('Call Emergency Contact', 'اتصل بجهة اتصال الطوارئ'),
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: (short * 0.04).clamp(14.0, 17.0),
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ),
-
-          SizedBox(height: (short * 0.08).clamp(22.0, 34.0)),
-
-          // Recent Activity
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                appState.tr('Recent Activity', 'النشاط الأخير'),
-                style: TextStyle(
-                  fontSize: (short * 0.046).clamp(16.0, 20.0),
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFF273469),
-                ),
-              ),
-              TextButton(
-                onPressed: () {},
-                child: Text(
-                  appState.tr('View All', 'عرض الكل'),
-                  style: const TextStyle(
-                    color: Color(0xFF1B64F2),
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: (short * 0.03).clamp(8.0, 14.0)),
-          if (appState.scanHistory.isEmpty)
-            Container(
-              padding: EdgeInsets.symmetric(vertical: (short * 0.08).clamp(24.0, 34.0)),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular((w * 0.04).clamp(14.0, 18.0)),
-                border: Border.all(color: Colors.grey.shade100),
-              ),
-              child: Center(
-                child: Text(
-                  appState.tr('No activity yet', 'لا يوجد نشاط بعد'),
-                  style: TextStyle(color: Colors.grey.shade400, fontSize: (short * 0.036).clamp(13.0, 15.0)),
-                ),
-              ),
-            )
-          else
-            ...appState.scanHistory.take(5).map((item) => Padding(
-              padding: EdgeInsets.only(bottom: (short * 0.03).clamp(8.0, 14.0)),
-              child: _buildActivityItem(
-                context: context,
-                icon: LucideIcons.qrCode,
-                iconColor: const Color(0xFF1B64F2),
-                title: item.title,
-                subtitle: item.time,
-                status: item.location,
-                appState: appState,
-              ),
-            )),
-        ],
-      ),
-    ),
-    );
-        },
-      ),
-    );
+        );
       },
     );
   }
@@ -446,9 +633,15 @@ class _WearerHomePageState extends State<WearerHomePage> {
                 padding: EdgeInsets.all((short * 0.03).clamp(10.0, 14.0)),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEEF2FF),
-                  borderRadius: BorderRadius.circular((w * 0.04).clamp(12.0, 18.0)),
+                  borderRadius: BorderRadius.circular(
+                    (w * 0.04).clamp(12.0, 18.0),
+                  ),
                 ),
-                child: Icon(LucideIcons.watch, color: const Color(0xFF1B64F2), size: (short * 0.06).clamp(20.0, 26.0)),
+                child: Icon(
+                  LucideIcons.watch,
+                  color: const Color(0xFF1B64F2),
+                  size: (short * 0.06).clamp(20.0, 26.0),
+                ),
               ),
               SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
               Expanded(
@@ -482,7 +675,7 @@ class _WearerHomePageState extends State<WearerHomePage> {
           SizedBox(height: (short * 0.06).clamp(16.0, 24.0)),
           GestureDetector(
             onTap: () {
-               Navigator.push(
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => WearerHardwareLinkPage(
@@ -502,7 +695,9 @@ class _WearerHomePageState extends State<WearerHomePage> {
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
-                borderRadius: BorderRadius.circular((short * 0.07).clamp(22.0, 28.0)),
+                borderRadius: BorderRadius.circular(
+                  (short * 0.07).clamp(22.0, 28.0),
+                ),
               ),
               child: Center(
                 child: Text(
@@ -575,7 +770,11 @@ class _WearerHomePageState extends State<WearerHomePage> {
               color: iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: iconColor, size: (short * 0.06).clamp(20.0, 26.0)),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: (short * 0.06).clamp(20.0, 26.0),
+            ),
           ),
           SizedBox(height: (short * 0.03).clamp(8.0, 14.0)),
           Text(
@@ -626,7 +825,11 @@ class _WearerHomePageState extends State<WearerHomePage> {
               color: iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: iconColor, size: (short * 0.05).clamp(18.0, 22.0)),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: (short * 0.05).clamp(18.0, 22.0),
+            ),
           ),
           SizedBox(width: (short * 0.04).clamp(10.0, 18.0)),
           Expanded(

@@ -49,7 +49,14 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppState().tr('Please enter email and password', 'يرجى إدخال البريد الإلكتروني وكلمة المرور'))),
+        SnackBar(
+          content: Text(
+            AppState().tr(
+              'Please enter email and password',
+              'يرجى إدخال البريد الإلكتروني وكلمة المرور',
+            ),
+          ),
+        ),
       );
       return;
     }
@@ -57,15 +64,15 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
     setState(() => _isLoading = true);
 
     try {
-      final authResponse = await Supabase.instance.client.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
+      final authResponse = await Supabase.instance.client.auth
+          .signInWithPassword(email: email, password: password);
 
       final user = authResponse.user;
       if (_selectedAvatarBytes != null && user != null) {
-        final uploadedUrl = await SupabaseService()
-            .uploadAndSaveUserAvatar(_selectedAvatarBytes!, user.id);
+        final uploadedUrl = await SupabaseService().uploadAndSaveUserAvatar(
+          _selectedAvatarBytes!,
+          user.id,
+        );
         if (uploadedUrl != null) {
           _selectedAvatarPath = uploadedUrl;
         }
@@ -73,10 +80,10 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
       final userData = user == null
           ? null
           : await Supabase.instance.client
-              .from('profiles')
-              .select()
-              .eq('id', user.id)
-              .maybeSingle();
+                .from('profiles')
+                .select()
+                .eq('id', user.id)
+                .maybeSingle();
 
       if (userData != null) {
         AppState().updateCurrentUser(
@@ -96,6 +103,54 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
         );
       }
 
+      // Ensure a patient_profiles row and QR token exist for this wearer account
+      try {
+        final existing = await Supabase.instance.client
+            .from('patient_profiles')
+            .select('id')
+            .eq('guardian_id', user!.id)
+            .limit(1)
+            .maybeSingle();
+
+        if (existing == null) {
+          final profileName =
+              (userData != null &&
+                  userData['full_name'] != null &&
+                  (userData['full_name'] as String).isNotEmpty)
+              ? userData['full_name'] as String
+              : email;
+
+          final created = await Supabase.instance.client
+              .from('patient_profiles')
+              .insert({
+                'guardian_id': user.id,
+                'profile_name': profileName,
+                'relationship_to_guardian': 'Wearer',
+                'birth_year': 0,
+                'blood_type': '',
+                'allergies_en': '',
+                'medical_notes_en': '',
+                'emergency_contacts': {},
+                'avatar_url': userData != null
+                    ? (userData['avatar_url'] ?? '')
+                    : '',
+                'status': true,
+                'seo_slug': profileName.toLowerCase().replaceAll(' ', '-'),
+              })
+              .select()
+              .maybeSingle();
+
+          final newProfileId = (created != null && created['id'] != null)
+              ? created['id'].toString()
+              : null;
+          if (newProfileId != null && newProfileId.isNotEmpty) {
+            await SupabaseService().ensurePublicQrToken(newProfileId);
+          }
+        }
+      } catch (e) {
+        // Non-fatal: ignore profile/QR errors during sign-in
+      }
+
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -109,11 +164,60 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppState().tr('Invalid email or password', 'البريد الإلكتروني أو كلمة المرور غير صحيحة'))),
+          SnackBar(
+            content: Text(
+              AppState().tr(
+                'Invalid email or password',
+                'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+              ),
+            ),
+          ),
         );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleForgotPassword() async {
+    final email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppState().tr(
+              'Please enter your email first',
+              'يرجى إدخال بريدك الإلكتروني أولاً',
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await Supabase.instance.client.auth.resetPasswordForEmail(email);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppState().tr(
+                'Password reset link sent to your email',
+                'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني',
+              ),
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+      }
     }
   }
 
@@ -143,49 +247,67 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Builder(builder: (context) {
-                      final isAr = AppState().isArabic;
-                      return Align(
-                        alignment: isAr ? Alignment.centerRight : Alignment.centerLeft,
-                        child: GestureDetector(
-                          onTap: () {
-                            if (Navigator.canPop(context)) {
-                              Navigator.pop(context);
-                            } else {
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const ChooseRolePage(),
+                    Builder(
+                      builder: (context) {
+                        final isAr = AppState().isArabic;
+                        return Align(
+                          alignment: isAr
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: GestureDetector(
+                            onTap: () {
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              } else {
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => const ChooseRolePage(),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (!isAr) ...[
+                                  Icon(
+                                    Icons.arrow_back,
+                                    color: Colors.grey.shade700,
+                                    size: 22,
+                                  ),
+                                  const SizedBox(width: 4),
+                                ],
+                                Text(
+                                  AppState().tr('Back', 'رجوع'),
+                                  style: TextStyle(
+                                    color: Colors.grey.shade700,
+                                    fontSize: (mq.size.width * 0.04).clamp(
+                                      14.0,
+                                      17.0,
+                                    ),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              );
-                            }
-                          },
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (!isAr) ...[
-                                Icon(Icons.arrow_back, color: Colors.grey.shade700, size: 22),
-                                const SizedBox(width: 4),
+                                if (isAr) ...[
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.arrow_forward,
+                                    color: Colors.grey.shade700,
+                                    size: 22,
+                                  ),
+                                ],
                               ],
-                              Text(
-                                AppState().tr('Back', 'رجوع'),
-                                style: TextStyle(
-                                  color: Colors.grey.shade700,
-                                  fontSize: (mq.size.width * 0.04).clamp(14.0, 17.0),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              if (isAr) ...[
-                                const SizedBox(width: 4),
-                                Icon(Icons.arrow_forward, color: Colors.grey.shade700, size: 22),
-                              ],
-                            ],
+                            ),
                           ),
-                        ),
-                      );
-                    }),
+                        );
+                      },
+                    ),
                     SizedBox(height: (shortest * 0.03).clamp(12.0, 24.0)),
                     Center(
-                      child: Image.asset('assets/images/qlink_logo.png', height: logoH),
+                      child: Image.asset(
+                        'assets/images/qlink_logo.png',
+                        height: logoH,
+                      ),
                     ),
                     SizedBox(height: (shortest * 0.03).clamp(12.0, 24.0)),
                     Text(
@@ -210,15 +332,22 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: Colors.white,
-                                border: Border.all(color: const Color(0xFF1B64F2), width: 2),
+                                border: Border.all(
+                                  color: const Color(0xFF1B64F2),
+                                  width: 2,
+                                ),
                               ),
-                              child: ClipOval(child: _buildAvatarPreview(iconInAvatar)),
+                              child: ClipOval(
+                                child: _buildAvatarPreview(iconInAvatar),
+                              ),
                             ),
                             Positioned(
                               bottom: 0,
                               right: 0,
                               child: Container(
-                                padding: EdgeInsets.all((avatarSize * 0.08).clamp(6.0, 10.0)),
+                                padding: EdgeInsets.all(
+                                  (avatarSize * 0.08).clamp(6.0, 10.0),
+                                ),
                                 decoration: const BoxDecoration(
                                   color: Color(0xFF1B64F2),
                                   shape: BoxShape.circle,
@@ -240,7 +369,9 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                       decoration: InputDecoration(
                         labelText: AppState().tr('Email', 'البريد الإلكتروني'),
                         prefixIcon: const Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                     SizedBox(height: (shortest * 0.045).clamp(14.0, 22.0)),
@@ -257,13 +388,31 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                             });
                           },
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                           ),
                         ),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
-                    SizedBox(height: (shortest * 0.055).clamp(22.0, 34.0)),
+                    SizedBox(height: (shortest * 0.02).clamp(8.0, 14.0)),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _handleForgotPassword,
+                        child: Text(
+                          AppState().tr(
+                            'Forgot Password?',
+                            'هل نسيت كلمة المرور؟',
+                          ),
+                          style: TextStyle(color: const Color(0xFF1B64F2)),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: (shortest * 0.035).clamp(14.0, 22.0)),
                     ElevatedButton(
                       onPressed: _isLoading ? null : _handleSignIn,
                       style: ElevatedButton.styleFrom(
@@ -271,7 +420,9 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                         padding: EdgeInsets.symmetric(
                           vertical: (shortest * 0.038).clamp(14.0, 18.0),
                         ),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: _isLoading
                           ? const SizedBox(
@@ -285,7 +436,10 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                           : Text(
                               AppState().tr('Sign In', 'تسجيل الدخول'),
                               style: TextStyle(
-                                fontSize: (mq.size.width * 0.045).clamp(15.0, 19.0),
+                                fontSize: (mq.size.width * 0.045).clamp(
+                                  15.0,
+                                  19.0,
+                                ),
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -298,12 +452,18 @@ class _WearerSignInPageState extends State<WearerSignInPage> {
                       spacing: 4,
                       runSpacing: 8,
                       children: [
-                        Text(AppState().tr("Don't have an account? ", 'ليس لديك حساب؟ ')),
+                        Text(
+                          AppState().tr(
+                            "Don't have an account? ",
+                            'ليس لديك حساب؟ ',
+                          ),
+                        ),
                         GestureDetector(
                           onTap: () => Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const WearerCreateAccountPage(),
+                              builder: (context) =>
+                                  const WearerCreateAccountPage(),
                             ),
                           ),
                           child: Text(

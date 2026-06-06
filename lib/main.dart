@@ -9,6 +9,7 @@ import 'services/notification_service.dart';
 import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/splash/choose_role_page.dart';
+import 'features/auth/presentation/pages/dashboard_redirect_page.dart';
 import 'core/state/app_state.dart';
 
 Future<void> main() async {
@@ -57,6 +58,9 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: AppConstants.appName,
+          routes: {
+            '/dashboard': (context) => const DashboardRedirectPage(),
+          },
           locale: isArabic ? const Locale('ar', 'SA') : const Locale('en', 'US'),
           supportedLocales: const [
             Locale('en', 'US'),

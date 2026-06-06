@@ -1,12 +1,16 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/features/auth/presentation/pages/create_account_page.dart';
 import 'package:q_link/features/guardian/home/main_page.dart';
-import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
+import 'package:q_link/features/shared/widgets/header_widget.dart'
+    show getUserAvatarProvider;
+import 'package:q_link/features/shared/helpers/emergency_qr_scan.dart';
 import 'package:q_link/features/wearer/home/presentation/pages/wearer_main_page.dart';
 import 'package:q_link/services/notification_service.dart';
 import 'package:q_link/services/supabase_service.dart';
@@ -28,16 +32,116 @@ class _SignInPageState extends State<SignInPage> {
   final ImagePicker _picker = ImagePicker();
   Uint8List? _selectedAvatarBytes;
   String? _selectedAvatarPath;
+  final MobileScannerController _scannerController = MobileScannerController();
+  StreamSubscription<AuthState>? _authSubscription;
+  bool _scanBusy = false;
 
   bool _isGuardianLike(String? role) {
     final r = (role ?? '').toLowerCase();
     return r == 'guardian' || r == 'admin';
   }
 
+  Future<void> _handleGoogleLogin() async {
+    try {
+      await _authSubscription?.cancel();
+      _authSubscription = Supabase.instance.client.auth.onAuthStateChange
+          .listen((data) async {
+            if (data.event != AuthChangeEvent.signedIn ||
+                data.session == null ||
+                !mounted) {
+              return;
+            }
+
+            await _ensureOAuthProfile();
+            if (!mounted) return;
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/dashboard',
+              (route) => false,
+            );
+          });
+
+      // Use Supabase's native OAuth flow
+      // This will open a popup on web automatically
+      await Supabase.instance.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: kIsWeb ? null : 'com.mariamfarid.qlink://login-callback',
+        queryParams: {
+          'prompt': 'select_account', // Force account picker every time
+        },
+      );
+      
+      // Check if user logged in successfully
+      if (Supabase.instance.client.auth.currentUser != null) {
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      }
+    } catch (error) {
+      if (error.toString().contains('popup_closed') || 
+          error.toString().contains('User cancelled')) {
+        // User cancelled the login, don't show error
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppState().tr(
+              'Sign in failed: $error',
+              'فشل التوقيع: $error',
+            ),
+            style: const TextStyle(fontFamily: 'Roboto'),
+          ),
+          backgroundColor: Colors.red.shade700,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> _ensureOAuthProfile() async {
+    final client = Supabase.instance.client;
+    final user = client.auth.currentUser;
+    if (user == null) return;
+
+    final existing = await client
+        .from('profiles')
+        .select('id, role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    final role = widget.role.trim().isEmpty ? 'Guardian' : widget.role.trim();
+    final metadata = user.userMetadata ?? {};
+    final displayName =
+        (metadata['full_name'] ?? metadata['name'] ?? user.email ?? 'User')
+            .toString();
+    final avatarUrl = (metadata['avatar_url'] ?? metadata['picture'] ?? '')
+        .toString();
+
+    if (existing == null) {
+      await client.from('profiles').insert({
+        'id': user.id,
+        'full_name': displayName,
+        'email': user.email ?? '',
+        'role': role,
+        'status': true,
+        'job_title': 'New Member',
+        'registration_date': DateTime.now().toIso8601String().split('T')[0],
+        'avatar_url': avatarUrl,
+      });
+      return;
+    }
+
+    final existingRole = (existing['role'] ?? '').toString().trim();
+    if (existingRole.isEmpty) {
+      await client.from('profiles').update({'role': role}).eq('id', user.id);
+    }
+  }
+
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _emailController.dispose();
     _passwordController.dispose();
+    _scannerController.dispose();
     super.dispose();
   }
 
@@ -57,7 +161,14 @@ class _SignInPageState extends State<SignInPage> {
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppState().tr('Please enter both email and password', 'يرجى إدخال البريد الإلكتروني وكلمة المرور'))),
+        SnackBar(
+          content: Text(
+            AppState().tr(
+              'Please enter both email and password',
+              'يرجى إدخال البريد الإلكتروني وكلمة المرور',
+            ),
+          ),
+        ),
       );
       return;
     }
@@ -65,25 +176,49 @@ class _SignInPageState extends State<SignInPage> {
     setState(() => _isLoading = true);
 
     try {
-      final authResponse = await Supabase.instance.client.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
+      final authResponse = await Supabase.instance.client.auth
+          .signInWithPassword(email: email, password: password);
 
       final user = authResponse.user;
-      final userData = user == null
+      var userData = user == null
           ? null
           : await Supabase.instance.client
+                .from('profiles')
+                .select()
+                .eq('id', user.id)
+                .maybeSingle();
+
+      // If profile doesn't exist, create one
+      if (userData == null && user != null) {
+        try {
+          await Supabase.instance.client.from('profiles').insert({
+            'id': user.id,
+            'full_name': email.split('@')[0],
+            'email': email,
+            'role': widget.role.toLowerCase(),
+            'status': true,
+            'job_title': 'Member',
+            'registration_date': DateTime.now().toIso8601String().split('T')[0],
+            'avatar_url': '',
+          });
+          // Fetch the newly created profile
+          userData = await Supabase.instance.client
               .from('profiles')
               .select()
               .eq('id', user.id)
               .maybeSingle();
+        } catch (e) {
+          debugPrint('Error creating profile: $e');
+        }
+      }
 
       if (userData != null) {
         String resolvedAvatar = userData['avatar_url'] ?? '';
         if (_selectedAvatarBytes != null && user != null) {
-          final uploadedUrl = await SupabaseService()
-              .uploadAndSaveUserAvatar(_selectedAvatarBytes!, user.id);
+          final uploadedUrl = await SupabaseService().uploadAndSaveUserAvatar(
+            _selectedAvatarBytes!,
+            user.id,
+          );
           if (uploadedUrl != null) {
             resolvedAvatar = uploadedUrl;
           } else if (mounted) {
@@ -100,9 +235,9 @@ class _SignInPageState extends State<SignInPage> {
         AppState().updateCurrentUser(
           name: userData['full_name'] ?? 'Unknown',
           email: userData['email'] ?? email,
-          password: '', 
+          password: '',
           imagePath: resolvedAvatar,
-          role: userData['role'] ?? widget.role,
+          role: (userData['role'] ?? widget.role).toLowerCase(),
         );
 
         try {
@@ -118,10 +253,11 @@ class _SignInPageState extends State<SignInPage> {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-              builder: (_) => openGuardianShell
-                  ? const MainPage() 
-                  : const WearerMainPage(),
-              settings: RouteSettings(name: openGuardianShell ? 'MainPage' : 'WearerMainPage'),
+              builder: (_) =>
+                  openGuardianShell ? const MainPage() : const WearerMainPage(),
+              settings: RouteSettings(
+                name: openGuardianShell ? 'MainPage' : 'WearerMainPage',
+              ),
             ),
             (Route<dynamic> route) => false,
           );
@@ -129,15 +265,22 @@ class _SignInPageState extends State<SignInPage> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppState().tr('Invalid email or password', 'البريد الإلكتروني أو كلمة المرور غير صحيحة'))),
+            SnackBar(
+              content: Text(
+                AppState().tr(
+                  'Invalid email or password',
+                  'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+                ),
+              ),
+            ),
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -149,29 +292,133 @@ class _SignInPageState extends State<SignInPage> {
 
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppState().tr('Please enter your email first', 'يرجى إدخال بريدك الإلكتروني أولاً'))),
+        SnackBar(
+          content: Text(
+            AppState().tr(
+              'Please enter your email first',
+              'يرجى إدخال بريدك الإلكتروني أولاً',
+            ),
+          ),
+        ),
       );
       return;
     }
 
     try {
       await Supabase.instance.client.auth.resetPasswordForEmail(email);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppState().tr('Password reset link sent to your email', 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني')),
+            content: Text(
+              AppState().tr(
+                'Password reset link sent to your email',
+                'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني',
+              ),
+            ),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
+  }
+
+  Future<void> _handleScanDevice() async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => _buildScannerPage()),
+    );
+  }
+
+  Widget _buildScannerPage() {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          MobileScanner(
+            controller: _scannerController,
+            onDetect: (capture) async {
+              if (_scanBusy) return;
+              final barcodes = capture.barcodes;
+              if (barcodes.isEmpty) return;
+              final raw = barcodes.first.rawValue;
+              if (raw == null || raw.trim().isEmpty) return;
+              _scanBusy = true;
+              try {
+                if (mounted) {
+                  Navigator.pop(context);
+                  await navigateEmergencyPreviewFromQrRaw(context, raw);
+                }
+              } finally {
+                if (mounted) _scanBusy = false;
+              }
+            },
+          ),
+          Center(
+            child: Container(
+              width: (MediaQuery.of(context).size.shortestSide * 0.68).clamp(
+                220.0,
+                280.0,
+              ),
+              height: (MediaQuery.of(context).size.shortestSide * 0.68).clamp(
+                220.0,
+                280.0,
+              ),
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFF1B64F2), width: 3),
+                borderRadius: BorderRadius.circular(24),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: (MediaQuery.of(context).size.shortestSide * 0.3).clamp(
+              92.0,
+              132.0,
+            ),
+            left: 0,
+            right: 0,
+            child: Column(
+              children: [
+                Text(
+                  AppState().tr('Scan Device QR', 'مسح رمز QR للجهاز'),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                  child: Text(
+                    AppState().tr(
+                      'Position the QR code within the frame',
+                      'ضع رمز QR داخل الإطار',
+                    ),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
   // --------------------------------------------------------
 
@@ -203,11 +450,7 @@ class _SignInPageState extends State<SignInPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFB81829), 
-              Color(0xFF4C3A71), 
-              Color(0xFF015196), 
-            ],
+            colors: [Color(0xFFB81829), Color(0xFF4C3A71), Color(0xFF015196)],
             stops: [0.0, 0.4, 1.0],
           ),
         ),
@@ -225,7 +468,9 @@ class _SignInPageState extends State<SignInPage> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: EdgeInsets.fromLTRB(24.0, 12.0, 24.0, padBottom),
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight - mq.padding.vertical - 8),
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - mq.padding.vertical - 8,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -260,7 +505,10 @@ class _SignInPageState extends State<SignInPage> {
                           } else if (r == 'wearer') {
                             return appState.tr('Wearer Hub', 'مركز المستخدم');
                           }
-                          return appState.tr('${widget.role} Hub', 'مركز الدخول');
+                          return appState.tr(
+                            '${widget.role} Hub',
+                            'مركز الدخول',
+                          );
                         }(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -272,7 +520,10 @@ class _SignInPageState extends State<SignInPage> {
                       ),
                       SizedBox(height: (shortest * 0.015).clamp(6.0, 10.0)),
                       Text(
-                        appState.tr('Secure Access Required', 'مطلوب الوصول الآمن'),
+                        appState.tr(
+                          'Secure Access Required',
+                          'مطلوب الوصول الآمن',
+                        ),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: subtitleSize,
@@ -280,13 +531,11 @@ class _SignInPageState extends State<SignInPage> {
                         ),
                       ),
                       SizedBox(height: (shortest * 0.045).clamp(18.0, 28.0)),
-                      Center(
-                        child: _buildAuthAvatar(context),
-                      ),
+                      Center(child: _buildAuthAvatar(context)),
                       SizedBox(height: (shortest * 0.055).clamp(16.0, 28.0)),
                       _buildTextField(
                         controller: _emailController,
-                        hintText: 'maryamessam22@gmail.com',
+                        hintText: 'e.g., user@example.com',
                         prefixIcon: Icons.mail_outline,
                         keyboardType: TextInputType.emailAddress,
                       ),
@@ -298,7 +547,9 @@ class _SignInPageState extends State<SignInPage> {
                         obscureText: _obscurePassword,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: Colors.grey.shade400,
                             size: 20,
                           ),
@@ -315,7 +566,10 @@ class _SignInPageState extends State<SignInPage> {
                         child: GestureDetector(
                           onTap: _handleForgotPassword,
                           child: Text(
-                            appState.tr('Forgot Password?', 'هل نسيت كلمة المرور؟'),
+                            appState.tr(
+                              'Forgot Password?',
+                              'هل نسيت كلمة المرور؟',
+                            ),
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -348,7 +602,10 @@ class _SignInPageState extends State<SignInPage> {
                             : Text(
                                 appState.tr('Sign In', 'تسجيل الدخول'),
                                 style: TextStyle(
-                                  fontSize: (mq.size.width * 0.04).clamp(14.0, 17.0),
+                                  fontSize: (mq.size.width * 0.04).clamp(
+                                    14.0,
+                                    17.0,
+                                  ),
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
@@ -364,10 +621,14 @@ class _SignInPageState extends State<SignInPage> {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                            ),
                             child: Text(
                               appState.tr('OR', 'أو'),
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.8),
+                              ),
                             ),
                           ),
                           Expanded(
@@ -379,45 +640,53 @@ class _SignInPageState extends State<SignInPage> {
                         ],
                       ),
                       SizedBox(height: (shortest * 0.055).clamp(20.0, 32.0)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildSocialButton(
-                            context,
-                            iconWidget: Image.asset(
-                              'assets/icons/fb2.png',
-                              width: (shortest * 0.09).clamp(28.0, 38.0),
-                              height: (shortest * 0.09).clamp(28.0, 38.0),
+                      SizedBox(
+                        width: double.infinity,
+                        child: Material(
+                          color: const Color(0xFF28365B),
+                          borderRadius: BorderRadius.circular(25.0),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(25.0),
+                            onTap: _handleGoogleLogin,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 10.0,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(25.0),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/icons/google2.png',
+                                    width: (shortest * 0.085).clamp(26.0, 36.0),
+                                    height: (shortest * 0.085).clamp(
+                                      26.0,
+                                      36.0,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: (shortest * 0.03).clamp(8.0, 12.0),
+                                  ),
+                                  Text(
+                                    'Continue with Google',
+                                    style: TextStyle(
+                                      fontFamily: 'Roboto',
+                                      fontSize: (mq.size.width * 0.04).clamp(
+                                        14.0,
+                                        17.0,
+                                      ),
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            backgroundColor: Colors.transparent,
-                            borderColor: Colors.white,
-                            onTap: () {},
                           ),
-                          SizedBox(width: (shortest * 0.045).clamp(12.0, 22.0)),
-                          _buildSocialButton(
-                            context,
-                            iconWidget: Image.asset(
-                              'assets/icons/google2.png',
-                              width: (shortest * 0.085).clamp(26.0, 36.0),
-                              height: (shortest * 0.085).clamp(26.0, 36.0),
-                            ),
-                            backgroundColor: Colors.transparent,
-                            borderColor: Colors.white,
-                            onTap: () {},
-                          ),
-                          SizedBox(width: (shortest * 0.045).clamp(12.0, 22.0)),
-                          _buildSocialButton(
-                            context,
-                            iconWidget: Image.asset(
-                              'assets/icons/apple2.png',
-                              width: (shortest * 0.085).clamp(26.0, 36.0),
-                              height: (shortest * 0.08).clamp(24.0, 34.0),
-                            ),
-                            backgroundColor: Colors.transparent,
-                            borderColor: Colors.white,
-                            onTap: () {},
-                          ),
-                        ],
+                        ),
                       ),
                       SizedBox(height: (shortest * 0.055).clamp(20.0, 32.0)),
                       Row(
@@ -429,12 +698,17 @@ class _SignInPageState extends State<SignInPage> {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0,
+                            ),
                             child: Text(
                               appState.tr('EMERGENCY', 'طوارئ'),
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.8),
-                                fontSize: (mq.size.width * 0.03).clamp(10.0, 13.0),
+                                fontSize: (mq.size.width * 0.03).clamp(
+                                  10.0,
+                                  13.0,
+                                ),
                               ),
                             ),
                           ),
@@ -448,7 +722,7 @@ class _SignInPageState extends State<SignInPage> {
                       ),
                       SizedBox(height: (shortest * 0.045).clamp(14.0, 22.0)),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: _handleScanDevice,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFCE223C),
                           padding: EdgeInsets.symmetric(
@@ -463,16 +737,22 @@ class _SignInPageState extends State<SignInPage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.error_outline, color: Colors.white),
+                            const Icon(
+                              Icons.qr_code_scanner,
+                              color: Colors.white,
+                            ),
                             const SizedBox(width: 10),
                             Flexible(
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 alignment: Alignment.center,
                                 child: Text(
-                                  appState.tr('PUBLIC EMERGENCY SCAN', 'مسح الطوارئ العام'),
+                                  appState.tr('Scan Device', 'مسح الجهاز'),
                                   style: TextStyle(
-                                    fontSize: (mq.size.width * 0.035).clamp(11.0, 15.0),
+                                    fontSize: (mq.size.width * 0.035).clamp(
+                                      11.0,
+                                      15.0,
+                                    ),
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                   ),
@@ -500,7 +780,8 @@ class _SignInPageState extends State<SignInPage> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => CreateAccountPage(role: widget.role),
+                                  builder: (_) =>
+                                      CreateAccountPage(role: widget.role),
                                 ),
                               );
                             },
@@ -533,7 +814,8 @@ class _SignInPageState extends State<SignInPage> {
 
     Widget avatarChild;
     if (_selectedAvatarPath != null && _selectedAvatarPath!.isNotEmpty) {
-      if (_selectedAvatarPath!.startsWith('http') || _selectedAvatarPath!.startsWith('blob:')) {
+      if (_selectedAvatarPath!.startsWith('http') ||
+          _selectedAvatarPath!.startsWith('blob:')) {
         avatarChild = Image.network(_selectedAvatarPath!, fit: BoxFit.cover);
       } else if (_selectedAvatarPath!.startsWith('assets')) {
         avatarChild = Image.asset(_selectedAvatarPath!, fit: BoxFit.cover);
@@ -609,36 +891,12 @@ class _SignInPageState extends State<SignInPage> {
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 18,
+          ),
           prefixIcon: Icon(prefixIcon, color: Colors.grey.shade400),
           suffixIcon: suffixIcon,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSocialButton(
-    BuildContext context, {
-    IconData? icon,
-    Widget? iconWidget,
-    Color? iconColor,
-    Color backgroundColor = Colors.transparent,
-    Color? borderColor,
-    required VoidCallback onTap,
-  }) {
-    final d = (MediaQuery.sizeOf(context).shortestSide * 0.13).clamp(44.0, 56.0);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: d,
-        height: d,
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          shape: BoxShape.circle,
-          border: borderColor != null ? Border.all(color: borderColor, width: 1.5) : null,
-        ),
-        child: Center(
-          child: iconWidget ?? Icon(icon, color: iconColor, size: d * 0.62),
         ),
       ),
     );

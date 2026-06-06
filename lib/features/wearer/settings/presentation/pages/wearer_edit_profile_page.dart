@@ -4,9 +4,11 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:q_link/core/state/app_state.dart';
+import 'package:q_link/core/utils/emergency_profile_parse.dart';
 import 'package:q_link/services/supabase_service.dart';
 import 'package:q_link/features/wearer/presentation/widgets/wearer_bottom_nav.dart';
-import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
+import 'package:q_link/features/shared/widgets/header_widget.dart'
+    show getUserAvatarProvider;
 
 class WearerEditProfilePage extends StatefulWidget {
   const WearerEditProfilePage({super.key});
@@ -30,7 +32,16 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
   late final TextEditingController _allergiesController;
   late final TextEditingController _medicalNotesController;
   String? _selectedBloodType;
-  final List<String> _bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  final List<String> _bloodTypes = [
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'AB+',
+    'AB-',
+    'O+',
+    'O-',
+  ];
   bool _isSaving = false;
   final ImagePicker _picker = ImagePicker();
   Uint8List? _selectedAvatarBytes;
@@ -40,15 +51,21 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
   void initState() {
     super.initState();
     final user = AppState().currentUser;
-    final profile = AppState().profiles.isNotEmpty ? AppState().profiles.first : null;
+    final profile = AppState().profiles.isNotEmpty
+        ? AppState().profiles.first
+        : null;
 
     _nameController = TextEditingController(text: user.name);
     _emailController = TextEditingController(text: user.email);
     _phoneController = TextEditingController(text: '');
 
     _patientNameController = TextEditingController(text: profile?.name ?? '');
-    _relationshipController = TextEditingController(text: profile?.relationship ?? '');
-    _birthYearController = TextEditingController(text: profile?.birthYear ?? '');
+    _relationshipController = TextEditingController(
+      text: profile?.relationship ?? '',
+    );
+    _birthYearController = TextEditingController(
+      text: profile?.birthYear ?? '',
+    );
 
     if (profile != null && profile.emergencyContacts.isNotEmpty) {
       for (final c in profile.emergencyContacts) {
@@ -59,9 +76,75 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
     }
 
     _safetyNotesController = TextEditingController();
-    _allergiesController = TextEditingController(text: profile?.allergies ?? '');
-    _medicalNotesController = TextEditingController(text: profile?.condition ?? '');
-    _selectedBloodType = (profile?.bloodType.isNotEmpty ?? false) ? profile!.bloodType : null;
+    _allergiesController = TextEditingController(
+      text: profile?.allergies ?? '',
+    );
+    _medicalNotesController = TextEditingController(
+      text: profile?.condition ?? '',
+    );
+    _selectedBloodType = (profile?.bloodType.isNotEmpty ?? false)
+        ? profile!.bloodType
+        : null;
+
+    // Load latest patient profile from server to reflect guardian-side edits.
+    _loadLatestProfile();
+  }
+
+  Future<void> _loadLatestProfile() async {
+    try {
+      final p = await SupabaseService().fetchWearerPatientProfile();
+      if (p == null) return;
+
+      final contactsList = <String>[];
+      for (final v in p.emergencyContacts.values) {
+        if (v is Map) {
+          final phone = (v['phone'] ?? '').toString();
+          final name = (v['name'] ?? '').toString();
+          contactsList.add(phone.isNotEmpty ? phone : name);
+        }
+      }
+
+      setState(() {
+        _patientNameController.text = p.profileName;
+        _relationshipController.text = p.relationshipToGuardian;
+        _birthYearController.text = p.birthYear.toString();
+        _allergiesController.text = p.allergiesEn;
+        _medicalNotesController.text = p.medicalNotesEn;
+        _selectedBloodType = p.bloodType.isNotEmpty
+            ? p.bloodType
+            : _selectedBloodType;
+        _emergencyContacts.clear();
+        if (contactsList.isNotEmpty) {
+          for (final c in contactsList) {
+            _emergencyContacts.add(TextEditingController(text: c));
+          }
+        } else {
+          _emergencyContacts.add(TextEditingController());
+        }
+      });
+
+      // Synchronize AppState for immediate UI use elsewhere
+      final profileData = ProfileData(
+        id: p.id,
+        name: p.profileName,
+        imagePath: p.avatarUrl,
+        relationship: p.relationshipToGuardian,
+        birthYear: p.birthYear.toString(),
+        emergencyContacts: contactsList,
+        bloodType: p.bloodType,
+        condition: p.medicalNotesEn,
+        allergies: p.allergiesEn,
+      );
+
+      if (AppState().profiles.isEmpty) {
+        AppState().addProfile(profileData);
+      } else {
+        AppState().updateProfile(0, profileData);
+      }
+      AppState().markProfilesDirty();
+    } catch (e) {
+      debugPrint('Failed to load latest wearer profile: $e');
+    }
   }
 
   @override
@@ -92,7 +175,10 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
         final short = mq.size.shortestSide;
         final w = mq.size.width;
         final hPad = (w * 0.06).clamp(16.0, 28.0);
-        final bottomPad = mq.viewInsets.bottom + mq.padding.bottom + (short * 0.06).clamp(18.0, 28.0);
+        final bottomPad =
+            mq.viewInsets.bottom +
+            mq.padding.bottom +
+            (short * 0.06).clamp(18.0, 28.0);
         return Scaffold(
           resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
@@ -121,240 +207,403 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
                 child: ConstrainedBox(
                   constraints: BoxConstraints(minHeight: constraints.maxHeight),
                   child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Profile Picture Section
-                Center(
-                  child: GestureDetector(
-                    onTap: _pickAvatar,
-                    child: Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: (short * 0.16).clamp(50.0, 64.0),
-                          backgroundImage: _buildAvatarProvider(appState.currentUser.imagePath),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: EdgeInsets.all((short * 0.02).clamp(6.0, 10.0)),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF1B64F2),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(Icons.camera_alt, color: Colors.white, size: (short * 0.046).clamp(16.0, 20.0)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Center(
-                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        appState.tr('Wearer Account', 'حساب المرتدي'),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF273469),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEEF2FF),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          appState.tr('Active Connection', 'اتصال نشط'),
-                          style: const TextStyle(
-                            color: Color(0xFF1B64F2),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
+                      // Profile Picture Section
+                      Center(
+                        child: GestureDetector(
+                          onTap: _pickAvatar,
+                          child: Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: (short * 0.16).clamp(50.0, 64.0),
+                                backgroundImage: _buildAvatarProvider(
+                                  appState.currentUser.imagePath,
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: EdgeInsets.all(
+                                    (short * 0.02).clamp(6.0, 10.0),
+                                  ),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF1B64F2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.camera_alt,
+                                    color: Colors.white,
+                                    size: (short * 0.046).clamp(16.0, 20.0),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                
-                SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
-
-                // --- SECTION 1: ACCOUNT INFO ---
-                _buildSectionHeader(appState.tr('Account Information', 'معلومات الحساب')),
-                _buildFieldLabel(appState.tr('Full Name', 'الاسم الكامل')),
-                _buildTextField(controller: _nameController, hint: 'Mariam Essam'),
-                const SizedBox(height: 20),
-                _buildFieldLabel(appState.tr('Email Address', 'عنوان البريد الإلكتروني')),
-                _buildTextField(controller: _emailController, hint: 'mohamedsaber@gmail.com'),
-                const SizedBox(height: 20),
-                _buildFieldLabel(appState.tr('Phone Number', 'رقم الهاتف')),
-                _buildTextField(controller: _phoneController, hint: '+20 123 456 7890'),
-                const SizedBox(height: 20),
-                _buildFieldLabel(appState.tr('Password', 'كلمة المرور')),
-                _buildTextField(controller: _passwordController, hint: '********', isPassword: true),
-                
-                SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
-
-                // --- SECTION 2: IDENTITY INFO ---
-                _buildSectionHeader(appState.tr('Identity Information', 'معلومات الهوية')),
-                _buildFieldLabel(appState.tr('Patient\'s Full Name', 'الاسم الكامل للمريض')),
-                _buildTextField(controller: _patientNameController, hint: 'Mohamed Saber'),
-                const SizedBox(height: 20),
-                _buildFieldLabel(appState.tr('Relationship to You', 'صلة القرابة')),
-                _buildTextField(controller: _relationshipController, hint: 'Grandfather'),
-                const SizedBox(height: 20),
-                _buildFieldLabel(appState.tr('Birth Year', 'سنة الميلاد')),
-                _buildTextField(controller: _birthYearController, hint: '1945'),
-                const SizedBox(height: 20),
-                _buildFieldLabel(appState.tr('Emergency Contacts', 'جهات اتصال الطوارئ')),
-                ..._emergencyContacts.asMap().entries.map((entry) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _buildTextField(
-                      controller: entry.value,
-                      hint: 'Contact ${entry.key + 1}',
-                      suffixIcon: entry.key > 0 ? IconButton(
-                        icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                        onPressed: () => setState(() => _emergencyContacts.removeAt(entry.key)),
-                      ) : null,
-                    ),
-                  );
-                }),
-                TextButton.icon(
-                  onPressed: () => setState(() => _emergencyContacts.add(TextEditingController())),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: Text(appState.tr('Add Contact', 'إضافة جهة اتصال')),
-                ),
-
-                SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
-
-                // --- SECTION 3: MEDICAL INFO ---
-                _buildSectionHeader(appState.tr('Medical Information', 'المعلومات الطبية')),
-                _buildFieldLabel(appState.tr('Blood Type', 'فصيلة الدم')),
-                _buildBloodTypePicker(),
-                const SizedBox(height: 24),
-                _buildFieldLabel(appState.tr('Allergies', 'الحساسية')),
-                _buildTextField(controller: _allergiesController, hint: 'e.g., Penicillin', maxLines: 2),
-                const SizedBox(height: 20),
-                _buildFieldLabel(appState.tr('Safety Notes', 'ملاحظات السلامة')),
-                _buildTextField(controller: _safetyNotesController, hint: 'e.g., Needs assistance', maxLines: 3),
-                const SizedBox(height: 20),
-                _buildFieldLabel(appState.tr('Medical Notes', 'الملاحظات الطبية')),
-                _buildTextField(controller: _medicalNotesController, hint: 'e.g., Diabetic', maxLines: 3),
-
-                SizedBox(height: (short * 0.15).clamp(44.0, 64.0)),
-                
-                // Save Button
-                Container(
-                  width: double.infinity,
-                  height: (short * 0.16).clamp(54.0, 64.0),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1B64F2),
-                    borderRadius: BorderRadius.circular((short * 0.08).clamp(24.0, 32.0)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF1B64F2).withValues(alpha: 0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: TextButton(
-                    onPressed: _isSaving ? null : () async {
-                      setState(() => _isSaving = true);
-                      try {
-                        final userId = SupabaseService().client.auth.currentUser?.id;
-                        String imagePath = appState.currentUser.imagePath;
-                        if (userId != null && _selectedAvatarBytes != null) {
-                          final uploadedUrl = await SupabaseService()
-                              .uploadAndSaveUserAvatar(_selectedAvatarBytes!, userId);
-                          if (uploadedUrl != null) {
-                            imagePath = uploadedUrl;
-                          } else {
-                            throw Exception(
-                              SupabaseService().lastUploadError ?? 'Avatar upload failed',
-                            );
-                          }
-                        }
-
-                        AppState().updateCurrentUser(
-                          name: _nameController.text.trim(),
-                          email: _emailController.text.trim(),
-                          imagePath: imagePath,
-                        );
-
-                        if (userId != null) {
-                          await SupabaseService().client.from('profiles').update({
-                            'full_name': _nameController.text.trim(),
-                            'email': _emailController.text.trim(),
-                            'avatar_url': imagePath,
-                          }).eq('id', userId);
-                        }
-
-                        if (AppState().profiles.isNotEmpty) {
-                          final profile = AppState().profiles.first;
-                          profile.name = _patientNameController.text.trim();
-                          profile.relationship = _relationshipController.text.trim();
-                          profile.birthYear = _birthYearController.text.trim();
-                          profile.bloodType = _selectedBloodType ?? '';
-                          profile.allergies = _allergiesController.text.trim();
-                          profile.condition = _medicalNotesController.text.trim();
-                          profile.emergencyContacts = _emergencyContacts
-                              .map((c) => c.text.trim())
-                              .where((t) => t.isNotEmpty)
-                              .toList();
-                          AppState().updateProfile(0, profile);
-
-                          if (profile.id != null && profile.id!.isNotEmpty) {
-                            await SupabaseService().client
-                                .from('patient_profiles')
-                                .update({
-                                  'profile_name': profile.name,
-                                  'relationship_to_guardian': profile.relationship,
-                                  'birth_year': int.tryParse(profile.birthYear) ?? 0,
-                                  'blood_type': profile.bloodType,
-                                  'allergies_en': profile.allergies,
-                                  'medical_notes_en': profile.condition,
-                                })
-                                .eq('id', profile.id!);
-                          }
-                          AppState().markProfilesDirty();
-                        }
-
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(appState.tr('Profile updated!', 'تم تحديث الملف!'))),
-                          );
-                          Navigator.pop(context);
-                        }
-                      } catch (e) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                          );
-                        }
-                      } finally {
-                        if (mounted) setState(() => _isSaving = false);
-                      }
-                    },
-                    child: _isSaving
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : Text(
-                            appState.tr('Save Changes', 'حفظ التغييرات'),
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: (short * 0.046).clamp(16.0, 20.0),
-                              fontWeight: FontWeight.w800,
+                      const SizedBox(height: 16),
+                      Center(
+                        child: Column(
+                          children: [
+                            Text(
+                              appState.tr('Wearer Account', 'حساب المرتدي'),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF273469),
+                              ),
                             ),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEEF2FF),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                appState.tr('Active Connection', 'اتصال نشط'),
+                                style: const TextStyle(
+                                  color: Color(0xFF1B64F2),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
+
+                      // --- SECTION 1: ACCOUNT INFO ---
+                      _buildSectionHeader(
+                        appState.tr('Account Information', 'معلومات الحساب'),
+                      ),
+                      _buildFieldLabel(
+                        appState.tr('Full Name', 'الاسم الكامل'),
+                      ),
+                      _buildTextField(
+                        controller: _nameController,
+                        hint: 'Sarah Ahmed',
+                      ),
+                      const SizedBox(height: 20),
+                      _buildFieldLabel(
+                        appState.tr('Email Address', 'عنوان البريد الإلكتروني'),
+                      ),
+                      _buildTextField(
+                        controller: _emailController,
+                        hint: 'sarah.ahmed@example.com',
+                        readOnly: true,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildFieldLabel(
+                        appState.tr('Phone Number', 'رقم الهاتف'),
+                      ),
+                      _buildTextField(
+                        controller: _phoneController,
+                        hint: '+20 100 123 4567',
+                      ),
+                      const SizedBox(height: 20),
+                      _buildFieldLabel(appState.tr('Password', 'كلمة المرور')),
+                      _buildTextField(
+                        controller: _passwordController,
+                        hint: '********',
+                        isPassword: true,
+                      ),
+
+                      SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
+
+                      // --- SECTION 2: IDENTITY INFO ---
+                      _buildSectionHeader(
+                        appState.tr('Identity Information', 'معلومات الهوية'),
+                      ),
+                      _buildFieldLabel(
+                        appState.tr(
+                          'Patient\'s Full Name',
+                          'الاسم الكامل للمريض',
+                        ),
+                      ),
+                      _buildTextField(
+                        controller: _patientNameController,
+                        hint: 'Youssef Ahmed',
+                      ),
+                      const SizedBox(height: 20),
+                      _buildFieldLabel(
+                        appState.tr('Relationship to You', 'صلة القرابة'),
+                      ),
+                      _buildTextField(
+                        controller: _relationshipController,
+                        hint: 'Self',
+                      ),
+                      const SizedBox(height: 20),
+                      _buildFieldLabel(
+                        appState.tr('Birth Year', 'سنة الميلاد'),
+                      ),
+                      _buildTextField(
+                        controller: _birthYearController,
+                        hint: '1998',
+                      ),
+                      const SizedBox(height: 20),
+                      _buildFieldLabel(
+                        appState.tr('Emergency Contacts', 'جهات اتصال الطوارئ'),
+                      ),
+                      ..._emergencyContacts.asMap().entries.map((entry) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildTextField(
+                            controller: entry.value,
+                            hint: entry.key == 0
+                                ? 'Mariam - +20 100 555 0199'
+                                : 'Emergency contact ${entry.key + 1}',
+                            suffixIcon: entry.key > 0
+                                ? IconButton(
+                                    icon: const Icon(
+                                      Icons.remove_circle_outline,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () => setState(
+                                      () => _emergencyContacts.removeAt(
+                                        entry.key,
+                                      ),
+                                    ),
+                                  )
+                                : null,
                           ),
+                        );
+                      }),
+                      TextButton.icon(
+                        onPressed: () => setState(
+                          () => _emergencyContacts.add(TextEditingController()),
+                        ),
+                        icon: const Icon(Icons.add, size: 18),
+                        label: Text(
+                          appState.tr('Add Contact', 'إضافة جهة اتصال'),
+                        ),
+                      ),
+
+                      SizedBox(height: (short * 0.1).clamp(28.0, 44.0)),
+
+                      // --- SECTION 3: MEDICAL INFO ---
+                      _buildSectionHeader(
+                        appState.tr('Medical Information', 'المعلومات الطبية'),
+                      ),
+                      _buildFieldLabel(appState.tr('Blood Type', 'فصيلة الدم')),
+                      _buildBloodTypePicker(),
+                      const SizedBox(height: 24),
+                      _buildFieldLabel(appState.tr('Allergies', 'الحساسية')),
+                      _buildTextField(
+                        controller: _allergiesController,
+                        hint: 'e.g., Penicillin allergy',
+                        maxLines: 2,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildFieldLabel(
+                        appState.tr('Safety Notes', 'ملاحظات السلامة'),
+                      ),
+                      _buildTextField(
+                        controller: _safetyNotesController,
+                        hint: 'e.g., May need help during dizziness',
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildFieldLabel(
+                        appState.tr('Medical Notes', 'الملاحظات الطبية'),
+                      ),
+                      _buildTextField(
+                        controller: _medicalNotesController,
+                        hint: 'e.g., Type 1 diabetes, carries insulin',
+                        maxLines: 3,
+                      ),
+
+                      SizedBox(height: (short * 0.15).clamp(44.0, 64.0)),
+
+                      // Save Button
+                      Container(
+                        width: double.infinity,
+                        height: (short * 0.16).clamp(54.0, 64.0),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1B64F2),
+                          borderRadius: BorderRadius.circular(
+                            (short * 0.08).clamp(24.0, 32.0),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF1B64F2,
+                              ).withValues(alpha: 0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: TextButton(
+                          onPressed: _isSaving
+                              ? null
+                              : () async {
+                                  setState(() => _isSaving = true);
+                                  try {
+                                    final userId = SupabaseService()
+                                        .client
+                                        .auth
+                                        .currentUser
+                                        ?.id;
+                                    String imagePath =
+                                        appState.currentUser.imagePath;
+                                    if (userId != null &&
+                                        _selectedAvatarBytes != null) {
+                                      final uploadedUrl =
+                                          await SupabaseService()
+                                              .uploadAndSaveUserAvatar(
+                                                _selectedAvatarBytes!,
+                                                userId,
+                                              );
+                                      if (uploadedUrl != null) {
+                                        imagePath = uploadedUrl;
+                                      } else {
+                                        throw Exception(
+                                          SupabaseService().lastUploadError ??
+                                              'Avatar upload failed',
+                                        );
+                                      }
+                                    }
+
+                                    // Update password if it has been changed (not the default '********')
+                                    final newPassword = _passwordController.text
+                                        .trim();
+                                    if (newPassword.isNotEmpty &&
+                                        newPassword != '********') {
+                                      if (newPassword.length < 6) {
+                                        throw Exception(
+                                          'Password must be at least 6 characters long',
+                                        );
+                                      }
+                                      await SupabaseService()
+                                          .updateUserPassword(newPassword);
+                                    }
+
+                                    AppState().updateCurrentUser(
+                                      name: _nameController.text.trim(),
+                                      imagePath: imagePath,
+                                    );
+
+                                    if (userId != null) {
+                                      await SupabaseService().client
+                                          .from('profiles')
+                                          .update({
+                                            'full_name': _nameController.text
+                                                .trim(),
+                                            'avatar_url': imagePath,
+                                          })
+                                          .eq('id', userId);
+                                    }
+
+                                    if (AppState().profiles.isNotEmpty) {
+                                      final profile = AppState().profiles.first;
+                                      profile.name = _patientNameController.text
+                                          .trim();
+                                      profile.relationship =
+                                          _relationshipController.text.trim();
+                                      profile.birthYear = _birthYearController
+                                          .text
+                                          .trim();
+                                      profile.bloodType =
+                                          _selectedBloodType ?? '';
+                                      profile.allergies = _allergiesController
+                                          .text
+                                          .trim();
+                                      profile.condition =
+                                          _medicalNotesController.text.trim();
+                                      profile.emergencyContacts =
+                                          _emergencyContacts
+                                              .map((c) => c.text.trim())
+                                              .where((t) => t.isNotEmpty)
+                                              .toList();
+                                      final contactsJson =
+                                          emergencyContactsJsonFromFlatLines(
+                                            profile.emergencyContacts,
+                                          );
+                                      AppState().updateProfile(0, profile);
+
+                                      if (profile.id != null &&
+                                          profile.id!.isNotEmpty) {
+                                        await SupabaseService().client
+                                            .from('patient_profiles')
+                                            .update({
+                                              'profile_name': profile.name,
+                                              'relationship_to_guardian':
+                                                  profile.relationship,
+                                              'birth_year':
+                                                  int.tryParse(
+                                                    profile.birthYear,
+                                                  ) ??
+                                                  0,
+                                              'blood_type': profile.bloodType,
+                                              'allergies_en': profile.allergies,
+                                              'medical_notes_en':
+                                                  profile.condition,
+                                              'safety_notes_en':
+                                                  _safetyNotesController.text
+                                                      .trim(),
+                                              'emergency_contacts':
+                                                  contactsJson,
+                                            })
+                                            .eq('id', profile.id!);
+                                      }
+                                      AppState().markProfilesDirty();
+                                    }
+
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            appState.tr(
+                                              'Profile updated!',
+                                              'تم تحديث الملف!',
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                      Navigator.pop(context);
+                                    }
+                                  } catch (e) {
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Error: $e'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  } finally {
+                                    if (mounted)
+                                      setState(() => _isSaving = false);
+                                  }
+                                },
+                          child: _isSaving
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : Text(
+                                  appState.tr('Save Changes', 'حفظ التغييرات'),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: (short * 0.046).clamp(16.0, 20.0),
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
                 ),
               );
             },
@@ -381,7 +630,11 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
             ),
           ),
           SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
-          Container(height: 2, width: 40, color: const Color(0xFF1B64F2).withValues(alpha: 0.3)),
+          Container(
+            height: 2,
+            width: 40,
+            color: const Color(0xFF1B64F2).withValues(alpha: 0.3),
+          ),
         ],
       ),
     );
@@ -390,7 +643,10 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
   Widget _buildFieldLabel(String label) {
     final short = MediaQuery.of(context).size.shortestSide;
     return Padding(
-      padding: EdgeInsets.only(left: 4, bottom: (short * 0.02).clamp(6.0, 10.0)),
+      padding: EdgeInsets.only(
+        left: 4,
+        bottom: (short * 0.02).clamp(6.0, 10.0),
+      ),
       child: Text(
         label,
         style: TextStyle(
@@ -406,6 +662,7 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
     required TextEditingController controller,
     required String hint,
     bool isPassword = false,
+    bool readOnly = false,
     int maxLines = 1,
     Widget? suffixIcon,
   }) {
@@ -419,6 +676,7 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
       child: TextField(
         controller: controller,
         obscureText: isPassword,
+        readOnly: readOnly,
         maxLines: maxLines,
         style: TextStyle(
           color: Color(0xFF273469),
@@ -427,13 +685,20 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
         ),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: (short * 0.036).clamp(13.0, 15.0)),
+          hintStyle: TextStyle(
+            color: Colors.grey.shade400,
+            fontSize: (short * 0.036).clamp(13.0, 15.0),
+          ),
           contentPadding: EdgeInsets.symmetric(
             horizontal: (short * 0.05).clamp(14.0, 22.0),
             vertical: (short * 0.045).clamp(14.0, 20.0),
           ),
           border: InputBorder.none,
-          suffixIcon: suffixIcon,
+          suffixIcon:
+              suffixIcon ??
+              (readOnly
+                  ? Icon(Icons.lock_outline, color: Colors.grey.shade400)
+                  : null),
         ),
       ),
     );
@@ -459,10 +724,14 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
           onTap: () => setState(() => _selectedBloodType = type),
           child: Container(
             decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF273469) : const Color(0xFFF7F9FC),
+              color: isSelected
+                  ? const Color(0xFF273469)
+                  : const Color(0xFFF7F9FC),
               borderRadius: BorderRadius.circular((w * 0.02).clamp(8.0, 10.0)),
               border: Border.all(
-                color: isSelected ? const Color(0xFF273469) : Colors.transparent,
+                color: isSelected
+                    ? const Color(0xFF273469)
+                    : Colors.transparent,
                 width: 1.5,
               ),
             ),
@@ -495,7 +764,8 @@ class _WearerEditProfilePageState extends State<WearerEditProfilePage> {
   ImageProvider _buildAvatarProvider(String currentPath) {
     final path = _selectedAvatarPath ?? currentPath;
     if (path.trim().isEmpty) return const AssetImage('assets/images/mypic.png');
-    if (path.startsWith('http') || path.startsWith('blob:')) return NetworkImage(path);
+    if (path.startsWith('http') || path.startsWith('blob:'))
+      return NetworkImage(path);
     if (path.startsWith('assets')) return AssetImage(path);
     if (!kIsWeb) return FileImage(File(path));
     return getUserAvatarProvider(currentPath);

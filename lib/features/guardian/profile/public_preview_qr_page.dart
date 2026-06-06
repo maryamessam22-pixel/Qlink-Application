@@ -12,10 +12,14 @@ class PublicPreviewQrPage extends StatefulWidget {
   /// When `true`, server (RPC) or another path already sent the `qr_scan` notification.
   final bool skipGuardianNotify;
 
+  /// Optional scanner phone provided when the scan happened inside the app.
+  final String? scannerPhone;
+
   const PublicPreviewQrPage({
     super.key,
     required this.profile,
     this.skipGuardianNotify = false,
+    this.scannerPhone,
   });
 
   @override
@@ -48,12 +52,18 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
     if (guardianId == null || guardianId.isEmpty) return;
 
     try {
+      final body =
+          (widget.scannerPhone != null &&
+              widget.scannerPhone!.trim().isNotEmpty)
+          ? 'Scanned by ${widget.scannerPhone!.trim()}'
+          : 'Someone is viewing the profile of ${widget.profile.name}';
+
       await client.from('notifications').insert({
         'id': const Uuid().v4(),
         'guardian_id': guardianId,
         'profile_id': widget.profile.id ?? guardianId,
         'title': 'Bracelet Scanned! 🚨',
-        'body': 'Someone is viewing the profile of ${widget.profile.name}',
+        'body': body,
         'type': 'qr_scan',
         'is_read': false,
       });
@@ -74,7 +84,9 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
         final hPad = (w * 0.055).clamp(16.0, 28.0);
         final topPad = (short * 0.05).clamp(12.0, 28.0);
         final bottomPad =
-            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.06).clamp(20.0, 40.0);
+            mq.viewInsets.bottom +
+            mq.padding.bottom +
+            (short * 0.06).clamp(20.0, 40.0);
 
         return Scaffold(
           resizeToAvoidBottomInset: true,
@@ -87,172 +99,297 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: EdgeInsets.only(bottom: bottomPad),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
                     child: Column(
                       children: [
-                // Top Red Section
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.fromLTRB(hPad, topPad, hPad, (short * 0.05).clamp(28.0, 44.0)),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFD32F2F), // Red background
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(30),
-                      bottomRight: Radius.circular(30),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.arrow_back,
-                                  color: Colors.white,
-                                  size: (short * 0.052).clamp(18.0, 22.0),
+                        // Top Red Section
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.fromLTRB(
+                            hPad,
+                            topPad,
+                            hPad,
+                            (short * 0.05).clamp(28.0, 44.0),
+                          ),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFD32F2F), // Red background
+                            borderRadius: BorderRadius.only(
+                              bottomLeft: Radius.circular(30),
+                              bottomRight: Radius.circular(30),
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () => Navigator.pop(context),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.arrow_back,
+                                          color: Colors.white,
+                                          size: (short * 0.052).clamp(
+                                            18.0,
+                                            22.0,
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: (w * 0.012).clamp(3.0, 6.0),
+                                        ),
+                                        Text(
+                                          appState.tr(
+                                            'Close Preview',
+                                            'إغلاق المعاينة',
+                                          ),
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: (w * 0.04).clamp(
+                                              14.0,
+                                              17.0,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  const LanguageToggle(),
+                                ],
+                              ),
+                              const SizedBox(height: 32),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
                                 ),
-                                SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.warning_amber_rounded,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      AppState().tr(
+                                        'Emergency Info',
+                                        'معلومات الطوارئ',
+                                      ),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                widget.profile.name,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: (w * 0.06).clamp(20.0, 26.0),
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                AppState().tr(
+                                  'This is what rescues see when they scan\nthe QR code',
+                                  'هذا ما يراه المنقذون عند مسح\nرمز QR الخاص بك',
+                                ),
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  height: 1.4,
+                                ),
+                              ),
+                              if (_previewVisibility().showRelationship &&
+                                  widget.profile.relationship
+                                      .trim()
+                                      .isNotEmpty) ...[
+                                const SizedBox(height: 12),
                                 Text(
-                                  appState.tr('Close Preview', 'إغلاق المعاينة'),
+                                  widget.profile.relationship,
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: (w * 0.04).clamp(14.0, 17.0),
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                    fontSize: 14,
                                   ),
                                 ),
                               ],
-                            ),
+                            ],
                           ),
-                          const Spacer(),
-                          const LanguageToggle(),
-                        ],
-                      ),
-                  const SizedBox(height: 32),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha:0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 16),
-                        const SizedBox(width: 8),
-                        Text(AppState().tr('Emergency Info', 'معلومات الطوارئ'), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                        ),
+
+                        // Content Section
+                        Padding(
+                          padding: EdgeInsets.all(hPad),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: _buildPublicEmergencyCards(),
+                          ),
+                        ),
+
+                        // Footer Section
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(hPad),
+                          color: const Color(
+                            0xFF1E293B,
+                          ), // Slightly lighter dark blue for footer
+                          child: Column(
+                            children: [
+                              Text(
+                                AppState().tr(
+                                  'Stay Protected with Qlink!',
+                                  'ابقَ محميًا مع كيولينك!',
+                                ),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: (w * 0.045).clamp(16.0, 20.0),
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                AppState().tr(
+                                  'Qlink helps protect you and your loved ones\nby providing instant access to critical\nMedical information during emergencies.',
+                                  'تساعد شركة كيولينك في حمايتك وحماية أحبائك\nمن خلال توفير وصول فوري إلى المعلومات\nالطبية الهامة أثناء حالات الطوارئ.',
+                                ),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.grey.shade400,
+                                  fontSize: 13,
+                                  height: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: () {},
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        AppState().tr(
+                                          'Install the App',
+                                          'تثبيت التطبيق',
+                                        ),
+                                        style: const TextStyle(
+                                          color: Color(0xFF131A2A),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: OutlinedButton(
+                                      onPressed: () {},
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        side: const BorderSide(
+                                          color: Colors.grey,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        AppState().tr(
+                                          'Create Account',
+                                          'إنشاء حساب',
+                                        ),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 32),
+                              const Divider(color: Colors.grey),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Text(
+                                    AppState().tr(
+                                      'Privacy Policy',
+                                      'سياسة الخصوصية',
+                                    ),
+                                    style: TextStyle(
+                                      color: Colors.grey.shade500,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Text(
+                                    AppState().tr(
+                                      'Terms of Service',
+                                      'شروط الخدمة',
+                                    ),
+                                    style: TextStyle(
+                                      color: Colors.grey.shade500,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Text(
+                                    AppState().tr('Support', 'الدعم'),
+                                    style: TextStyle(
+                                      color: Colors.grey.shade500,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                AppState().tr(
+                                  '© 2026 Qlink Emergency. All rights reserved.',
+                                  '© 2026 كيولينك لخدمات الطوارئ. جميع الحقوق محفوظة.',
+                                ),
+                                style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              SizedBox(
+                                height: (short * 0.025).clamp(12.0, 20.0),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.profile.name,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: (w * 0.06).clamp(20.0, 26.0),
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    AppState().tr('This is what rescues see when they scan\nthe QR code', 'هذا ما يراه المنقذون عند مسح\nرمز QR الخاص بك'),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
-                  ),
-                  if (_previewVisibility().showRelationship && widget.profile.relationship.trim().isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      widget.profile.relationship,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 14),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-
-            // Content Section
-            Padding(
-              padding: EdgeInsets.all(hPad),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: _buildPublicEmergencyCards(),
-              ),
-            ),
-
-            // Footer Section
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(hPad),
-              color: const Color(0xFF1E293B), // Slightly lighter dark blue for footer
-              child: Column(
-                children: [
-                  Text(
-                    AppState().tr('Stay Protected with Qlink!', 'ابقَ محميًا مع كيولينك!'),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: (w * 0.045).clamp(16.0, 20.0),
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    AppState().tr(
-                      'Qlink helps protect you and your loved ones\nby providing instant access to critical\nMedical information during emergencies.',
-                      'تساعد شركة كيولينك في حمايتك وحماية أحبائك\nمن خلال توفير وصول فوري إلى المعلومات\nالطبية الهامة أثناء حالات الطوارئ.'
-                    ),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey.shade400, fontSize: 13, height: 1.5),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: Text(AppState().tr('Install the App', 'تثبيت التطبيق'), style: const TextStyle(color: Color(0xFF131A2A), fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {},
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            side: const BorderSide(color: Colors.grey),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: Text(AppState().tr('Create Account', 'إنشاء حساب'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  const Divider(color: Colors.grey),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Text(AppState().tr('Privacy Policy', 'سياسة الخصوصية'), style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                      Text(AppState().tr('Terms of Service', 'شروط الخدمة'), style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                      Text(AppState().tr('Support', 'الدعم'), style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(AppState().tr('© 2026 Qlink Emergency. All rights reserved.', '© 2026 كيولينك لخدمات الطوارئ. جميع الحقوق محفوظة.'), style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                  SizedBox(height: (short * 0.025).clamp(12.0, 20.0)),
-                ],
-              ),
-            ),
-          ],
                     ),
                   ),
                 );
@@ -266,23 +403,34 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
 
   /// Uses per-profile cached toggles from [AppState] when set (privacy screen), else [ProfileData.visibility].
   VisibilitySettings _previewVisibility() {
-    return AppState().qrVisibilitySettingsFor(widget.profile.id) ?? widget.profile.visibility;
+    return AppState().qrVisibilitySettingsFor(widget.profile.id) ??
+        widget.profile.visibility;
   }
 
   /// Cards shown after a QR scan respect [ProfileData.visibility] (privacy toggles).
   List<Widget> _buildPublicEmergencyCards() {
     final v = _previewVisibility();
-    final showAllergiesCard = v.showAllergies && widget.profile.allergies.isNotEmpty;
-    final showBloodCard = v.showBloodType && widget.profile.bloodType.isNotEmpty;
+    final showAllergiesCard =
+        v.showAllergies && widget.profile.allergies.isNotEmpty;
+    final showBloodCard =
+        v.showBloodType && widget.profile.bloodType.isNotEmpty;
     final showAgeCard = v.showBirthYear && widget.profile.birthYear.isNotEmpty;
-    final showMedical = v.showMedicalNotes && widget.profile.condition.isNotEmpty;
-    final showContacts = v.showEmergencyContacts &&
-        (widget.profile.emergencyDialRows.isNotEmpty || widget.profile.emergencyContacts.isNotEmpty);
+    final showMedical =
+        v.showMedicalNotes && widget.profile.condition.isNotEmpty;
+    final showContacts =
+        v.showEmergencyContacts &&
+        (widget.profile.emergencyDialRows.isNotEmpty ||
+            widget.profile.emergencyContacts.isNotEmpty);
 
     final children = <Widget>[];
 
     if (showAllergiesCard) {
-      children.add(_buildInfoCard(AppState().tr('Allergies', 'الحساسية'), widget.profile.allergies));
+      children.add(
+        _buildInfoCard(
+          AppState().tr('Allergies', 'الحساسية'),
+          widget.profile.allergies,
+        ),
+      );
     }
 
     if (showBloodCard || showAgeCard) {
@@ -312,7 +460,12 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
 
     if (showMedical) {
       if (children.isNotEmpty) children.add(const SizedBox(height: 16));
-      children.add(_buildInfoCard(AppState().tr('Medical Notes', 'ملاحظات طبية'), widget.profile.condition));
+      children.add(
+        _buildInfoCard(
+          AppState().tr('Medical Notes', 'ملاحظات طبية'),
+          widget.profile.condition,
+        ),
+      );
     }
 
     if (showContacts) {
@@ -373,7 +526,7 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
     if (items.length == 1 && items[0].contains(',')) {
       items = items[0].split(',').map((e) => e.trim()).toList();
     }
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -383,15 +536,30 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+              color: Colors.white,
+            ),
+          ),
           const SizedBox(height: 12),
           if (items.length > 1)
-            ...items.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text('• $item', style: const TextStyle(color: Colors.white, fontSize: 14)),
-                ))
+            ...items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  '• $item',
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+            )
           else
-            Text(content, style: const TextStyle(color: Colors.white, fontSize: 14)),
+            Text(
+              content,
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+            ),
         ],
       ),
     );
@@ -416,66 +584,85 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
         children: [
           Text(
             AppState().tr('Emergency Contacts', 'جهات اتصال الطوارئ'),
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 16),
           ...rows.map((row) {
-                final titleRaw = row.title.trim();
-                final phoneFromPhone = _extractDialNumber(row.phone);
-                final phoneFromTitle = _extractDialNumber(titleRaw);
-                final dialTarget = phoneFromPhone.isNotEmpty ? phoneFromPhone : phoneFromTitle;
+            final titleRaw = row.title.trim();
+            final phoneFromPhone = _extractDialNumber(row.phone);
+            final phoneFromTitle = _extractDialNumber(titleRaw);
+            final dialTarget = phoneFromPhone.isNotEmpty
+                ? phoneFromPhone
+                : phoneFromTitle;
 
-                var displayTitle = titleRaw;
-                if (dialTarget.isNotEmpty) {
-                  displayTitle = displayTitle.replaceAll(dialTarget, '').trim();
-                }
-                displayTitle = displayTitle
-                    .replaceAll(RegExp(r'[\r\n]+'), ' ')
-                    .replaceAll(RegExp(r'\s{2,}'), ' ')
-                    .trim();
-                if (looksLikePhoneField(displayTitle)) {
-                  displayTitle = '';
-                }
+            var displayTitle = titleRaw;
+            if (dialTarget.isNotEmpty) {
+              displayTitle = displayTitle.replaceAll(dialTarget, '').trim();
+            }
+            displayTitle = displayTitle
+                .replaceAll(RegExp(r'[\r\n]+'), ' ')
+                .replaceAll(RegExp(r'\s{2,}'), ' ')
+                .trim();
+            if (looksLikePhoneField(displayTitle)) {
+              displayTitle = '';
+            }
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
-                      borderRadius: BorderRadius.circular(8),
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (displayTitle.isNotEmpty)
+                            Text(
+                              displayTitle,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                          if (dialTarget.isNotEmpty)
+                            Text(
+                              dialTarget,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                letterSpacing: 0.8,
+                              ),
+                            )
+                          else if (displayTitle.isNotEmpty)
+                            Text(
+                              displayTitle,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (displayTitle.isNotEmpty)
-                                Text(
-                                  displayTitle,
-                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                                ),
-                              if (dialTarget.isNotEmpty)
-                                Text(
-                                  dialTarget,
-                                  style: const TextStyle(color: Colors.white, fontSize: 15, letterSpacing: 0.8),
-                                )
-                              else if (displayTitle.isNotEmpty)
-                                Text(
-                                  displayTitle,
-                                  style: const TextStyle(color: Colors.white, fontSize: 15),
-                                ),
-                            ],
-                          ),
-                        ),
-                        if (dialTarget.isNotEmpty) _buildCallButton(dialTarget),
-                      ],
-                    ),
-                  ),
-                );
-              }),
+                    if (dialTarget.isNotEmpty) _buildCallButton(dialTarget),
+                  ],
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -491,27 +678,41 @@ class _PublicPreviewQrPageState extends State<PublicPreviewQrPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(AppState().tr('Emergency Contacts', 'جهات اتصال الطوارئ'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
+          Text(
+            AppState().tr('Emergency Contacts', 'جهات اتصال الطوارئ'),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+              color: Colors.white,
+            ),
+          ),
           const SizedBox(height: 16),
           ...contacts.map((contact) {
             final dialTarget = _extractDialNumber(contact);
             return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(contact, style: const TextStyle(color: Colors.white, fontSize: 14, letterSpacing: 1.1)),
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      contact,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        letterSpacing: 1.1,
+                      ),
                     ),
-                    if (dialTarget.isNotEmpty) _buildCallButton(dialTarget),
-                  ],
-                ),
-              );
+                  ),
+                  if (dialTarget.isNotEmpty) _buildCallButton(dialTarget),
+                ],
+              ),
+            );
           }),
         ],
       ),

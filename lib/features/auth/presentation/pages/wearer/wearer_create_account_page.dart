@@ -9,6 +9,7 @@ import 'package:q_link/features/auth/presentation/pages/wearer/wearer_sign_in_pa
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_initial_setup_page.dart';
 import 'package:q_link/services/supabase_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+// uuid not needed here
 
 class WearerCreateAccountPage extends StatefulWidget {
   const WearerCreateAccountPage({super.key});
@@ -54,13 +55,24 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
 
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppState().tr('Please fill in all fields', 'يرجى ملء جميع الحقول'))),
+        SnackBar(
+          content: Text(
+            AppState().tr('Please fill in all fields', 'يرجى ملء جميع الحقول'),
+          ),
+        ),
       );
       return;
     }
     if (!_emailRegex.hasMatch(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppState().tr('Please enter a valid email address', 'يرجى إدخال بريد إلكتروني صحيح'))),
+        SnackBar(
+          content: Text(
+            AppState().tr(
+              'Please enter a valid email address',
+              'يرجى إدخال بريد إلكتروني صحيح',
+            ),
+          ),
+        ),
       );
       return;
     }
@@ -81,8 +93,10 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
       String avatarUrl =
           'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/profiles/default.png';
       if (_selectedAvatarBytes != null) {
-        final uploadedUrl = await SupabaseService()
-            .uploadAndSaveUserAvatar(_selectedAvatarBytes!, user.id);
+        final uploadedUrl = await SupabaseService().uploadAndSaveUserAvatar(
+          _selectedAvatarBytes!,
+          user.id,
+        );
         if (uploadedUrl != null) {
           avatarUrl = uploadedUrl;
         }
@@ -95,6 +109,44 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
         preferredRole: 'Wearer',
         avatarUrl: avatarUrl,
       );
+
+      // Ensure a patient_profiles row exists for this wearer so QR is always available
+      try {
+        final existing = await Supabase.instance.client
+            .from('patient_profiles')
+            .select('id')
+            .eq('guardian_id', user.id)
+            .limit(1)
+            .maybeSingle();
+        if (existing == null) {
+          final created = await Supabase.instance.client
+              .from('patient_profiles')
+              .insert({
+                'guardian_id': user.id,
+                'profile_name': name,
+                'relationship_to_guardian': 'Wearer',
+                'birth_year': 0,
+                'blood_type': '',
+                'allergies_en': '',
+                'medical_notes_en': '',
+                'emergency_contacts': {},
+                'avatar_url': avatarUrl,
+                'status': true,
+                'seo_slug': name.toLowerCase().replaceAll(' ', '-'),
+              })
+              .select()
+              .maybeSingle();
+
+          final newProfileId = (created != null && created['id'] != null)
+              ? created['id'].toString()
+              : null;
+          if (newProfileId != null && newProfileId.isNotEmpty) {
+            await SupabaseService().ensurePublicQrToken(newProfileId);
+          }
+        }
+      } catch (e) {
+        // Non-fatal: ensure app continues even if profile creation or QR token fails
+      }
 
       AppState().updateCurrentUser(
         name: name,
@@ -118,7 +170,8 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
     } on AuthApiException catch (e) {
       if (mounted) {
         final isInvalidEmail =
-            e.code == 'validation_failed' || e.message.contains('invalid format');
+            e.code == 'validation_failed' ||
+            e.message.contains('invalid format');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -127,16 +180,19 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
                       'Invalid email format. Example: name@email.com',
                       'صيغة البريد الإلكتروني غير صحيحة. مثال: name@email.com',
                     )
-                  : AppState().tr('Sign up failed: ${e.message}', 'فشل إنشاء الحساب: ${e.message}'),
+                  : AppState().tr(
+                      'Sign up failed: ${e.message}',
+                      'فشل إنشاء الحساب: ${e.message}',
+                    ),
             ),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(AppState().tr('Error: $e', 'خطأ: $e'))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppState().tr('Error: $e', 'خطأ: $e'))),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -204,49 +260,67 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Builder(builder: (context) {
-                      final isAr = AppState().isArabic;
-                      return Align(
-                        alignment: isAr ? Alignment.centerRight : Alignment.centerLeft,
-                        child: GestureDetector(
-                          onTap: () {
-                            if (Navigator.canPop(context)) {
-                              Navigator.pop(context);
-                            } else {
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const ChooseRolePage(),
+                    Builder(
+                      builder: (context) {
+                        final isAr = AppState().isArabic;
+                        return Align(
+                          alignment: isAr
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: GestureDetector(
+                            onTap: () {
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              } else {
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => const ChooseRolePage(),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (!isAr) ...[
+                                  Icon(
+                                    Icons.arrow_back,
+                                    color: Colors.grey.shade700,
+                                    size: 22,
+                                  ),
+                                  const SizedBox(width: 4),
+                                ],
+                                Text(
+                                  AppState().tr('Back', 'رجوع'),
+                                  style: TextStyle(
+                                    color: Colors.grey.shade700,
+                                    fontSize: (mq.size.width * 0.04).clamp(
+                                      14.0,
+                                      17.0,
+                                    ),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              );
-                            }
-                          },
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (!isAr) ...[
-                                Icon(Icons.arrow_back, color: Colors.grey.shade700, size: 22),
-                                const SizedBox(width: 4),
+                                if (isAr) ...[
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.arrow_forward,
+                                    color: Colors.grey.shade700,
+                                    size: 22,
+                                  ),
+                                ],
                               ],
-                              Text(
-                                AppState().tr('Back', 'رجوع'),
-                                style: TextStyle(
-                                  color: Colors.grey.shade700,
-                                  fontSize: (mq.size.width * 0.04).clamp(14.0, 17.0),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              if (isAr) ...[
-                                const SizedBox(width: 4),
-                                Icon(Icons.arrow_forward, color: Colors.grey.shade700, size: 22),
-                              ],
-                            ],
+                            ),
                           ),
-                        ),
-                      );
-                    }),
+                        );
+                      },
+                    ),
                     SizedBox(height: (shortest * 0.03).clamp(12.0, 24.0)),
                     Center(
-                      child: Image.asset('assets/images/qlink_logo.png', height: logoH),
+                      child: Image.asset(
+                        'assets/images/qlink_logo.png',
+                        height: logoH,
+                      ),
                     ),
                     SizedBox(height: (shortest * 0.03).clamp(12.0, 24.0)),
                     Text(
@@ -271,15 +345,22 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: Colors.white,
-                                border: Border.all(color: const Color(0xFF1B64F2), width: 2),
+                                border: Border.all(
+                                  color: const Color(0xFF1B64F2),
+                                  width: 2,
+                                ),
                               ),
-                              child: ClipOval(child: _buildAvatarPreview(iconInAvatar)),
+                              child: ClipOval(
+                                child: _buildAvatarPreview(iconInAvatar),
+                              ),
                             ),
                             Positioned(
                               bottom: 0,
                               right: 0,
                               child: Container(
-                                padding: EdgeInsets.all((avatarSize * 0.08).clamp(6.0, 10.0)),
+                                padding: EdgeInsets.all(
+                                  (avatarSize * 0.08).clamp(6.0, 10.0),
+                                ),
                                 decoration: const BoxDecoration(
                                   color: Color(0xFF1B64F2),
                                   shape: BoxShape.circle,
@@ -331,7 +412,9 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
                             });
                           },
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                           ),
                         ),
                         border: OutlineInputBorder(
@@ -363,7 +446,10 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
                           : Text(
                               AppState().tr('Create Account', 'إنشاء حساب'),
                               style: TextStyle(
-                                fontSize: (mq.size.width * 0.045).clamp(15.0, 19.0),
+                                fontSize: (mq.size.width * 0.045).clamp(
+                                  15.0,
+                                  19.0,
+                                ),
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -376,7 +462,12 @@ class _WearerCreateAccountPageState extends State<WearerCreateAccountPage> {
                       spacing: 4,
                       runSpacing: 8,
                       children: [
-                        Text(AppState().tr("Already have an account? ", 'لديك حساب بالفعل؟ ')),
+                        Text(
+                          AppState().tr(
+                            "Already have an account? ",
+                            'لديك حساب بالفعل؟ ',
+                          ),
+                        ),
                         GestureDetector(
                           onTap: () => Navigator.pushReplacement(
                             context,

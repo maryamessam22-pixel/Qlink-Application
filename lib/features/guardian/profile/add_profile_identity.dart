@@ -33,7 +33,7 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    
+
     if (image != null) {
       final bytes = await image.readAsBytes();
       setState(() {
@@ -136,7 +136,10 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               name: _nameController.text,
               relationship: _relationshipController.text,
               birthYear: _birthYearController.text,
-              emergencyContacts: _contactControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+              emergencyContacts: _contactControllers
+                  .map((c) => c.text)
+                  .where((t) => t.isNotEmpty)
+                  .toList(),
               avatarUrl: _imagePath,
               avatarBytes: _imageBytes,
               editIndex: widget.editIndex,
@@ -166,7 +169,10 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               children: [
                 Flexible(
                   child: Text(
-                    AppState().tr('Continue to Medical Info', 'متابعة للمعلومات الطبية'),
+                    AppState().tr(
+                      'Continue to Medical Info',
+                      'متابعة للمعلومات الطبية',
+                    ),
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -178,7 +184,11 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                   ),
                 ),
                 SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
-                Icon(Icons.arrow_forward, color: Colors.white, size: (short * 0.05).clamp(18.0, 22.0)),
+                Icon(
+                  Icons.arrow_forward,
+                  color: Colors.white,
+                  size: (short * 0.05).clamp(18.0, 22.0),
+                ),
               ],
             ),
           );
@@ -198,7 +208,9 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
         final hPad = (w * 0.055).clamp(16.0, 28.0);
         final vPad = (short * 0.028).clamp(12.0, 20.0);
         final bottomPad =
-            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.06).clamp(18.0, 28.0);
+            mq.viewInsets.bottom +
+            mq.padding.bottom +
+            (short * 0.06).clamp(18.0, 28.0);
         final gapL = (short * 0.055).clamp(18.0, 28.0);
         final gapM = (short * 0.045).clamp(14.0, 22.0);
         final gapS = (short * 0.02).clamp(6.0, 10.0);
@@ -268,127 +280,199 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
                         const Divider(color: Color(0xFFE5E7EB), thickness: 1),
                         SizedBox(height: gapL),
 
-                  // Profile Picture Section
-                  Center(
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: avatarD,
-                          height: avatarD,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFF1E3A8A), width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
+                        // Profile Picture Section
+                        Center(
+                          child: Stack(
+                            children: [
+                              Container(
+                                width: avatarD,
+                                height: avatarD,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: const Color(0xFF1E3A8A),
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipOval(
+                                  child: _imagePath != null
+                                      ? (_imagePath!.startsWith('http') ||
+                                                _imagePath!.startsWith('blob:')
+                                            ? Image.network(
+                                                _imagePath!,
+                                                fit: BoxFit.cover,
+                                              )
+                                            : (_imagePath!.startsWith('assets')
+                                                  ? Image.asset(
+                                                      _imagePath!,
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                  : (!kIsWeb
+                                                        ? Image.file(
+                                                            File(_imagePath!),
+                                                            fit: BoxFit.cover,
+                                                          )
+                                                        : Icon(
+                                                            Icons.person,
+                                                            size: personIcon,
+                                                            color: const Color(
+                                                              0xFF1B64F2,
+                                                            ),
+                                                          ))))
+                                      : Container(
+                                          color: const Color(0xFFE6F0FE),
+                                          child: Icon(
+                                            Icons.person,
+                                            size: personIcon,
+                                            color: const Color(0xFF1B64F2),
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: _pickImage,
+                                  child: Container(
+                                    padding: EdgeInsets.all(
+                                      (short * 0.02).clamp(6.0, 10.0),
+                                    ),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF1B64F2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.camera_alt,
+                                      color: Colors.white,
+                                      size: camIcon,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
-                          child: ClipOval(
-                            child: _imagePath != null
-                                ? (_imagePath!.startsWith('http') || _imagePath!.startsWith('blob:')
-                                    ? Image.network(_imagePath!, fit: BoxFit.cover)
-                                    : (_imagePath!.startsWith('assets')
-                                      ? Image.asset(_imagePath!, fit: BoxFit.cover)
-                                      : (!kIsWeb
-                                        ? Image.file(File(_imagePath!), fit: BoxFit.cover)
-                                        : Icon(Icons.person, size: personIcon, color: const Color(0xFF1B64F2)))))
-                                : Container(
-                                    color: const Color(0xFFE6F0FE),
-                                    child: Icon(Icons.person, size: personIcon, color: const Color(0xFF1B64F2)),
-                                  ),
-                          ),
                         ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: _pickImage,
-                            child: Container(
-                              padding: EdgeInsets.all((short * 0.02).clamp(6.0, 10.0)),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF1B64F2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(Icons.camera_alt, color: Colors.white, size: camIcon),
+                        SizedBox(height: gapS),
+                        Center(
+                          child: Text(
+                            AppState().tr(
+                              'Add Profile Picture',
+                              'إضافة صورة الملف الشخصي',
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: gapS),
-                  Center(
-                    child: Text(
-                      AppState().tr('Add Profile Picture', 'إضافة صورة الملف الشخصي'),
-                      style: TextStyle(
-                        fontSize: (w * 0.035).clamp(12.0, 15.0),
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: gapL),
-                  
-                  _buildLabelAndTextField(AppState().tr('Patient\'s Full Name', 'الاسم الكامل للمريض'), AppState().tr('e.g., Mohamed Saber', 'مثال: محمد صابر'), controller: _nameController),
-                  const SizedBox(height: 16),
-                  
-                  _buildLabelAndTextField(AppState().tr('Relationship to You', 'صلة القرابة'), AppState().tr('e.g., Grandfather', 'مثال: الجد'), controller: _relationshipController),
-                  const SizedBox(height: 16),
-                  
-                  _buildLabelAndTextField(AppState().tr('Birth Year', 'سنة الميلاد'), AppState().tr('e.g., 1945', 'مثال: 1945'), controller: _birthYearController),
-                  const SizedBox(height: 24),
-                  Text(
-                    AppState().tr('EMERGENCY CONTACTS', 'جهات اتصال الطوارئ'),
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1E3A8A)),
-                  ),
-                  const SizedBox(height: 12),
-                  ..._contactControllers.asMap().entries.map((entry) {
-                    int index = entry.key;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _buildContactField(index),
-                    );
-                  }),
-                  SizedBox(height: gapS),
-                  Container(
-                    width: double.infinity,
-                    height: (short * 0.12).clamp(44.0, 54.0),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: TextButton(
-                      onPressed: () {
-                        setState(() {
-                          _contactControllers.add(TextEditingController());
-                        });
-                      },
-                      style: TextButton.styleFrom(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.add_box, color: Color(0xFF1B64F2)),
-                          const SizedBox(width: 8),
-                          Text(
-                            AppState().tr('Add More Contact Number', 'إضافة رقم اتصال إضافي'),
                             style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontWeight: FontWeight.w600,
+                              fontSize: (w * 0.035).clamp(12.0, 15.0),
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: (short * 0.07).clamp(24.0, 36.0)),
-                  _buildContinueToMedicalButton(),
-                  SizedBox(height: (short * 0.03).clamp(8.0, 16.0)),
-                ],
+                        ),
+                        SizedBox(height: gapL),
+
+                        _buildLabelAndTextField(
+                          AppState().tr(
+                            'Patient\'s Full Name',
+                            'الاسم الكامل للمريض',
+                          ),
+                          AppState().tr(
+                            'e.g., Wearer\'s Full Name',
+                            'مثال: اسم المرتدي الكامل',
+                          ),
+                          controller: _nameController,
+                        ),
+                        const SizedBox(height: 16),
+
+                        _buildLabelAndTextField(
+                          AppState().tr('Relationship to You', 'صلة القرابة'),
+                          AppState().tr(
+                            'e.g., Relationship (e.g., Parent, Sibling)',
+                            'مثال: صلة القرابة (مثل الوالد أو الأخ)',
+                          ),
+                          controller: _relationshipController,
+                        ),
+                        const SizedBox(height: 16),
+
+                        _buildLabelAndTextField(
+                          AppState().tr('Birth Year', 'سنة الميلاد'),
+                          AppState().tr('e.g., 1945', 'مثال: 1945'),
+                          controller: _birthYearController,
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          AppState().tr(
+                            'EMERGENCY CONTACTS',
+                            'جهات اتصال الطوارئ',
+                          ),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1E3A8A),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ..._contactControllers.asMap().entries.map((entry) {
+                          int index = entry.key;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: _buildContactField(index),
+                          );
+                        }),
+                        SizedBox(height: gapS),
+                        Container(
+                          width: double.infinity,
+                          height: (short * 0.12).clamp(44.0, 54.0),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _contactControllers.add(
+                                  TextEditingController(),
+                                );
+                              });
+                            },
+                            style: TextButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.add_box,
+                                  color: Color(0xFF1B64F2),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  AppState().tr(
+                                    'Add More Contact Number',
+                                    'إضافة رقم اتصال إضافي',
+                                  ),
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: (short * 0.07).clamp(24.0, 36.0)),
+                        _buildContinueToMedicalButton(),
+                        SizedBox(height: (short * 0.03).clamp(8.0, 16.0)),
+                      ],
                     ),
                   ),
                 );
@@ -406,7 +490,12 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          index == 0 ? AppState().tr('Primary Guardian', 'الوصي الأساسي') : AppState().tr('Additional Contact $index', 'جهة اتصال إضافية $index'),
+          index == 0
+              ? AppState().tr('Primary Guardian', 'الوصي الأساسي')
+              : AppState().tr(
+                  'Additional Contact $index',
+                  'جهة اتصال إضافية $index',
+                ),
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
@@ -420,9 +509,18 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
               child: TextField(
                 controller: _contactControllers[index],
                 decoration: InputDecoration(
-                  hintText: AppState().tr('e.g., 01119988299', 'مثال: 01119988299'),
-                  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  hintText: AppState().tr(
+                    'e.g., 01119988299',
+                    'مثال: 01119988299',
+                  ),
+                  hintStyle: TextStyle(
+                    color: Colors.grey.shade400,
+                    fontSize: 13,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: Colors.grey.shade300),
@@ -461,7 +559,12 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
     );
   }
 
-  Widget _buildLabelAndTextField(String label, String hintText, {TextEditingController? controller, TextInputAction textInputAction = TextInputAction.next}) {
+  Widget _buildLabelAndTextField(
+    String label,
+    String hintText, {
+    TextEditingController? controller,
+    TextInputAction textInputAction = TextInputAction.next,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -480,7 +583,10 @@ class _AddProfileIdentityPageState extends State<AddProfileIdentityPage> {
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Colors.grey.shade300),

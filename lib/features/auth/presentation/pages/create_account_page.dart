@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -12,7 +13,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CreateAccountPage extends StatefulWidget {
   final String role;
-  
+
   const CreateAccountPage({super.key, required this.role});
 
   @override
@@ -23,21 +24,118 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _isLoading = false;
   final RegExp _emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
   final ImagePicker _picker = ImagePicker();
   Uint8List? _selectedAvatarBytes;
   String? _selectedAvatarPath;
+  StreamSubscription<AuthState>? _authSubscription;
 
   bool _isGuardianLike(String? role) {
     final r = (role ?? '').toLowerCase();
     return r == 'guardian' || r == 'admin';
   }
 
+  Future<void> _handleGoogleLogin() async {
+    try {
+      await _authSubscription?.cancel();
+      _authSubscription = Supabase.instance.client.auth.onAuthStateChange
+          .listen((data) async {
+            if (data.event != AuthChangeEvent.signedIn ||
+                data.session == null ||
+                !mounted) {
+              return;
+            }
+
+            await _ensureOAuthProfile();
+            if (!mounted) return;
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/dashboard',
+              (route) => false,
+            );
+          });
+
+      // Use Supabase's native OAuth flow
+      // This will open a popup on web automatically
+      await Supabase.instance.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: kIsWeb ? null : 'com.mariamfarid.qlink://login-callback',
+        queryParams: {
+          'prompt': 'select_account', // Force account picker every time
+        },
+      );
+      
+      // Check if user logged in successfully
+      if (Supabase.instance.client.auth.currentUser != null) {
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      }
+    } catch (error) {
+      if (error.toString().contains('popup_closed') || 
+          error.toString().contains('User cancelled')) {
+        // User cancelled the login, don't show error
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppState().tr(
+              'Sign in failed: $error',
+              'فشل التوقيع: $error',
+            ),
+            style: const TextStyle(fontFamily: 'Roboto'),
+          ),
+          backgroundColor: Colors.red.shade700,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> _ensureOAuthProfile() async {
+    final client = Supabase.instance.client;
+    final user = client.auth.currentUser;
+    if (user == null) return;
+
+    final existing = await client
+        .from('profiles')
+        .select('id, role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    final role = widget.role.trim().isEmpty ? 'Guardian' : widget.role.trim();
+    final metadata = user.userMetadata ?? {};
+    final displayName =
+        (metadata['full_name'] ?? metadata['name'] ?? user.email ?? 'User')
+            .toString();
+    final avatarUrl = (metadata['avatar_url'] ?? metadata['picture'] ?? '')
+        .toString();
+
+    if (existing == null) {
+      await client.from('profiles').insert({
+        'id': user.id,
+        'full_name': displayName,
+        'email': user.email ?? '',
+        'role': role,
+        'status': true,
+        'job_title': 'New Member',
+        'registration_date': DateTime.now().toIso8601String().split('T')[0],
+        'avatar_url': avatarUrl,
+      });
+      return;
+    }
+
+    final existingRole = (existing['role'] ?? '').toString().trim();
+    if (existingRole.isEmpty) {
+      await client.from('profiles').update({'role': role}).eq('id', user.id);
+    }
+  }
+
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -61,7 +159,11 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
 
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppState().tr('Please fill all fields', 'يرجى ملء جميع الحقول'))),
+        SnackBar(
+          content: Text(
+            AppState().tr('Please fill all fields', 'يرجى ملء جميع الحقول'),
+          ),
+        ),
       );
       return;
     }
@@ -92,8 +194,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
           'https://vveftffbvwptlsqgeygp.supabase.co/storage/v1/object/public/qlink-assets/profiles/default.png';
       if (user != null) {
         if (_selectedAvatarBytes != null) {
-          final uploadedUrl = await SupabaseService()
-              .uploadAndSaveUserAvatar(_selectedAvatarBytes!, user.id);
+          final uploadedUrl = await SupabaseService().uploadAndSaveUserAvatar(
+            _selectedAvatarBytes!,
+            user.id,
+          );
           if (uploadedUrl != null) {
             avatarUrl = uploadedUrl;
           } else if (mounted) {
@@ -130,15 +234,17 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
           context,
           MaterialPageRoute(
             builder: (_) => openGuardianShell
-                ? const MainPage() 
+                ? const MainPage()
                 : const WearerInitialSetupPage(),
-            settings: RouteSettings(name: openGuardianShell ? 'MainPage' : 'WearerInitialSetupPage'),
+            settings: RouteSettings(
+              name: openGuardianShell ? 'MainPage' : 'WearerInitialSetupPage',
+            ),
           ),
           (Route<dynamic> route) => false,
         );
       } else {
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 AppState().tr(
@@ -153,7 +259,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     } on AuthApiException catch (e) {
       if (mounted) {
         final isInvalidEmail =
-            e.code == 'validation_failed' || e.message.contains('invalid format');
+            e.code == 'validation_failed' ||
+            e.message.contains('invalid format');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -169,9 +276,9 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -198,7 +305,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     try {
       await Supabase.instance.client.from('profiles').upsert({
         ...profilePayload,
-        'role': preferredRole,
+        'role': preferredRole.toLowerCase(),
       });
     } on PostgrestException catch (e) {
       final isRoleConstraintError =
@@ -207,7 +314,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
 
       await Supabase.instance.client.from('profiles').upsert({
         ...profilePayload,
-        'role': 'Guardian',
+        'role': 'guardian',
       });
     }
   }
@@ -240,11 +347,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFB81829),
-              Color(0xFF4C3A71),
-              Color(0xFF015196),
-            ],
+            colors: [Color(0xFFB81829), Color(0xFF4C3A71), Color(0xFF015196)],
             stops: [0.0, 0.4, 1.0],
           ),
         ),
@@ -303,7 +406,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                       ),
                       SizedBox(height: (shortest * 0.015).clamp(6.0, 10.0)),
                       Text(
-                        appState.tr('Starts your safety journey', 'ابدأ رحلة سلامتك'),
+                        appState.tr(
+                          'Starts your safety journey',
+                          'ابدأ رحلة سلامتك',
+                        ),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: subtitleSize,
@@ -311,9 +417,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                         ),
                       ),
                       SizedBox(height: (shortest * 0.055).clamp(18.0, 32.0)),
-                      Center(
-                        child: _buildAuthAvatar(context),
-                      ),
+                      Center(child: _buildAuthAvatar(context)),
                       SizedBox(height: (shortest * 0.055).clamp(18.0, 32.0)),
                       _buildTextField(
                         controller: _nameController,
@@ -322,7 +426,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                       SizedBox(height: (shortest * 0.038).clamp(12.0, 20.0)),
                       _buildTextField(
                         controller: _emailController,
-                        hintText: appState.tr('Email Address', 'عنوان البريد الإلكتروني'),
+                        hintText: appState.tr(
+                          'Email Address',
+                          'عنوان البريد الإلكتروني',
+                        ),
                         keyboardType: TextInputType.emailAddress,
                       ),
                       SizedBox(height: (shortest * 0.038).clamp(12.0, 20.0)),
@@ -332,7 +439,9 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                         obscureText: _obscurePassword,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: Colors.grey.shade400,
                             size: 20,
                           ),
@@ -375,7 +484,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                                   textAlign: TextAlign.center,
                                   maxLines: 2,
                                   style: TextStyle(
-                                    fontSize: (mq.size.width * 0.04).clamp(14.0, 17.0),
+                                    fontSize: (mq.size.width * 0.04).clamp(
+                                      14.0,
+                                      17.0,
+                                    ),
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                   ),
@@ -392,10 +504,14 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                            ),
                             child: Text(
                               appState.tr('OR', 'أو'),
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.8),
+                              ),
                             ),
                           ),
                           Expanded(
@@ -407,47 +523,56 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                         ],
                       ),
                       SizedBox(height: (shortest * 0.055).clamp(20.0, 32.0)),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildSocialButton(
-                            context,
-                            iconWidget: Image.asset(
-                              'assets/icons/fb2.png',
-                              width: (shortest * 0.09).clamp(28.0, 38.0),
-                              height: (shortest * 0.09).clamp(28.0, 38.0),
+                      SizedBox(
+                        width: double.infinity,
+                        child: Material(
+                          color: const Color(0xFF28365B),
+                          borderRadius: BorderRadius.circular(25.0),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(25.0),
+                            onTap: _handleGoogleLogin,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 10.0,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(25.0),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/icons/google2.png',
+                                    width: (shortest * 0.085).clamp(26.0, 36.0),
+                                    height: (shortest * 0.085).clamp(
+                                      26.0,
+                                      36.0,
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: (shortest * 0.03).clamp(8.0, 12.0),
+                                  ),
+                                  Text(
+                                    'Continue with Google',
+                                    style: TextStyle(
+                                      fontFamily: 'Roboto',
+                                      fontSize: (mq.size.width * 0.04).clamp(
+                                        14.0,
+                                        17.0,
+                                      ),
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            backgroundColor: Colors.transparent,
-                            borderColor: Colors.white,
-                            onTap: () {},
                           ),
-                          SizedBox(width: (shortest * 0.045).clamp(12.0, 22.0)),
-                          _buildSocialButton(
-                            context,
-                            iconWidget: Image.asset(
-                              'assets/icons/google2.png',
-                              width: (shortest * 0.085).clamp(26.0, 36.0),
-                              height: (shortest * 0.085).clamp(26.0, 36.0),
-                            ),
-                            backgroundColor: Colors.transparent,
-                            borderColor: Colors.white,
-                            onTap: () {},
-                          ),
-                          SizedBox(width: (shortest * 0.045).clamp(12.0, 22.0)),
-                          _buildSocialButton(
-                            context,
-                            iconWidget: Image.asset(
-                              'assets/icons/apple2.png',
-                              width: (shortest * 0.085).clamp(26.0, 36.0),
-                              height: (shortest * 0.08).clamp(24.0, 34.0),
-                            ),
-                            backgroundColor: Colors.transparent,
-                            borderColor: Colors.white,
-                            onTap: () {},
-                          ),
-                        ],
+                        ),
                       ),
                       SizedBox(height: (shortest * 0.065).clamp(24.0, 40.0)),
+
                       Wrap(
                         alignment: WrapAlignment.center,
                         crossAxisAlignment: WrapCrossAlignment.center,
@@ -455,7 +580,10 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                         runSpacing: 8,
                         children: [
                           Text(
-                            appState.tr('Already have an account ? ', 'هل لديك حساب بالفعل؟ '),
+                            appState.tr(
+                              'Already have an account ? ',
+                              'هل لديك حساب بالفعل؟ ',
+                            ),
                             style: const TextStyle(color: Colors.white),
                           ),
                           GestureDetector(
@@ -496,7 +624,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
 
     Widget avatarChild;
     if (_selectedAvatarPath != null && _selectedAvatarPath!.isNotEmpty) {
-      if (_selectedAvatarPath!.startsWith('http') || _selectedAvatarPath!.startsWith('blob:')) {
+      if (_selectedAvatarPath!.startsWith('http') ||
+          _selectedAvatarPath!.startsWith('blob:')) {
         avatarChild = Image.network(_selectedAvatarPath!, fit: BoxFit.cover);
       } else if (_selectedAvatarPath!.startsWith('assets')) {
         avatarChild = Image.asset(_selectedAvatarPath!, fit: BoxFit.cover);
@@ -547,7 +676,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
 
   Widget _buildTextField({
     required String hintText,
-    TextEditingController? controller, 
+    TextEditingController? controller,
     bool obscureText = false,
     Widget? suffixIcon,
     TextInputType? keyboardType,
@@ -566,35 +695,11 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey.shade400),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 18,
+          ),
           suffixIcon: suffixIcon,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSocialButton(
-    BuildContext context, {
-    IconData? icon,
-    Widget? iconWidget,
-    Color? iconColor,
-    Color backgroundColor = Colors.transparent,
-    Color? borderColor,
-    required VoidCallback onTap,
-  }) {
-    final d = (MediaQuery.sizeOf(context).shortestSide * 0.13).clamp(44.0, 56.0);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: d,
-        height: d,
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          shape: BoxShape.circle,
-          border: borderColor != null ? Border.all(color: borderColor, width: 1.5) : null,
-        ),
-        child: Center(
-          child: iconWidget ?? Icon(icon, color: iconColor, size: d * 0.62),
         ),
       ),
     );

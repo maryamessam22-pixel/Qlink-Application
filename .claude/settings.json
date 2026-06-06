@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"e:\\\\q_link\" -Recurse -Exclude @\\(\"node_modules\", \".dart_tool\", \"build\", \".git\", \".idea\", \".vscode\"\\) -Force | Select-Object -Property FullName | Format-List)",
+      "Bash(Get-ChildItem -Path \"e:\\\\q_link\\\\lib\" -Recurse)",
+      "Bash(Select-Object FullName)",
+      "Bash(Format-List)",
+      "PowerShell(Get-ChildItem -Path \"e:\\\\q_link\\\\lib\" -Recurse -Directory | ForEach-Object { $_.FullName } | Sort-Object)"
+    ]
+  }
+}

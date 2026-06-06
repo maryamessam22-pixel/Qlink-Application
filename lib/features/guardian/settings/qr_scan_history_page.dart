@@ -14,28 +14,47 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
   String _extractScanner(String body) {
     final b = body.trim();
     if (b.isEmpty) return '';
-    if (b.startsWith('Scanned by ')) return b.replaceFirst('Scanned by ', '').trim();
-    final m = RegExp(r'\+?\d[\d\s\-()]{6,}\d').firstMatch(b);
-    if (m != null) {
-      final v = (m.group(0) ?? '').trim();
-      if (v.isNotEmpty) return v;
+
+    final numberMatch = RegExp(r'\+?\d[\d\s\-()]{6,}\d').firstMatch(b);
+    if (numberMatch != null) {
+      return numberMatch.group(0)?.trim() ?? '';
     }
+
     return '';
   }
+
   Future<void> _clearStoredQrHistory() async {
     final userId = SupabaseService().client.auth.currentUser?.id;
     if (userId == null || userId.isEmpty) return;
-    await SupabaseService().client.from('notifications').delete().eq('guardian_id', userId).eq('type', 'qr_scan');
+    await SupabaseService().client
+        .from('notifications')
+        .delete()
+        .eq('guardian_id', userId)
+        .eq('type', 'qr_scan');
   }
+
+  Future<String> _fetchProfileName(String profileId) async {
+    if (profileId.isEmpty) return '';
+    try {
+      final profile = await SupabaseService().client
+          .from('patient_profiles')
+          .select('profile_name')
+          .eq('id', profileId)
+          .maybeSingle();
+      return (profile?['profile_name'] ?? '').toString().trim();
+    } catch (_) {
+      return '';
+    }
+  }
+
   Future<List<ScanHistoryItem>> _fetchStoredQrHistory() async {
     try {
       final userId = SupabaseService().client.auth.currentUser?.id;
       if (userId == null || userId.isEmpty) return AppState().scanHistory;
 
-      final rows = await SupabaseService()
-          .client
+      final rows = await SupabaseService().client
           .from('notifications')
-          .select('title, body, created_at')
+          .select('title, body, created_at, profile_id')
           .eq('guardian_id', userId)
           .eq('type', 'qr_scan')
           .order('created_at', ascending: false);
@@ -44,12 +63,31 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
       for (final row in List<Map<String, dynamic>>.from(rows as List)) {
         final body = (row['body'] ?? '').toString();
         final extracted = _extractScanner(body);
-        final scanner = extracted.isNotEmpty
-            ? extracted
-            : AppState().tr('Unknown', 'غير معروف');
+        final scanner = extracted.isNotEmpty ? extracted : '';
+
+        final profileId = (row['profile_id'] ?? '').toString();
+        String title;
+        if (profileId.isNotEmpty) {
+          final profileName = await _fetchProfileName(profileId);
+          if (profileName.isNotEmpty) {
+            final base = AppState().tr('Bracelet Scanned!', 'تم مسح السوار!');
+            title = '$base ($profileName)';
+          } else {
+            title =
+                (row['title'] ??
+                        AppState().tr('Bracelet Scanned!', 'تم مسح السوار!'))
+                    .toString();
+          }
+        } else {
+          title =
+              (row['title'] ??
+                      AppState().tr('Bracelet Scanned!', 'تم مسح السوار!'))
+                  .toString();
+        }
+
         list.add(
           ScanHistoryItem(
-            title: (row['title'] ?? 'Emergency Scan').toString(),
+            title: title,
             scanner: scanner,
             location: 'Cairo, Egypt',
             time: 'Just now',
@@ -72,7 +110,10 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
         final short = mq.size.shortestSide;
         final w = mq.size.width;
         final hPad = (w * 0.055).clamp(16.0, 28.0);
-        final btnPadBottom = mq.viewInsets.bottom + mq.padding.bottom + (short * 0.04).clamp(12.0, 24.0);
+        final btnPadBottom =
+            mq.viewInsets.bottom +
+            mq.padding.bottom +
+            (short * 0.04).clamp(12.0, 24.0);
 
         return Scaffold(
           resizeToAvoidBottomInset: true,
@@ -96,170 +137,228 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
               SafeArea(
                 child: Column(
                   children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: (w * 0.035).clamp(8.0, 16.0),
-                      vertical: (short * 0.012).clamp(6.0, 10.0),
-                    ),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.arrow_back, color: Color(0xFF273469)),
-                        ),
-                        Expanded(
-                          child: Text(
-                            appState.tr('QR Scan History', 'سجل مسح QR'),
-                            style: TextStyle(
-                              fontSize: (w * 0.05).clamp(17.0, 22.0),
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF273469),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: (w * 0.035).clamp(8.0, 16.0),
+                        vertical: (short * 0.012).clamp(6.0, 10.0),
+                      ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: Color(0xFF273469),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
+                          Expanded(
+                            child: Text(
+                              appState.tr('QR Scan History', 'سجل مسح QR'),
+                              style: TextStyle(
+                                fontSize: (w * 0.05).clamp(17.0, 22.0),
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF273469),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const Divider(color: Color(0xFFF3F4F6), thickness: 1),
+                    const Divider(color: Color(0xFFF3F4F6), thickness: 1),
 
-                  Expanded(
-                    child: FutureBuilder<List<ScanHistoryItem>>(
-                      future: _fetchStoredQrHistory(),
-                      builder: (context, snapshot) {
-                        final history = snapshot.data ?? appState.scanHistory;
-                        if (history.isEmpty) {
-                          return Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: hPad),
-                          child: Text(
-                            appState.tr('No scan history found', 'لم يتم العثور على سجل مسح'),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: (w * 0.038).clamp(13.0, 16.0),
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ),
-                      );
-                        }
-                        return ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.fromLTRB(hPad, (short * 0.02).clamp(8.0, 14.0), hPad, (short * 0.02).clamp(8.0, 14.0)),
-                        itemCount: history.length,
-                        itemBuilder: (context, index) {
-                          final item = history[index];
-                          return Container(
-                            margin: EdgeInsets.only(bottom: (short * 0.04).clamp(12.0, 18.0)),
-                            padding: EdgeInsets.all((short * 0.05).clamp(14.0, 22.0)),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha:0.02),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.all((short * 0.03).clamp(8.0, 14.0)),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEEF2FF),
-                                    borderRadius: BorderRadius.circular(12),
+                    Expanded(
+                      child: FutureBuilder<List<ScanHistoryItem>>(
+                        future: _fetchStoredQrHistory(),
+                        builder: (context, snapshot) {
+                          final history = snapshot.data ?? appState.scanHistory;
+                          if (history.isEmpty) {
+                            return Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(horizontal: hPad),
+                                child: Text(
+                                  appState.tr(
+                                    'No scan history found',
+                                    'لم يتم العثور على سجل مسح',
                                   ),
-                                  child: Icon(
-                                    LucideIcons.qrCode,
-                                    color: const Color(0xFF1B64F2),
-                                    size: (short * 0.06).clamp(20.0, 28.0),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: (w * 0.038).clamp(13.0, 16.0),
+                                    color: Colors.grey.shade600,
                                   ),
                                 ),
-                                SizedBox(width: (w * 0.04).clamp(10.0, 18.0)),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.title,
-                                        style: TextStyle(
-                                          fontSize: (w * 0.038).clamp(13.0, 16.0),
-                                          fontWeight: FontWeight.bold,
-                                          color: const Color(0xFF273469),
-                                        ),
+                              ),
+                            );
+                          }
+                          return ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: EdgeInsets.fromLTRB(
+                              hPad,
+                              (short * 0.02).clamp(8.0, 14.0),
+                              hPad,
+                              (short * 0.02).clamp(8.0, 14.0),
+                            ),
+                            itemCount: history.length,
+                            itemBuilder: (context, index) {
+                              final item = history[index];
+                              return Container(
+                                margin: EdgeInsets.only(
+                                  bottom: (short * 0.04).clamp(12.0, 18.0),
+                                ),
+                                padding: EdgeInsets.all(
+                                  (short * 0.05).clamp(14.0, 22.0),
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.02,
                                       ),
-                                      SizedBox(height: (short * 0.018).clamp(4.0, 8.0)),
-                                      RichText(
-                                        text: TextSpan(
-                                          style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-                                          children: [
-                                            TextSpan(text: appState.tr('Scanned by ', 'تم المسح بواسطة ')),
-                                            TextSpan(
-                                              text: item.scanner,
-                                              style: const TextStyle(color: Color(0xFF0E9F6E), fontWeight: FontWeight.bold),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.all(
+                                        (short * 0.03).clamp(8.0, 14.0),
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEEF2FF),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Icon(
+                                        LucideIcons.qrCode,
+                                        color: const Color(0xFF1B64F2),
+                                        size: (short * 0.06).clamp(20.0, 28.0),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: (w * 0.04).clamp(10.0, 18.0),
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item.title,
+                                            style: TextStyle(
+                                              fontSize: (w * 0.038).clamp(
+                                                13.0,
+                                                16.0,
+                                              ),
+                                              fontWeight: FontWeight.bold,
+                                              color: const Color(0xFF273469),
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                          SizedBox(
+                                            height: (short * 0.018).clamp(
+                                              4.0,
+                                              8.0,
+                                            ),
+                                          ),
+                                          if (item.scanner.isNotEmpty)
+                                            RichText(
+                                              text: TextSpan(
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.grey.shade600,
+                                                ),
+                                                children: [
+                                                  TextSpan(
+                                                    text: appState.tr(
+                                                      'Scanned by ',
+                                                      'تم المسح بواسطة ',
+                                                    ),
+                                                  ),
+                                                  TextSpan(
+                                                    text: item.scanner,
+                                                    style: const TextStyle(
+                                                      color: Color(0xFF0E9F6E),
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          if (item.scanner.isNotEmpty)
+                                            const SizedBox(height: 4),
+                                          Text(
+                                            '${item.location} • ${item.time}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey.shade400,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${item.location} • ${item.time}',
-                                        style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
-                                      ),
-                                    ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        (w * 0.1).clamp(24.0, 52.0),
+                        (short * 0.025).clamp(10.0, 20.0),
+                        (w * 0.1).clamp(24.0, 52.0),
+                        btnPadBottom,
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await _clearStoredQrHistory();
+                            appState.clearScanHistory();
+                            if (!mounted) return;
+                            setState(() {});
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  appState.tr(
+                                    'History cleared',
+                                    '?? ??? ?????',
                                   ),
                                 ),
-                              ],
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF3F4F6),
+                            foregroundColor: const Color(0xFF273469),
+                            elevation: 0,
+                            padding: EdgeInsets.symmetric(
+                              vertical: (short * 0.04).clamp(12.0, 18.0),
                             ),
-                          );
-                        },
-                      );
-                      },
-                    ),
-                  ),
-
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      (w * 0.1).clamp(24.0, 52.0),
-                      (short * 0.025).clamp(10.0, 20.0),
-                      (w * 0.1).clamp(24.0, 52.0),
-                      btnPadBottom,
-                    ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          await _clearStoredQrHistory();
-                          appState.clearScanHistory();
-                          if (!mounted) return;
-                          setState(() {});
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(appState.tr('History cleared', '?? ??? ?????'))),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFF3F4F6),
-                          foregroundColor: const Color(0xFF273469),
-                          elevation: 0,
-                          padding: EdgeInsets.symmetric(vertical: (short * 0.04).clamp(12.0, 18.0)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                        ),
-                        child: Text(
-                          appState.tr('Clear History', 'مسح السجل'),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: (w * 0.035).clamp(12.0, 15.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                          ),
+                          child: Text(
+                            appState.tr('Clear History', 'مسح السجل'),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: (w * 0.035).clamp(12.0, 15.0),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
             ],
           ),
         );
@@ -267,5 +366,3 @@ class _QrScanHistoryPageState extends State<QrScanHistoryPage> {
     );
   }
 }
-
-

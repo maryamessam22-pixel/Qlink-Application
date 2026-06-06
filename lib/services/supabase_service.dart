@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+﻿import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:q_link/core/models/patient_profile.dart';
@@ -27,7 +27,6 @@ class SupabaseService {
             .select()
             .eq('id', authResponse.user!.id)
             .maybeSingle();
-        
         return profileResponse;
       }
       return null;
@@ -52,24 +51,24 @@ class SupabaseService {
 
       if (authResponse.user != null) {
         await client.from('profiles').insert({
-          'id': authResponse.user!.id, 
+          'id': authResponse.user!.id,
           'full_name': fullName,
           'email': email,
           'role': role,
-          'status': true, 
-          'job_title': 'New Member', 
+          'status': true,
+          'job_title': 'New Member',
           'registration_date': DateTime.now().toIso8601String().split('T')[0],
-          'avatar_url': 'assets/images/mypic.png', 
+          'avatar_url': 'assets/images/mypic.png',
         });
 
-        return true; 
+        return true;
       }
       return false;
     } catch (e) {
       debugPrint('Error signing up: $e');
-      
+
       // If user already exists, attempt to sign in immediately (useful for demo/testing)
-      if (e.toString().contains('user_already_exists') || 
+      if (e.toString().contains('user_already_exists') ||
           e.toString().contains('User already registered')) {
         try {
           final signInRes = await signIn(email, password);
@@ -89,11 +88,26 @@ class SupabaseService {
           .select()
           .eq('id', userId)
           .maybeSingle();
-      
+
       return response;
     } catch (e) {
       debugPrint('Error fetching user profile: $e');
       return null;
+    }
+  }
+
+  /// Updates the current user's password in Supabase Auth
+  Future<bool> updateUserPassword(String newPassword) async {
+    try {
+      final user = client.auth.currentUser;
+      if (user == null) throw Exception('Not authenticated');
+
+      await client.auth.updateUser(UserAttributes(password: newPassword));
+      debugPrint('Password updated successfully');
+      return true;
+    } catch (e) {
+      debugPrint('Error updating password: $e');
+      rethrow;
     }
   }
 
@@ -153,7 +167,10 @@ class SupabaseService {
   /// This avoids XFile path issues on Flutter Web where blob URLs can't be re-read.
   String? lastUploadError;
 
-  Future<String?> uploadProfileAvatarBytes(Uint8List bytes, String profileId) async {
+  Future<String?> uploadProfileAvatarBytes(
+    Uint8List bytes,
+    String profileId,
+  ) async {
     lastUploadError = null;
     if (bytes.isEmpty) {
       lastUploadError = 'Image bytes are empty';
@@ -161,21 +178,27 @@ class SupabaseService {
     }
 
     try {
-      debugPrint('[AvatarUpload] Uploading ${bytes.length} bytes for profile $profileId');
+      debugPrint(
+        '[AvatarUpload] Uploading ${bytes.length} bytes for profile $profileId',
+      );
 
       final storagePath =
           'profiles/$profileId-${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-      await client.storage.from('avatars').uploadBinary(
-        storagePath,
-        bytes,
-        fileOptions: const FileOptions(
-          upsert: true,
-          contentType: 'image/jpeg',
-        ),
-      );
+      await client.storage
+          .from('avatars')
+          .uploadBinary(
+            storagePath,
+            bytes,
+            fileOptions: const FileOptions(
+              upsert: true,
+              contentType: 'image/jpeg',
+            ),
+          );
 
-      final publicUrl = client.storage.from('avatars').getPublicUrl(storagePath);
+      final publicUrl = client.storage
+          .from('avatars')
+          .getPublicUrl(storagePath);
       debugPrint('[AvatarUpload] Success! URL: $publicUrl');
       return publicUrl;
     } catch (e) {
@@ -186,7 +209,10 @@ class SupabaseService {
   }
 
   /// Uploads current user's avatar and updates `profiles.avatar_url`.
-  Future<String?> uploadAndSaveUserAvatar(Uint8List bytes, String userId) async {
+  Future<String?> uploadAndSaveUserAvatar(
+    Uint8List bytes,
+    String userId,
+  ) async {
     lastUploadError = null;
     if (bytes.isEmpty) {
       lastUploadError = 'Image bytes are empty';
@@ -196,19 +222,24 @@ class SupabaseService {
     try {
       final storagePath =
           '$userId/users/avatar-${DateTime.now().millisecondsSinceEpoch}.jpg';
-      await client.storage.from('avatars').uploadBinary(
-        storagePath,
-        bytes,
-        fileOptions: const FileOptions(
-          upsert: true,
-          contentType: 'image/jpeg',
-        ),
-      );
+      await client.storage
+          .from('avatars')
+          .uploadBinary(
+            storagePath,
+            bytes,
+            fileOptions: const FileOptions(
+              upsert: true,
+              contentType: 'image/jpeg',
+            ),
+          );
 
-      final publicUrl = client.storage.from('avatars').getPublicUrl(storagePath);
+      final publicUrl = client.storage
+          .from('avatars')
+          .getPublicUrl(storagePath);
       await client
           .from('profiles')
-          .update({'avatar_url': publicUrl}).eq('id', userId);
+          .update({'avatar_url': publicUrl})
+          .eq('id', userId);
       return publicUrl;
     } catch (e) {
       lastUploadError = e.toString();
@@ -219,7 +250,10 @@ class SupabaseService {
 
   Future<void> updatePatientProfile(String id, PatientProfile profile) async {
     try {
-      await client.from('patient_profiles').update(profile.toMap()).eq('id', id);
+      await client
+          .from('patient_profiles')
+          .update(profile.toMap())
+          .eq('id', id);
     } catch (e) {
       debugPrint('Error updating patient profile: $e');
       rethrow;
@@ -238,7 +272,9 @@ class SupabaseService {
           .select('id')
           .eq('guardian_id', userId);
 
-      final profileIds = (profiles as List).map((p) => p['id'] as String).toList();
+      final profileIds = (profiles as List)
+          .map((p) => p['id'] as String)
+          .toList();
       if (profileIds.isEmpty) return [];
 
       final response = await client
@@ -261,7 +297,9 @@ class SupabaseService {
     return getUserProfile(userId);
   }
 
-  Future<List<Map<String, dynamic>>> fetchVaultDocuments(String profileId) async {
+  Future<List<Map<String, dynamic>>> fetchVaultDocuments(
+    String profileId,
+  ) async {
     try {
       final response = await client
           .from('app_vault')
@@ -321,22 +359,25 @@ class SupabaseService {
     final safeFileName = fileName.replaceAll(' ', '_');
     final storagePath =
         '$guardianId/$profileId/${DateTime.now().millisecondsSinceEpoch}_$safeFileName';
-    await client.storage.from('vault-docs').uploadBinary(
-      storagePath,
-      bytes,
-      fileOptions: FileOptions(
-        upsert: false,
-        contentType: contentType,
-      ),
-    );
+    await client.storage
+        .from('vault-docs')
+        .uploadBinary(
+          storagePath,
+          bytes,
+          fileOptions: FileOptions(upsert: false, contentType: contentType),
+        );
     return storagePath;
   }
 
   Future<String> createVaultDocumentSignedUrl(String storagePath) async {
-    return client.storage.from('vault-docs').createSignedUrl(storagePath, 60 * 60);
+    return client.storage
+        .from('vault-docs')
+        .createSignedUrl(storagePath, 60 * 60);
   }
 
-  Future<Map<String, dynamic>?> fetchPatientProfileById(String profileId) async {
+  Future<Map<String, dynamic>?> fetchPatientProfileById(
+    String profileId,
+  ) async {
     try {
       final row = await client
           .from('patient_profiles')
@@ -376,9 +417,10 @@ class SupabaseService {
       final existing = row?['public_qr_token']?.toString();
       if (existing != null && existing.isNotEmpty) return existing;
       final fresh = const Uuid().v4();
-      await client.from('patient_profiles').update({
-        'public_qr_token': fresh,
-      }).eq('id', profileId);
+      await client
+          .from('patient_profiles')
+          .update({'public_qr_token': fresh})
+          .eq('id', profileId);
       return fresh;
     } catch (e) {
       debugPrint('ensurePublicQrToken: $e');
@@ -387,7 +429,9 @@ class SupabaseService {
   }
 
   /// Server records [notifications] row (`qr_scan`) and returns a safe profile JSON slice.
-  Future<Map<String, dynamic>?> recordQrScanAndFetchEmergency(String rawPayload) async {
+  Future<Map<String, dynamic>?> recordQrScanAndFetchEmergency(
+    String rawPayload,
+  ) async {
     try {
       final res = await client.rpc(
         'record_qr_scan_and_fetch_emergency',
@@ -425,7 +469,8 @@ class SupabaseService {
     final wearerId = (wearerProfile['id'] ?? '').toString();
     final wearerRole = (wearerProfile['role'] ?? '').toString().toLowerCase();
     if (wearerId.isEmpty) throw Exception('Invalid wearer account');
-    if (wearerId == guardianId) throw Exception('You cannot link your own account');
+    if (wearerId == guardianId)
+      throw Exception('You cannot link your own account');
     if (wearerRole != 'wearer') {
       throw Exception('This email belongs to a non-wearer account');
     }
@@ -456,13 +501,16 @@ class SupabaseService {
         .select('full_name, email')
         .eq('id', guardianId)
         .maybeSingle();
-    final guardianName = (guardianProfile?['full_name'] ?? 'Guardian').toString();
+    final guardianName =
+        (guardianProfile?['full_name'] ?? '').toString().trim().isNotEmpty
+        ? guardianProfile!['full_name'].toString().trim()
+        : (guardianProfile?['email'] ?? 'Guardian').toString();
 
     await client.from('notifications').insert({
       'id': const Uuid().v4(),
       'guardian_id': wearerId,
       'profile_id': wearerId,
-      'title': 'Link Request',
+      'title': 'Link request from $guardianName',
       'body': '$guardianName invited you to join their safety circle.',
       'type': 'wearer_link_request',
       'is_read': false,
@@ -483,14 +531,17 @@ class SupabaseService {
     final requests = List<Map<String, dynamic>>.from(rows as List);
     if (requests.isEmpty) return [];
 
-    final guardianIds = requests.map((e) => e['guardian_id'].toString()).toSet().toList();
+    final guardianIds = requests
+        .map((e) => e['guardian_id'].toString())
+        .toSet()
+        .toList();
     final guardians = await client
         .from('profiles')
         .select('id, full_name, email, avatar_url')
         .inFilter('id', guardianIds);
     final guardianMap = {
       for (final g in List<Map<String, dynamic>>.from(guardians as List))
-        g['id'].toString(): g
+        g['id'].toString(): g,
     };
 
     return requests.map((req) {
@@ -531,7 +582,7 @@ class SupabaseService {
         .inFilter('id', guardianIds);
     final guardianMap = {
       for (final g in List<Map<String, dynamic>>.from(guardians as List))
-        g['id'].toString(): g
+        g['id'].toString(): g,
     };
 
     return accepted.map((row) {
@@ -544,6 +595,122 @@ class SupabaseService {
         'guardian_avatar_url': guardian?['avatar_url'] ?? '',
       };
     }).toList();
+  }
+
+  Future<int> notifyAcceptedGuardiansFromWearer({
+    required String title,
+    required String body,
+    required String type,
+  }) async {
+    final wearerId = client.auth.currentUser?.id;
+    if (wearerId == null) throw Exception('Not authenticated');
+
+    final wearerProfile = await client
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', wearerId)
+        .maybeSingle();
+    final wearerName =
+        (wearerProfile?['full_name'] ?? wearerProfile?['email'] ?? '')
+            .toString()
+            .trim();
+
+    final rows = await client
+        .from('wearer_link_requests')
+        .select('guardian_id')
+        .eq('wearer_id', wearerId)
+        .eq('status', 'accepted');
+
+    final guardianIds = List<Map<String, dynamic>>.from(rows as List)
+        .map((row) => (row['guardian_id'] ?? '').toString())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+
+    if (guardianIds.isEmpty) return 0;
+
+    List<Map<String, dynamic>> patientRows = [];
+    try {
+      final patientProfiles = await client
+          .from('patient_profiles')
+          .select('id, guardian_id, profile_name, relationship_to_guardian')
+          .inFilter('guardian_id', guardianIds);
+      patientRows = List<Map<String, dynamic>>.from(patientProfiles as List);
+    } catch (e) {
+      debugPrint('Could not fetch guardian patient profiles for alert: $e');
+    }
+
+    var sentCount = 0;
+    for (final guardianId in guardianIds) {
+      final matchingProfile = patientRows
+          .cast<Map<String, dynamic>?>()
+          .firstWhere(
+            (row) {
+              if (row == null) return false;
+              if ((row['guardian_id'] ?? '').toString() != guardianId)
+                return false;
+              final profileName = (row['profile_name'] ?? '').toString().trim();
+              final relationship = (row['relationship_to_guardian'] ?? '')
+                  .toString()
+                  .trim()
+                  .toLowerCase();
+              return relationship == 'wearer' ||
+                  (wearerName.isNotEmpty && profileName == wearerName);
+            },
+            orElse: () => patientRows.cast<Map<String, dynamic>?>().firstWhere(
+              (row) => (row?['guardian_id'] ?? '').toString() == guardianId,
+              orElse: () => null,
+            ),
+          );
+
+      final payload = {
+        'id': const Uuid().v4(),
+        'guardian_id': guardianId,
+        'profile_id': (matchingProfile?['id'] ?? wearerId).toString(),
+        'title': title,
+        'body': body,
+        'type': type,
+        'is_read': false,
+      };
+
+      try {
+        await client.from('notifications').insert(payload);
+        sentCount++;
+      } catch (e) {
+        debugPrint('Notification insert failed for guardian $guardianId: $e');
+      }
+    }
+
+    if (sentCount == 0) {
+      final functionCount = await _notifyAcceptedGuardiansThroughFunction(
+        title: title,
+        body: body,
+        type: type,
+      );
+      if (functionCount > 0) return functionCount;
+    }
+
+    return sentCount;
+  }
+
+  Future<int> _notifyAcceptedGuardiansThroughFunction({
+    required String title,
+    required String body,
+    required String type,
+  }) async {
+    try {
+      final response = await client.functions.invoke(
+        'wearer-alert',
+        body: {'title': title, 'body': body, 'type': type},
+      );
+      final data = response.data;
+      if (data is Map && data['count'] is num) {
+        return (data['count'] as num).toInt();
+      }
+    } catch (e) {
+      debugPrint('wearer-alert function failed: $e');
+    }
+    return 0;
   }
 
   Future<void> respondToWearerLinkRequest({
@@ -572,7 +739,8 @@ class SupabaseService {
         .eq('id', wearerId)
         .maybeSingle();
 
-    final wearerName = (wearerProfile?['full_name'] ?? '').toString().trim().isEmpty
+    final wearerName =
+        (wearerProfile?['full_name'] ?? '').toString().trim().isEmpty
         ? (wearerProfile?['email'] ?? 'Wearer').toString()
         : (wearerProfile?['full_name'] ?? 'Wearer').toString();
     final wearerAvatar = (wearerProfile?['avatar_url'] ?? '').toString();
@@ -656,15 +824,39 @@ class SupabaseService {
     }
   }
 
-  Future<void> deleteNotificationById(String notificationId) async {
+  Future<bool> deleteNotificationById(String notificationId) async {
     final userId = client.auth.currentUser?.id;
-    if (userId == null || notificationId.isEmpty) return;
-    await client.from('notifications').delete().eq('id', notificationId).eq('guardian_id', userId);
+    if (userId == null || notificationId.isEmpty) return false;
+    final deleted = await client
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId)
+        .eq('guardian_id', userId)
+        .select('id');
+    return List<Map<String, dynamic>>.from(deleted as List).isNotEmpty;
   }
 
-  Future<void> deleteAllNotificationsForCurrentUser() async {
+  Future<int> deleteNotificationsByIds(List<String> notificationIds) async {
     final userId = client.auth.currentUser?.id;
-    if (userId == null) return;
-    await client.from('notifications').delete().eq('guardian_id', userId);
+    final ids = notificationIds.where((id) => id.isNotEmpty).toSet().toList();
+    if (userId == null || ids.isEmpty) return 0;
+    final deleted = await client
+        .from('notifications')
+        .delete()
+        .eq('guardian_id', userId)
+        .inFilter('id', ids)
+        .select('id');
+    return List<Map<String, dynamic>>.from(deleted as List).length;
+  }
+
+  Future<int> deleteAllNotificationsForCurrentUser() async {
+    final userId = client.auth.currentUser?.id;
+    if (userId == null) return 0;
+    final deleted = await client
+        .from('notifications')
+        .delete()
+        .eq('guardian_id', userId)
+        .select('id');
+    return List<Map<String, dynamic>>.from(deleted as List).length;
   }
 }

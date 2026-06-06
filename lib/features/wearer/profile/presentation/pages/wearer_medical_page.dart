@@ -5,7 +5,8 @@ import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_hardware_link_page.dart';
-import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
+import 'package:q_link/features/shared/widgets/header_widget.dart'
+    show getUserAvatarProvider;
 
 class WearerMedicalPage extends StatefulWidget {
   final String name;
@@ -35,7 +36,16 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
   final TextEditingController _medicalNotesController = TextEditingController();
   String? _selectedBloodType;
 
-  final List<String> _bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  final List<String> _bloodTypes = [
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'AB+',
+    'AB-',
+    'O+',
+    'O-',
+  ];
 
   @override
   void dispose() {
@@ -57,7 +67,9 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
         final hPad = (w * 0.06).clamp(16.0, 28.0);
         final vPad = (short * 0.03).clamp(12.0, 20.0);
         final bottomPad =
-            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.08).clamp(24.0, 40.0);
+            mq.viewInsets.bottom +
+            mq.padding.bottom +
+            (short * 0.08).clamp(24.0, 40.0);
         return Scaffold(
           resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
@@ -68,252 +80,309 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
                     child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                   Row(
-                    children: [
-                      VideoLogoWidget(),
-                      SizedBox(width: (short * 0.022).clamp(6.0, 12.0)),
-                      CircleAvatar(
-                        radius: (short * 0.042).clamp(14.0, 18.0),
-                        backgroundColor: const Color(0xFFE6F0FE),
-                        backgroundImage: getUserAvatarProvider(appState.currentUser.imagePath),
-                        onBackgroundImageError: (_, __) {},
-                      ),
-                      const Spacer(),
-                      const LanguageToggle(),
-                      SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
-                      Stack(
-                        children: [
-                          Icon(Icons.notifications_none, color: const Color(0xFF1E3A8A), size: (short * 0.072).clamp(24.0, 30.0)),
-                          Positioned(
-                            right: 2,
-                            top: 2,
-                            child: Container(
-                              width: (short * 0.028).clamp(8.0, 12.0),
-                              height: (short * 0.028).clamp(8.0, 12.0),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            VideoLogoWidget(),
+                            SizedBox(width: (short * 0.022).clamp(6.0, 12.0)),
+                            CircleAvatar(
+                              radius: (short * 0.042).clamp(14.0, 18.0),
+                              backgroundColor: const Color(0xFFE6F0FE),
+                              backgroundImage: getUserAvatarProvider(
+                                appState.currentUser.imagePath,
+                              ),
+                              onBackgroundImageError: (_, __) {},
+                            ),
+                            const Spacer(),
+                            const LanguageToggle(),
+                            SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
+                            Stack(
+                              children: [
+                                Icon(
+                                  Icons.notifications_none,
+                                  color: const Color(0xFF1E3A8A),
+                                  size: (short * 0.072).clamp(24.0, 30.0),
+                                ),
+                                Positioned(
+                                  right: 2,
+                                  top: 2,
+                                  child: Container(
+                                    width: (short * 0.028).clamp(8.0, 12.0),
+                                    height: (short * 0.028).clamp(8.0, 12.0),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+
+                        // Back Button
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.arrow_back,
+                                color: Colors.grey.shade500,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                appState.tr('Back', 'رجوع'),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey.shade500,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        SizedBox(height: (short * 0.05).clamp(14.0, 22.0)),
+
+                        // Title
+                        Text(
+                          appState.tr(
+                            'Generate Your Profile',
+                            'أنشئ ملفك الشخصي',
+                          ),
+                          style: TextStyle(
+                            fontSize: (short * 0.065).clamp(20.0, 26.0),
+                            fontWeight: FontWeight.w900,
+                            color: const Color(0xFF273469),
+                          ),
+                        ),
+
+                        SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
+
+                        // Progress Bar
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: (short * 0.012).clamp(3.0, 5.0),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF273469),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
-                  
-                  // Back Button
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Row(
-                      children: [
-                        Icon(Icons.arrow_back, color: Colors.grey.shade500, size: 20),
-                        const SizedBox(width: 4),
+                            SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
+                            Expanded(
+                              child: Container(
+                                height: (short * 0.012).clamp(3.0, 5.0),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF273469),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
+                            Expanded(
+                              child: Container(
+                                height: (short * 0.012).clamp(3.0, 5.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
+
                         Text(
-                          appState.tr('Back', 'رجوع'),
+                          appState.tr(
+                            'Step 2 of 3: Medical',
+                            'الخطوة 2 من 3: المعلومات الطبية',
+                          ),
                           style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey.shade500,
+                            fontSize: (short * 0.036).clamp(13.0, 15.0),
+                            color: Colors.grey.shade600,
                             fontWeight: FontWeight.w500,
+                          ),
+                        ),
+
+                        SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+                        const Divider(color: Color(0xFFE5E7EB), thickness: 1),
+                        SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+
+                        // Form Fields
+                        _buildLabelAndTextArea(
+                          label: appState.tr('Safety Notes', 'ملاحظات السلامة'),
+                          hintText: appState.tr(
+                            'e.g., Keep medical ID on hand and notify staff',
+                            'مثال: احتفظ ببطاقة طبية وأخبر الطاقم',
+                          ),
+                          controller: _safetyNotesController,
+                        ),
+                        SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+
+                        _buildLabelAndTextArea(
+                          label: appState.tr('Allergies', 'الحساسية'),
+                          hintText: appState.tr(
+                            'e.g., Penicillin, Peanuts, Shellfish',
+                            'مثال: بنسلين، فول سوداني، مأكولات بحرية',
+                          ),
+                          controller: _allergiesController,
+                        ),
+                        SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+
+                        // Blood Type Picker
+                        Text(
+                          appState.tr('Blood Type', 'فصيلة الدم'),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF273469),
+                          ),
+                        ),
+                        SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4,
+                                crossAxisSpacing: (short * 0.024).clamp(
+                                  8.0,
+                                  12.0,
+                                ),
+                                mainAxisSpacing: (short * 0.024).clamp(
+                                  8.0,
+                                  12.0,
+                                ),
+                                childAspectRatio: (w / short) > 1.9 ? 1.7 : 1.4,
+                              ),
+                          itemCount: _bloodTypes.length,
+                          itemBuilder: (context, index) {
+                            final type = _bloodTypes[index];
+                            final isSelected = _selectedBloodType == type;
+                            return GestureDetector(
+                              onTap: () =>
+                                  setState(() => _selectedBloodType = type),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? const Color(0xFF273469)
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(
+                                    (w * 0.02).clamp(8.0, 10.0),
+                                  ),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? const Color(0xFF273469)
+                                        : Colors.grey.shade200,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    type,
+                                    style: TextStyle(
+                                      fontSize: (short * 0.04).clamp(
+                                        14.0,
+                                        17.0,
+                                      ),
+                                      fontWeight: FontWeight.w800,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : const Color(0xFF273469),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+
+                        _buildLabelAndTextArea(
+                          label: appState.tr(
+                            'Medical Notes',
+                            'الملاحظات الطبية',
+                          ),
+                          hintText: appState.tr(
+                            'e.g., Diabetic, asthma, or hypertension',
+                            'مثال: سكري، ربو، أو ارتفاع ضغط الدم',
+                          ),
+                          controller: _medicalNotesController,
+                        ),
+
+                        SizedBox(height: (short * 0.12).clamp(34.0, 52.0)),
+                        // Continue Button
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => WearerHardwareLinkPage(
+                                  name: widget.name,
+                                  relationship: widget.relationship,
+                                  birthYear: widget.birthYear,
+                                  emergencyContacts: widget.emergencyContacts,
+                                  avatarUrl: widget.avatarUrl,
+                                  avatarBytes: widget.avatarBytes,
+                                  bloodType: _selectedBloodType ?? '',
+                                  allergies: _allergiesController.text,
+                                  condition: _medicalNotesController.text,
+                                  safetyNotes: _safetyNotesController.text,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            height: (short * 0.15).clamp(50.0, 60.0),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF0066CC), Color(0xFF273469)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(
+                                (short * 0.075).clamp(24.0, 30.0),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  appState.tr(
+                                    'Continue to hardware link',
+                                    'متابعة لربط الجهاز',
+                                  ),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: (short * 0.04).clamp(14.0, 17.0),
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  LucideIcons.arrowRight,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  
-                  SizedBox(height: (short * 0.05).clamp(14.0, 22.0)),
-                  
-                  // Title
-                  Text(
-                    appState.tr('Generate Your Profile', 'أنشئ ملفك الشخصي'),
-                    style: TextStyle(
-                      fontSize: (short * 0.065).clamp(20.0, 26.0),
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFF273469),
-                    ),
-                  ),
-                  
-                  SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
-                  
-                  // Progress Bar
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: (short * 0.012).clamp(3.0, 5.0),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF273469),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
-                      Expanded(
-                        child: Container(
-                          height: (short * 0.012).clamp(3.0, 5.0),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF273469),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
-                      Expanded(
-                        child: Container(
-                          height: (short * 0.012).clamp(3.0, 5.0),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
-                  
-                  Text(
-                    appState.tr('Step 2 of 3: Medical', 'الخطوة 2 من 3: المعلومات الطبية'),
-                    style: TextStyle(
-                      fontSize: (short * 0.036).clamp(13.0, 15.0),
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  
-                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
-                  const Divider(color: Color(0xFFE5E7EB), thickness: 1),
-                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
-
-                  // Form Fields
-                  _buildLabelAndTextArea(
-                    label: appState.tr('Safety Notes', 'ملاحظات السلامة'),
-                    hintText: appState.tr('e.g., Additional safety information', 'مثال: معلومات سلامة إضافية'),
-                    controller: _safetyNotesController,
-                  ),
-                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
-                  
-                  _buildLabelAndTextArea(
-                    label: appState.tr('Allergies', 'الحساسية'),
-                    hintText: appState.tr('e.g., Penicillin, Peanuts, Shellfish', 'مثال: بنسلين، فول سوداني، مأكولات بحرية'),
-                    controller: _allergiesController,
-                  ),
-                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
-                  
-                  // Blood Type Picker
-                  Text(
-                    appState.tr('Blood Type', 'فصيلة الدم'),
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF273469),
-                    ),
-                  ),
-                  SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      crossAxisSpacing: (short * 0.024).clamp(8.0, 12.0),
-                      mainAxisSpacing: (short * 0.024).clamp(8.0, 12.0),
-                      childAspectRatio: (w / short) > 1.9 ? 1.7 : 1.4,
-                    ),
-                    itemCount: _bloodTypes.length,
-                    itemBuilder: (context, index) {
-                      final type = _bloodTypes[index];
-                      final isSelected = _selectedBloodType == type;
-                      return GestureDetector(
-                        onTap: () => setState(() => _selectedBloodType = type),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFF273469) : Colors.white,
-                            borderRadius: BorderRadius.circular((w * 0.02).clamp(8.0, 10.0)),
-                            border: Border.all(
-                              color: isSelected ? const Color(0xFF273469) : Colors.grey.shade200,
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              type,
-                              style: TextStyle(
-                                fontSize: (short * 0.04).clamp(14.0, 17.0),
-                                fontWeight: FontWeight.w800,
-                                color: isSelected ? Colors.white : const Color(0xFF273469),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
-
-                  _buildLabelAndTextArea(
-                    label: appState.tr('Medical Notes', 'الملاحظات الطبية'),
-                    hintText: appState.tr('e.g., Diabetic', 'مثال: مرض السكري'),
-                    controller: _medicalNotesController,
-                  ),
-                  
-                  SizedBox(height: (short * 0.12).clamp(34.0, 52.0)),
-                  // Continue Button
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => WearerHardwareLinkPage(
-                            name: widget.name,
-                            relationship: widget.relationship,
-                            birthYear: widget.birthYear,
-                            emergencyContacts: widget.emergencyContacts,
-                            avatarUrl: widget.avatarUrl,
-                            avatarBytes: widget.avatarBytes,
-                            bloodType: _selectedBloodType ?? '',
-                            allergies: _allergiesController.text,
-                            condition: _medicalNotesController.text,
-                            safetyNotes: _safetyNotesController.text,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      height: (short * 0.15).clamp(50.0, 60.0),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF0066CC), Color(0xFF273469)],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        borderRadius: BorderRadius.circular((short * 0.075).clamp(24.0, 30.0)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            appState.tr('Continue to hardware link', 'متابعة لربط الجهاز'),
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: (short * 0.04).clamp(14.0, 17.0),
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(LucideIcons.arrowRight, color: Colors.white, size: 20),
-                        ],
-                      ),
-                    ),
-                  ),
-                  
-                ],
-              ),
-            ),
                 );
               },
             ),
@@ -346,7 +415,10 @@ class _WearerMedicalPageState extends State<WearerMedicalPage> {
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade200),

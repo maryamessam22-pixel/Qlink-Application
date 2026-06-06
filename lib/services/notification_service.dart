@@ -39,6 +39,7 @@ class NotificationService {
   FirebaseMessaging? _fcm;
 
   RealtimeChannel? _realtimeChannel;
+  String? _listeningUserId;
 
   Future<void> initialize() async {
     if (kIsWeb) return;
@@ -93,6 +94,14 @@ class NotificationService {
   void startRealtimeListener() {
     final userId = SupabaseService().client.auth.currentUser?.id;
     if (userId == null) return;
+    if (_listeningUserId == userId && _realtimeChannel != null) {
+      _loadUnreadCount(userId);
+      return;
+    }
+
+    _realtimeChannel?.unsubscribe();
+    _realtimeChannel = null;
+    _listeningUserId = userId;
 
     _loadUnreadCount(userId);
 
@@ -128,10 +137,26 @@ class NotificationService {
           .select()
           .eq('guardian_id', userId)
           .eq('is_read', false);
-      AppState().setUnreadNotificationCount((response as List).length);
+      var count = (response as List).length;
+
+      if (AppState().currentUser.role.toLowerCase() == 'wearer') {
+        final pendingRequests =
+            await SupabaseService().fetchPendingWearerLinkRequests();
+        if (pendingRequests.length > count) {
+          count = pendingRequests.length;
+        }
+      }
+
+      AppState().setUnreadNotificationCount(count);
     } catch (e) {
       debugPrint('[Notifications] Load error: $e');
     }
+  }
+
+  Future<void> refreshUnreadCount() async {
+    final userId = SupabaseService().client.auth.currentUser?.id;
+    if (userId == null) return;
+    await _loadUnreadCount(userId);
   }
 
   Future<void> markAllRead() async {
@@ -177,5 +202,6 @@ class NotificationService {
   void stopRealtimeListener() {
     _realtimeChannel?.unsubscribe();
     _realtimeChannel = null;
+    _listeningUserId = null;
   }
 }

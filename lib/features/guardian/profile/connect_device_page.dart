@@ -50,11 +50,9 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
   String _syncSubMessage = '';
 
   final List<String> _deviceTypes = [
-    'Qlink Smart Bracelet "Pro"',
-    'Qlink Smart Bracelet "Nova"',
-    'Qlink Smart Bracelet "Pulse"',
-    'Qlink Band "Non Digital"',
-    'Link Smart Watch',
+    'QLink Smart Bracelet "Nova"',
+    'QLink Smart Bracelet "Pulse"',
+    'QLink Band "Non Digital"',
   ];
 
   @override
@@ -121,7 +119,8 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
           );
         }
 
-        String deviceType = _selectedDeviceType ?? 'Qlink Smart Bracelet "Pro"';
+        String deviceType =
+            _selectedDeviceType ?? 'QLink Smart Bracelet "Nova"';
         String deviceCode = _codeController.text.trim();
         String shortDeviceType = deviceType.contains('Qlink')
             ? 'Qlink Bracelet'
@@ -499,7 +498,11 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
               value: _selectedDeviceType,
               hint: Text(
                 AppState().tr('Choose Device Type', 'اختر نوع الجهاز'),
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                style: TextStyle(
+                  fontFamily: 'Roboto',
+                  color: Colors.grey.shade500,
+                  fontSize: 14,
+                ),
               ),
               isExpanded: true,
               icon: Icon(
@@ -512,6 +515,7 @@ class _ConnectDevicePageState extends State<ConnectDevicePage> {
                   child: Text(
                     type,
                     style: const TextStyle(
+                      fontFamily: 'Roboto',
                       fontSize: 14,
                       color: Color(0xFF1F2937),
                     ),

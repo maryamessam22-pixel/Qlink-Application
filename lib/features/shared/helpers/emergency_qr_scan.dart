@@ -29,11 +29,16 @@ ProfileData profileDataFromPatientProfileRow(Map<String, dynamic> row) {
         contacts.add(value);
       }
     }
-  } else if (contacts.isEmpty && emergencyContacts is String && emergencyContacts.trim().isNotEmpty) {
+  } else if (contacts.isEmpty &&
+      emergencyContacts is String &&
+      emergencyContacts.trim().isNotEmpty) {
     try {
       final decoded = json.decode(emergencyContacts);
       if (decoded is Map) {
-        return profileDataFromPatientProfileRow({...row, 'emergency_contacts': decoded});
+        return profileDataFromPatientProfileRow({
+          ...row,
+          'emergency_contacts': decoded,
+        });
       }
     } catch (_) {}
   }
@@ -93,8 +98,9 @@ String? parseProfileUuidFromQrPayload(String raw) {
 /// Fallback: SELECT by UUID when RPC not deployed yet.
 Future<void> navigateEmergencyPreviewFromQrRaw(
   BuildContext context,
-  String raw,
-) async {
+  String raw, {
+  String? scannerPhone,
+}) async {
   final trimmed = raw.trim();
   if (trimmed.isEmpty) return;
 
@@ -106,13 +112,18 @@ Future<void> navigateEmergencyPreviewFromQrRaw(
       rpc['ok'] == true &&
       rpc['profile'] != null &&
       rpc['profile'] is Map) {
-    final preview =
-        profileDataFromPatientProfileRow(Map<String, dynamic>.from(rpc['profile'] as Map));
+    final preview = profileDataFromPatientProfileRow(
+      Map<String, dynamic>.from(rpc['profile'] as Map),
+    );
     if (!context.mounted) return;
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PublicPreviewQrPage(profile: preview, skipGuardianNotify: true),
+        builder: (_) => PublicPreviewQrPage(
+          profile: preview,
+          skipGuardianNotify: true,
+          scannerPhone: scannerPhone,
+        ),
       ),
     );
     return;
@@ -121,9 +132,9 @@ Future<void> navigateEmergencyPreviewFromQrRaw(
   final uuid = parseProfileUuidFromQrPayload(trimmed);
   if (uuid == null) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unrecognized QR format.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Unrecognized QR format.')));
     }
     return;
   }
@@ -141,7 +152,10 @@ Future<void> navigateEmergencyPreviewFromQrRaw(
   await Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (_) => PublicPreviewQrPage(profile: previewProfile),
+      builder: (_) => PublicPreviewQrPage(
+        profile: previewProfile,
+        scannerPhone: scannerPhone,
+      ),
     ),
   );
 }

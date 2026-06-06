@@ -14,7 +14,6 @@ import 'package:q_link/features/wearer/profile/presentation/pages/wearer_identit
 import 'package:q_link/features/guardian/map/map_page.dart';
 import 'package:q_link/features/guardian/profile/quick_create_wearer_page.dart';
 
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -32,11 +31,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _profilesFuture = SupabaseService().fetchPatientProfiles();
-    _notificationsFuture = SupabaseService().client
-        .from('notifications')
-        .select('title, body, created_at, type')
-        .order('created_at', ascending: false)
-        .limit(20);
+    _notificationsFuture = _fetchGuardianNotifications();
     _locationsFuture = SupabaseService().fetchLatestProfileLocations();
     AppState().addListener(_checkProfileRefresh);
   }
@@ -57,13 +52,23 @@ class _HomePageState extends State<HomePage> {
   void _refreshProfiles() {
     setState(() {
       _profilesFuture = SupabaseService().fetchPatientProfiles();
-      _notificationsFuture = SupabaseService().client
-          .from('notifications')
-          .select('title, body, created_at, type')
-          .order('created_at', ascending: false)
-          .limit(20);
+      _notificationsFuture = _fetchGuardianNotifications();
       _locationsFuture = SupabaseService().fetchLatestProfileLocations();
     });
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchGuardianNotifications() async {
+    final guardianId = SupabaseService().client.auth.currentUser?.id;
+    if (guardianId == null) return [];
+
+    final rows = await SupabaseService()
+        .client
+        .from('notifications')
+        .select('title, body, created_at, type')
+        .eq('guardian_id', guardianId)
+        .order('created_at', ascending: false)
+        .limit(20);
+    return List<Map<String, dynamic>>.from(rows as List);
   }
 
   Future<void> _showLinkExistingWearerDialog() async {
@@ -202,32 +207,84 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    int selectedIndex = 0;
+    final availableProfileIndices = profiles
+        .asMap()
+        .entries
+        .where((entry) => !entry.value.status)
+        .map((entry) => entry.key)
+        .toList();
+    int selectedIndex = availableProfileIndices.isNotEmpty
+        ? availableProfileIndices.first
+        : 0;
     final chosenProfileIndex = await showDialog<int>(
       context: context,
       builder: (dialogCtx) {
         return StatefulBuilder(
           builder: (context, setState) {
+            final selectedProfile = profiles[selectedIndex];
+            final hasSelectedBracelet = selectedProfile.status;
             return AlertDialog(
               title: Text(AppState().tr('Select profile', 'اختر الملف الشخصي')),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: profiles.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final profile = entry.value;
-                    return RadioListTile<int>(
-                      value: index,
-                      groupValue: selectedIndex,
-                      title: Text(profile.profileName),
-                      subtitle: Text(profile.relationshipToGuardian),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedIndex = value ?? 0;
-                        });
-                      },
-                    );
-                  }).toList(),
+                  children: [
+                    if (availableProfileIndices.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Text(
+                          AppState().tr(
+                            'All profiles already have linked bracelets.',
+                            'جميع الملفات الشخصية لديها أساور مرتبطة بالفعل.',
+                          ),
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ...profiles.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final profile = entry.value;
+                      final hasBracelet = profile.status;
+                      return RadioListTile<int>(
+                        value: index,
+                        groupValue: selectedIndex,
+                        title: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                profile.profileName,
+                                style: TextStyle(
+                                  color: hasBracelet
+                                      ? Colors.grey.shade500
+                                      : Colors.black,
+                                ),
+                              ),
+                            ),
+                            if (hasBracelet) ...[
+                              const SizedBox(width: 8),
+                              Text(
+                                AppState().tr('Already linked', 'مرتبط بالفعل'),
+                                style: const TextStyle(
+                                  color: Color(0xFF22C55E),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        subtitle: Text(profile.relationshipToGuardian),
+                        onChanged: hasBracelet
+                            ? null
+                            : (value) {
+                                setState(() {
+                                  selectedIndex = value ?? selectedIndex;
+                                });
+                              },
+                      );
+                    }).toList(),
+                  ],
                 ),
               ),
               actions: [
@@ -236,9 +293,11 @@ class _HomePageState extends State<HomePage> {
                   child: Text(AppState().tr('Cancel', 'إلغاء')),
                 ),
                 TextButton(
-                  onPressed: () {
-                    Navigator.pop(dialogCtx, selectedIndex);
-                  },
+                  onPressed: hasSelectedBracelet
+                      ? null
+                      : () {
+                          Navigator.pop(dialogCtx, selectedIndex);
+                        },
                   child: Text(AppState().tr('Connect', 'ربط')),
                 ),
               ],
@@ -851,14 +910,14 @@ class _HomePageState extends State<HomePage> {
                                           builder: (dialogContext) => AlertDialog(
                                             title: Text(
                                               appState.tr(
-                                                'Create profile first',
-                                                'أنشئ ملف تعريف أولاً',
+                                                'Profile Required',
+                                                'مطلوب ملف تعريف',
                                               ),
                                             ),
                                             content: Text(
                                               appState.tr(
-                                                'Create profile first to connect a bracelet.',
-                                                'أنشئ ملف تعريف أولاً لتوصيل سوار.',
+                                                'Please create a wearer profile before linking a new hardware device.',
+                                                'يرجى إنشاء ملف تعريف للمرافق قبل ربط جهاز جديد.',
                                               ),
                                             ),
                                             actions: [
@@ -867,7 +926,10 @@ class _HomePageState extends State<HomePage> {
                                                   dialogContext,
                                                 ),
                                                 child: Text(
-                                                  appState.tr('OK', 'حسناً'),
+                                                  appState.tr(
+                                                    'Cancel',
+                                                    'إلغاء',
+                                                  ),
                                                 ),
                                               ),
                                               TextButton(
@@ -883,7 +945,7 @@ class _HomePageState extends State<HomePage> {
                                                 },
                                                 child: Text(
                                                   appState.tr(
-                                                    'Create profile',
+                                                    'Create Profile',
                                                     'إنشاء ملف تعريف',
                                                   ),
                                                   style: const TextStyle(
@@ -1547,7 +1609,7 @@ class _HomePageState extends State<HomePage> {
       future: notificationsFuture,
       builder: (context, notiSnap) {
         final notifications = notiSnap.data ?? const <Map<String, dynamic>>[];
-        
+
         List<Widget> activityWidgets = [];
         if (notiSnap.connectionState == ConnectionState.waiting) {
           activityWidgets.add(
@@ -1576,22 +1638,31 @@ class _HomePageState extends State<HomePage> {
             final nTitle = (n['title'] ?? '').toString();
             final nBody = (n['body'] ?? '').toString();
             final createdAt = n['created_at'];
-            
+
             DateTime? timeDate;
             if (createdAt != null) {
               timeDate = DateTime.tryParse(createdAt.toString());
             }
-            
+
             String timeStr = '';
             if (timeDate != null) {
               final now = DateTime.now();
               final diff = now.difference(timeDate);
               if (diff.inDays > 0) {
-                timeStr = appState.tr('${diff.inDays}d ago', 'منذ ${diff.inDays} يوم');
+                timeStr = appState.tr(
+                  '${diff.inDays}d ago',
+                  'منذ ${diff.inDays} يوم',
+                );
               } else if (diff.inHours > 0) {
-                timeStr = appState.tr('${diff.inHours}h ago', 'منذ ${diff.inHours} ساعة');
+                timeStr = appState.tr(
+                  '${diff.inHours}h ago',
+                  'منذ ${diff.inHours} ساعة',
+                );
               } else if (diff.inMinutes > 0) {
-                timeStr = appState.tr('${diff.inMinutes}m ago', 'منذ ${diff.inMinutes} دقيقة');
+                timeStr = appState.tr(
+                  '${diff.inMinutes}m ago',
+                  'منذ ${diff.inMinutes} دقيقة',
+                );
               } else {
                 timeStr = appState.tr('Just now', 'الآن');
               }
@@ -1600,12 +1671,14 @@ class _HomePageState extends State<HomePage> {
             IconData iconData = Icons.notifications_none;
             Color iconColor = const Color(0xFF1B64F2);
             String headerTitle = appState.tr('Alert', 'تنبيه');
-            
+
             if (type == 'qr_scan' || type == 'emergency') {
               iconData = Icons.error_outline;
               iconColor = Colors.red;
               headerTitle = appState.tr('Emergency', 'طوارئ');
-            } else if (type == 'zone_entry' || type == 'safe_zone' || type == 'zone_exit') {
+            } else if (type == 'zone_entry' ||
+                type == 'safe_zone' ||
+                type == 'zone_exit') {
               iconData = Icons.location_on_outlined;
               iconColor = Colors.green;
               headerTitle = appState.tr('Location', 'الموقع');
@@ -1630,9 +1703,11 @@ class _HomePageState extends State<HomePage> {
                 time: timeStr,
               ),
             );
-            
+
             if (i < notifications.length - 1 && i < 2) {
-              activityWidgets.add(SizedBox(height: (short * 0.03).clamp(10.0, 14.0)));
+              activityWidgets.add(
+                SizedBox(height: (short * 0.03).clamp(10.0, 14.0)),
+              );
             }
           }
         }
@@ -1646,13 +1721,17 @@ class _HomePageState extends State<HomePage> {
               child: FutureBuilder<Map<String, Map<String, double>>>(
                 future: locationsFuture,
                 builder: (context, locSnap) {
-                  final locations = locSnap.data ?? const <String, Map<String, double>>{};
+                  final locations =
+                      locSnap.data ?? const <String, Map<String, double>>{};
                   final displayProfiles = profiles;
                   final activePins = displayProfiles.length;
                   final pinText = activePins <= 1
-                      ? appState.tr('1 profile pin near you', 'دبوس ملف شخصي قريب منك')
+                      ? appState.tr(
+                          '1 profile pin near you',
+                          'دبوس ملف شخصي قريب منك',
+                        )
                       : '$activePins ${appState.tr('profile pins near you', 'دبابيس ملفات شخصية قريبة منك')}';
-                  
+
                   const placeholderCoords = [
                     LatLng(30.0500, 31.2300),
                     LatLng(30.0350, 31.2450),
@@ -1666,12 +1745,13 @@ class _HomePageState extends State<HomePage> {
                   final gapAfterAvatar = (short * 0.015).clamp(4.0, 8.0);
                   final nameFs = (short * 0.022).clamp(8.0, 11.0);
                   final labelPadV = (short * 0.005).clamp(1.0, 4.0) * 2;
-                  final markerHeight = (avatarBox +
-                          gapAfterAvatar +
-                          labelPadV +
-                          nameFs * 1.45 +
-                          10)
-                      .clamp(markerWidth * 1.12, markerWidth * 1.55);
+                  final markerHeight =
+                      (avatarBox +
+                              gapAfterAvatar +
+                              labelPadV +
+                              nameFs * 1.45 +
+                              10)
+                          .clamp(markerWidth * 1.12, markerWidth * 1.55);
 
                   final markers = <Marker>[];
                   final points = <LatLng>[];
@@ -1683,73 +1763,91 @@ class _HomePageState extends State<HomePage> {
                         ? LatLng(loc['lat']!, loc['lng']!)
                         : placeholderCoords[i % placeholderCoords.length];
                     points.add(coord);
-                    markers.add(Marker(
-                      point: coord,
-                      width: markerWidth,
-                      height: markerHeight,
-                      child: _buildProfileMarker(
-                        context,
-                        name: profile.profileName.toUpperCase(),
-                        avatarUrl: profile.avatarUrl,
-                        hasStatusDot: profile.status,
-                        maxLabelWidth: markerWidth - 4,
+                    markers.add(
+                      Marker(
+                        point: coord,
+                        width: markerWidth,
+                        height: markerHeight,
+                        child: _buildProfileMarker(
+                          context,
+                          name: profile.profileName.toUpperCase(),
+                          avatarUrl: profile.avatarUrl,
+                          hasStatusDot: profile.status,
+                          maxLabelWidth: markerWidth - 4,
+                        ),
                       ),
-                    ));
+                    );
                   }
 
-                  final center = points.isNotEmpty ? points.first : const LatLng(30.0444, 31.2357);
+                  final center = points.isNotEmpty
+                      ? points.first
+                      : const LatLng(30.0444, 31.2357);
 
                   return Stack(
-                      children: [
-                        SizedBox(
-                          height: bannerH,
-                          width: double.infinity,
-                          child: FlutterMap(
-                            options: MapOptions(
-                              initialCenter: center,
-                              initialZoom: points.isNotEmpty ? 12 : 10,
-                              interactionOptions: const InteractionOptions(
-                                flags: InteractiveFlag.all,
-                              ),
+                    children: [
+                      SizedBox(
+                        height: bannerH,
+                        width: double.infinity,
+                        child: FlutterMap(
+                          options: MapOptions(
+                            initialCenter: center,
+                            initialZoom: points.isNotEmpty ? 12 : 10,
+                            interactionOptions: const InteractionOptions(
+                              flags: InteractiveFlag.all,
                             ),
+                          ),
+                          children: [
+                            TileLayer(
+                              urlTemplate:
+                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.qlink.app',
+                            ),
+                            MarkerLayer(markers: markers),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        height: bannerH,
+                        width: double.infinity,
+                        color: Colors.black.withValues(alpha: 0.08),
+                      ),
+                      Positioned(
+                        left: 10,
+                        bottom: 10,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: (w * 0.03).clamp(10.0, 14.0),
+                            vertical: (short * 0.016).clamp(4.0, 8.0),
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1B64F2),
+                            borderRadius: BorderRadius.circular(
+                              (short * 0.055).clamp(16.0, 22.0),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              TileLayer(
-                                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                userAgentPackageName: 'com.qlink.app',
+                              Icon(
+                                Icons.person_pin_circle,
+                                color: Colors.white,
+                                size: (short * 0.042).clamp(14.0, 18.0),
                               ),
-                              MarkerLayer(markers: markers),
+                              SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
+                              Text(
+                                pinText,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: (w * 0.028).clamp(10.0, 12.0),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        Container(
-                          height: bannerH,
-                          width: double.infinity,
-                          color: Colors.black.withValues(alpha: 0.08),
-                        ),
-                        Positioned(
-                          left: 10,
-                          bottom: 10,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: (w * 0.03).clamp(10.0, 14.0),
-                              vertical: (short * 0.016).clamp(4.0, 8.0),
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1B64F2),
-                              borderRadius: BorderRadius.circular((short * 0.055).clamp(16.0, 22.0)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.person_pin_circle, color: Colors.white, size: (short * 0.042).clamp(14.0, 18.0)),
-                                SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
-                                Text(pinText, style: TextStyle(color: Colors.white, fontSize: (w * 0.028).clamp(10.0, 12.0), fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
+                      ),
+                    ],
+                  );
                 },
               ),
             ),
@@ -1849,6 +1947,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
   Widget _buildProfileMarker(
     BuildContext context, {
     required String name,
@@ -1884,7 +1983,10 @@ class _HomePageState extends State<HomePage> {
               height: avatarBox,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFE8D5C4), width: borderW),
+                border: Border.all(
+                  color: const Color(0xFFE8D5C4),
+                  width: borderW,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.15),
@@ -1919,7 +2021,10 @@ class _HomePageState extends State<HomePage> {
                   decoration: BoxDecoration(
                     color: const Color(0xFF22C55E),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: (dot * 0.14).clamp(1.5, 2.5)),
+                    border: Border.all(
+                      color: Colors.white,
+                      width: (dot * 0.14).clamp(1.5, 2.5),
+                    ),
                   ),
                 ),
               ),
@@ -1936,7 +2041,9 @@ class _HomePageState extends State<HomePage> {
           ),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular((short * 0.028).clamp(8.0, 12.0)),
+            borderRadius: BorderRadius.circular(
+              (short * 0.028).clamp(8.0, 12.0),
+            ),
           ),
           child: FittedBox(
             fit: BoxFit.scaleDown,

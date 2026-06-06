@@ -40,7 +40,14 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
   bool _isLoading = false; // Zwedna loading state
 
   final List<String> _bloodTypes = [
-    'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-',
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'AB+',
+    'AB-',
+    'O+',
+    'O-',
   ];
 
   @override
@@ -72,7 +79,9 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
         final hPad = (w * 0.055).clamp(16.0, 28.0);
         final vPad = (short * 0.028).clamp(12.0, 20.0);
         final bottomPad =
-            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.06).clamp(18.0, 28.0);
+            mq.viewInsets.bottom +
+            mq.padding.bottom +
+            (short * 0.06).clamp(18.0, 28.0);
         final gapL = (short * 0.055).clamp(18.0, 28.0);
         final gapM = (short * 0.045).clamp(14.0, 22.0);
         final gapS = (short * 0.02).clamp(6.0, 10.0);
@@ -88,7 +97,9 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight - mq.padding.vertical),
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - mq.padding.vertical,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -102,10 +113,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
                         SizedBox(height: gapS),
                         _buildStepLabel(),
                         SizedBox(height: gapL),
-                        const Divider(
-                          color: Color(0xFFE5E7EB),
-                          thickness: 1,
-                        ),
+                        const Divider(color: Color(0xFFE5E7EB), thickness: 1),
                         SizedBox(height: gapL),
                         _buildSafetyNotesField(),
                         SizedBox(height: gapL),
@@ -143,7 +151,10 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           Icon(
             Icons.arrow_back,
             color: Colors.grey.shade500,
-            size: (MediaQuery.sizeOf(context).shortestSide * 0.052).clamp(18.0, 22.0),
+            size: (MediaQuery.sizeOf(context).shortestSide * 0.052).clamp(
+              18.0,
+              22.0,
+            ),
           ),
           SizedBox(width: (w * 0.012).clamp(3.0, 6.0)),
           Text(
@@ -236,11 +247,11 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           controller: _safetyNotesController,
           maxLines: 4,
           decoration: InputDecoration(
-            hintText: AppState().tr('e.g., Additional safety information', 'مثال: معلومات سلامة إضافية'),
-            hintStyle: TextStyle(
-              color: Colors.grey.shade400,
-              fontSize: 13,
+            hintText: AppState().tr(
+              'e.g., Keep medical ID on hand and notify staff',
+              'مثال: احتفظ ببطاقة طبية وأخبر الطاقم',
             ),
+            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,
@@ -276,11 +287,11 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           controller: _allergiesController,
           maxLines: 4,
           decoration: InputDecoration(
-            hintText: AppState().tr('e.g., Penicillin, Peanuts, Shellfish', 'مثال: البنسيلين، الفول السوداني، المحار'),
-            hintStyle: TextStyle(
-              color: Colors.grey.shade400,
-              fontSize: 13,
+            hintText: AppState().tr(
+              'e.g., Penicillin, Peanuts, Shellfish',
+              'مثال: البنسيلين، الفول السوداني، المحار',
             ),
+            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,
@@ -334,9 +345,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
                 width: chipW,
                 height: chipH,
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? const Color(0xFF1E3A8A)
-                      : Colors.white,
+                  color: isSelected ? const Color(0xFF1E3A8A) : Colors.white,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: isSelected
@@ -351,9 +360,7 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
                   style: TextStyle(
                     fontSize: chipFs,
                     fontWeight: FontWeight.w600,
-                    color: isSelected
-                        ? Colors.white
-                        : Colors.grey.shade700,
+                    color: isSelected ? Colors.white : Colors.grey.shade700,
                   ),
                 ),
               ),
@@ -381,11 +388,11 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
           controller: _medicalNotesController,
           maxLines: 4,
           decoration: InputDecoration(
-            hintText: AppState().tr('e.g., Diabetic', 'مثال: مريض سكري'),
-            hintStyle: TextStyle(
-              color: Colors.grey.shade400,
-              fontSize: 13,
+            hintText: AppState().tr(
+              'e.g., Diabetic, asthma, or hypertension',
+              'مثال: سكري، ربو، أو ارتفاع ضغط الدم',
             ),
+            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,
@@ -445,20 +452,23 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
 
             // Update Supabase if ID exists
             if (updatedProfile.id != null && updatedProfile.id!.isNotEmpty) {
-              await SupabaseService().client.from('patient_profiles').update({
-                'profile_name': updatedProfile.name,
-                'relationship_to_guardian': updatedProfile.relationship,
-                'birth_year': int.tryParse(updatedProfile.birthYear) ?? 0,
-                'blood_type': updatedProfile.bloodType,
-                'allergies_en': updatedProfile.allergies,
-                'medical_notes_en': updatedProfile.condition,
-                'safety_notes_en': _safetyNotesController.text.trim(),
-                'avatar_url': resolvedAvatarUrl,
-              }).eq('id', updatedProfile.id!);
+              await SupabaseService().client
+                  .from('patient_profiles')
+                  .update({
+                    'profile_name': updatedProfile.name,
+                    'relationship_to_guardian': updatedProfile.relationship,
+                    'birth_year': int.tryParse(updatedProfile.birthYear) ?? 0,
+                    'blood_type': updatedProfile.bloodType,
+                    'allergies_en': updatedProfile.allergies,
+                    'medical_notes_en': updatedProfile.condition,
+                    'safety_notes_en': _safetyNotesController.text.trim(),
+                    'avatar_url': resolvedAvatarUrl,
+                  })
+                  .eq('id', updatedProfile.id!);
             }
 
             AppState().updateProfile(widget.editIndex!, updatedProfile);
-            
+
             if (mounted) {
               Navigator.popUntil(context, (route) => route.isFirst);
             }
@@ -487,7 +497,10 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
         } catch (e) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error saving info: $e'), backgroundColor: Colors.red),
+              SnackBar(
+                content: Text('Error saving info: $e'),
+                backgroundColor: Colors.red,
+              ),
             );
           }
         } finally {
@@ -521,12 +534,18 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
                   SizedBox(
                     width: (short * 0.055).clamp(18.0, 24.0),
                     height: (short * 0.055).clamp(18.0, 24.0),
-                    child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    child: const CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
                   )
                 else ...[
                   Flexible(
                     child: Text(
-                      AppState().tr('Continue to Hardware Link', 'متابعة لربط الأجهزة'),
+                      AppState().tr(
+                        'Continue to Hardware Link',
+                        'متابعة لربط الأجهزة',
+                      ),
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -538,7 +557,11 @@ class _AddMedicalInfoPageState extends State<AddMedicalInfoPage> {
                     ),
                   ),
                   SizedBox(width: (w * 0.02).clamp(6.0, 10.0)),
-                  Icon(Icons.arrow_forward, color: Colors.white, size: (short * 0.05).clamp(18.0, 22.0)),
+                  Icon(
+                    Icons.arrow_forward,
+                    color: Colors.white,
+                    size: (short * 0.05).clamp(18.0, 22.0),
+                  ),
                 ],
               ],
             ),

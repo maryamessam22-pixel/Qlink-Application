@@ -5,6 +5,7 @@ import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/pages/notifications_page.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
+import 'package:q_link/services/notification_service.dart';
 
 ImageProvider getUserAvatarProvider(String path) {
   if (path.startsWith('assets')) return AssetImage(path);
@@ -13,8 +14,19 @@ ImageProvider getUserAvatarProvider(String path) {
   return const AssetImage('assets/images/mypic.png');
 }
 
-class HeaderWidget extends StatelessWidget {
+class HeaderWidget extends StatefulWidget {
   const HeaderWidget({super.key});
+
+  @override
+  State<HeaderWidget> createState() => _HeaderWidgetState();
+}
+
+class _HeaderWidgetState extends State<HeaderWidget> {
+  @override
+  void initState() {
+    super.initState();
+    NotificationService().startRealtimeListener();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +83,7 @@ class HeaderWidget extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const NotificationsPage()),
-                  );
+                  ).then((_) => NotificationService().refreshUnreadCount());
                 },
                 child: Stack(
                   clipBehavior: Clip.none,

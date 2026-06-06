@@ -1,2 +1,5 @@
 [functions.public-emergency]
 verify_jwt = false
+
+[functions.wearer-alert]
+verify_jwt = true

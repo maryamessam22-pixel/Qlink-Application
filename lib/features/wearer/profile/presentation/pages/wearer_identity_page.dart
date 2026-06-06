@@ -7,7 +7,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:q_link/core/state/app_state.dart';
 import 'package:q_link/core/widgets/language_toggle.dart';
 import 'package:q_link/features/shared/widgets/video_logo_widget.dart';
-import 'package:q_link/features/shared/widgets/header_widget.dart' show getUserAvatarProvider;
+import 'package:q_link/features/shared/widgets/header_widget.dart'
+    show getUserAvatarProvider;
 import 'package:q_link/features/wearer/profile/presentation/pages/wearer_medical_page.dart';
 
 class WearerIdentityPage extends StatefulWidget {
@@ -28,7 +29,7 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    
+
     if (image != null) {
       final bytes = await image.readAsBytes();
       setState(() {
@@ -69,7 +70,9 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
         final hPad = (w * 0.06).clamp(16.0, 28.0);
         final vPad = (short * 0.03).clamp(12.0, 20.0);
         final bottomPad =
-            mq.viewInsets.bottom + mq.padding.bottom + (short * 0.08).clamp(24.0, 40.0);
+            mq.viewInsets.bottom +
+            mq.padding.bottom +
+            (short * 0.08).clamp(24.0, 40.0);
 
         return Scaffold(
           resizeToAvoidBottomInset: true,
@@ -81,310 +84,392 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, bottomPad),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
                     child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                   Row(
-                    children: [
-                      VideoLogoWidget(),
-                      SizedBox(width: (short * 0.022).clamp(6.0, 12.0)),
-                      CircleAvatar(
-                        radius: (short * 0.042).clamp(14.0, 18.0),
-                        backgroundColor: const Color(0xFFE6F0FE),
-                        backgroundImage: getUserAvatarProvider(AppState().currentUser.imagePath),
-                        onBackgroundImageError: (_, __) {},
-                      ),
-                      const Spacer(),
-                      const LanguageToggle(),
-                      SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
-                      Stack(
-                        children: [
-                          Icon(Icons.notifications_none, color: const Color(0xFF1E3A8A), size: (short * 0.072).clamp(24.0, 30.0)),
-                          Positioned(
-                            right: 2,
-                            top: 2,
-                            child: Container(
-                              width: (short * 0.028).clamp(8.0, 12.0),
-                              height: (short * 0.028).clamp(8.0, 12.0),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            VideoLogoWidget(),
+                            SizedBox(width: (short * 0.022).clamp(6.0, 12.0)),
+                            CircleAvatar(
+                              radius: (short * 0.042).clamp(14.0, 18.0),
+                              backgroundColor: const Color(0xFFE6F0FE),
+                              backgroundImage: getUserAvatarProvider(
+                                AppState().currentUser.imagePath,
                               ),
+                              onBackgroundImageError: (_, __) {},
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
-                  
-                  // Cancel Button
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Row(
-                      children: [
-                        Icon(Icons.arrow_back, color: Colors.grey.shade500, size: 20),
-                        const SizedBox(width: 4),
-                        Text(
-                          appState.tr('Cancel', 'إلغاء'),
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey.shade500,
-                            fontWeight: FontWeight.w500,
-                          ),
+                            const Spacer(),
+                            const LanguageToggle(),
+                            SizedBox(width: (short * 0.04).clamp(12.0, 18.0)),
+                            Stack(
+                              children: [
+                                Icon(
+                                  Icons.notifications_none,
+                                  color: const Color(0xFF1E3A8A),
+                                  size: (short * 0.072).clamp(24.0, 30.0),
+                                ),
+                                Positioned(
+                                  right: 2,
+                                  top: 2,
+                                  child: Container(
+                                    width: (short * 0.028).clamp(8.0, 12.0),
+                                    height: (short * 0.028).clamp(8.0, 12.0),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  
-                  SizedBox(height: (short * 0.05).clamp(14.0, 22.0)),
-                  
-                  // Title
-                  Text(
-                    appState.tr('Generate Your Profile', 'أنشئ ملفك الشخصي'),
-                    style: TextStyle(
-                      fontSize: (short * 0.065).clamp(20.0, 26.0),
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFF273469),
-                    ),
-                  ),
-                  
-                  SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
-                  
-                  // Progress Bar
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: (short * 0.012).clamp(3.0, 5.0),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF273469),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
-                      Expanded(
-                        child: Container(
-                          height: (short * 0.012).clamp(3.0, 5.0),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
-                      Expanded(
-                        child: Container(
-                          height: (short * 0.012).clamp(3.0, 5.0),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
-                  
-                  Text(
-                    appState.tr('Step 1 of 3: Identity', 'الخطوة 1 من 3: الهوية'),
-                    style: TextStyle(
-                      fontSize: (short * 0.036).clamp(13.0, 15.0),
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  
-                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
-                  const Divider(color: Color(0xFFE5E7EB), thickness: 1),
-                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+                        SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
 
-                  // Profile Picture Section
-                  Center(
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: (short * 0.32).clamp(96.0, 128.0),
-                          height: (short * 0.32).clamp(96.0, 128.0),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFF1E3A8A), width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
+                        // Cancel Button
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.arrow_back,
+                                color: Colors.grey.shade500,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                appState.tr('Cancel', 'إلغاء'),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey.shade500,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ],
                           ),
-                          child: ClipOval(
-                            child: _imagePath != null
-                                ? (_imagePath!.startsWith('http') || _imagePath!.startsWith('blob:')
-                                    ? Image.network(_imagePath!, fit: BoxFit.cover)
-                                    : (_imagePath!.startsWith('assets')
-                                      ? Image.asset(_imagePath!, fit: BoxFit.cover)
-                                      : (!kIsWeb
-                                        ? Image.file(File(_imagePath!), fit: BoxFit.cover)
-                                        : const Icon(Icons.person, size: 60, color: Color(0xFF1B64F2)))))
-                                : Container(
-                                    color: const Color(0xFFE6F0FE),
-                                    child: const Icon(Icons.person, size: 60, color: Color(0xFF1B64F2)),
-                                  ),
+                        ),
+
+                        SizedBox(height: (short * 0.05).clamp(14.0, 22.0)),
+
+                        // Title
+                        Text(
+                          appState.tr(
+                            'Generate Your Profile',
+                            'أنشئ ملفك الشخصي',
+                          ),
+                          style: TextStyle(
+                            fontSize: (short * 0.065).clamp(20.0, 26.0),
+                            fontWeight: FontWeight.w900,
+                            color: const Color(0xFF273469),
                           ),
                         ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: _pickImage,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF1B64F2),
-                                shape: BoxShape.circle,
+
+                        SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
+
+                        // Progress Bar
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: (short * 0.012).clamp(3.0, 5.0),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF273469),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
                               ),
-                              child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                            ),
+                            SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
+                            Expanded(
+                              child: Container(
+                                height: (short * 0.012).clamp(3.0, 5.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: (short * 0.016).clamp(4.0, 8.0)),
+                            Expanded(
+                              child: Container(
+                                height: (short * 0.012).clamp(3.0, 5.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
+
+                        Text(
+                          appState.tr(
+                            'Step 1 of 3: Identity',
+                            'الخطوة 1 من 3: الهوية',
+                          ),
+                          style: TextStyle(
+                            fontSize: (short * 0.036).clamp(13.0, 15.0),
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+
+                        SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+                        const Divider(color: Color(0xFFE5E7EB), thickness: 1),
+                        SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+
+                        // Profile Picture Section
+                        Center(
+                          child: Stack(
+                            children: [
+                              Container(
+                                width: (short * 0.32).clamp(96.0, 128.0),
+                                height: (short * 0.32).clamp(96.0, 128.0),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: const Color(0xFF1E3A8A),
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipOval(
+                                  child: _imagePath != null
+                                      ? (_imagePath!.startsWith('http') ||
+                                                _imagePath!.startsWith('blob:')
+                                            ? Image.network(
+                                                _imagePath!,
+                                                fit: BoxFit.cover,
+                                              )
+                                            : (_imagePath!.startsWith('assets')
+                                                  ? Image.asset(
+                                                      _imagePath!,
+                                                      fit: BoxFit.cover,
+                                                    )
+                                                  : (!kIsWeb
+                                                        ? Image.file(
+                                                            File(_imagePath!),
+                                                            fit: BoxFit.cover,
+                                                          )
+                                                        : const Icon(
+                                                            Icons.person,
+                                                            size: 60,
+                                                            color: Color(
+                                                              0xFF1B64F2,
+                                                            ),
+                                                          ))))
+                                      : Container(
+                                          color: const Color(0xFFE6F0FE),
+                                          child: const Icon(
+                                            Icons.person,
+                                            size: 60,
+                                            color: Color(0xFF1B64F2),
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: _pickImage,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF1B64F2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.camera_alt,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Center(
+                          child: Text(
+                            AppState().tr(
+                              'Add Profile Picture',
+                              'إضافة صورة الملف الشخصي',
+                            ),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+
+                        // Form Fields
+                        _buildLabelAndTextField(
+                          label: appState.tr(
+                            'Patient\'s Full Name',
+                            'الاسم الكامل للمريض',
+                          ),
+                          hintText: appState.tr(
+                            'e.g., Wearer\'s Full Name',
+                            'مثال: اسم المرتدي الكامل',
+                          ),
+                          controller: _nameController,
+                        ),
+                        SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
+
+                        _buildLabelAndTextField(
+                          label: appState.tr(
+                            'Relationship to You',
+                            'صلة القرابة',
+                          ),
+                          hintText: appState.tr(
+                            'e.g., Relationship (e.g., Parent, Sibling)',
+                            'مثال: صلة القرابة (مثل الوالد أو الأخ)',
+                          ),
+                          controller: _relationshipController,
+                        ),
+                        SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
+
+                        _buildLabelAndTextField(
+                          label: appState.tr('Birth Year', 'سنة الميلاد'),
+                          hintText: appState.tr('e.g., 1945', 'مثال: 1945'),
+                          controller: _birthYearController,
+                        ),
+                        SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
+
+                        // Emergency Contacts
+                        ..._contactControllers.asMap().entries.map((entry) {
+                          int index = entry.key;
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              bottom: (short * 0.04).clamp(12.0, 18.0),
+                            ),
+                            child: _buildContactField(index, appState),
+                          );
+                        }),
+
+                        SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
+
+                        // Add More Button
+                        Container(
+                          width: double.infinity,
+                          height: (short * 0.145).clamp(48.0, 58.0),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade200),
+                            borderRadius: BorderRadius.circular(
+                              (w * 0.03).clamp(10.0, 14.0),
+                            ),
+                          ),
+                          child: TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _contactControllers.add(
+                                  TextEditingController(),
+                                );
+                              });
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.add_box,
+                                  color: Color(0xFF1B64F2),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  appState.tr(
+                                    'Add More Contact Number',
+                                    'إضافة رقم اتصال إضافي',
+                                  ),
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(height: (short * 0.08).clamp(22.0, 34.0)),
+
+                        // Continue Button
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => WearerMedicalPage(
+                                  name: _nameController.text,
+                                  relationship: _relationshipController.text,
+                                  birthYear: _birthYearController.text,
+                                  emergencyContacts: _contactControllers
+                                      .map((c) => c.text)
+                                      .where((t) => t.isNotEmpty)
+                                      .toList(),
+                                  avatarUrl: _imagePath,
+                                  avatarBytes: _imageBytes,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            height: (short * 0.15).clamp(50.0, 60.0),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF0066CC), Color(0xFF273469)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(
+                                (short * 0.075).clamp(24.0, 30.0),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  appState.tr(
+                                    'Continue to Medical Info',
+                                    'متابعة للمعلومات الطبية',
+                                  ),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: (short * 0.04).clamp(14.0, 17.0),
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  LucideIcons.arrowRight,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Center(
-                    child: Text(
-                      AppState().tr('Add Profile Picture', 'إضافة صورة الملف الشخصي'),
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
-
-                  // Form Fields
-                  _buildLabelAndTextField(
-                    label: appState.tr('Patient\'s Full Name', 'الاسم الكامل للمريض'),
-                    hintText: appState.tr('e.g., Mohamed Saber', 'مثال: محمد صابر'),
-                    controller: _nameController,
-                  ),
-                  SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
-                  
-                  _buildLabelAndTextField(
-                    label: appState.tr('Relationship to You', 'صلة القرابة'),
-                    hintText: appState.tr('e.g., Grandfather', 'مثال: الجد'),
-                    controller: _relationshipController,
-                  ),
-                  SizedBox(height: (short * 0.04).clamp(12.0, 18.0)),
-                  
-                  _buildLabelAndTextField(
-                    label: appState.tr('Birth Year', 'سنة الميلاد'),
-                    hintText: appState.tr('e.g., 1945', 'مثال: 1945'),
-                    controller: _birthYearController,
-                  ),
-                  SizedBox(height: (short * 0.06).clamp(16.0, 26.0)),
-
-                  // Emergency Contacts
-                  ..._contactControllers.asMap().entries.map((entry) {
-                    int index = entry.key;
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: (short * 0.04).clamp(12.0, 18.0)),
-                      child: _buildContactField(index, appState),
-                    );
-                  }),
-
-                  SizedBox(height: (short * 0.02).clamp(6.0, 10.0)),
-                  
-                  // Add More Button
-                  Container(
-                    width: double.infinity,
-                    height: (short * 0.145).clamp(48.0, 58.0),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade200),
-                      borderRadius: BorderRadius.circular((w * 0.03).clamp(10.0, 14.0)),
-                    ),
-                    child: TextButton(
-                      onPressed: () {
-                        setState(() {
-                          _contactControllers.add(TextEditingController());
-                        });
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.add_box, color: Color(0xFF1B64F2)),
-                          const SizedBox(width: 12),
-                          Text(
-                            appState.tr('Add More Contact Number', 'إضافة رقم اتصال إضافي'),
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  
-                  SizedBox(height: (short * 0.08).clamp(22.0, 34.0)),
-
-                  // Continue Button
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => WearerMedicalPage(
-                            name: _nameController.text,
-                            relationship: _relationshipController.text,
-                            birthYear: _birthYearController.text,
-                            emergencyContacts: _contactControllers
-                                .map((c) => c.text)
-                                .where((t) => t.isNotEmpty)
-                                .toList(),
-                            avatarUrl: _imagePath,
-                            avatarBytes: _imageBytes,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      height: (short * 0.15).clamp(50.0, 60.0),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF0066CC), Color(0xFF273469)],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        borderRadius: BorderRadius.circular((short * 0.075).clamp(24.0, 30.0)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            appState.tr('Continue to Medical Info', 'متابعة للمعلومات الطبية'),
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: (short * 0.04).clamp(14.0, 17.0),
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(LucideIcons.arrowRight, color: Colors.white, size: 20),
-                        ],
-                      ),
-                    ),
-                  ),
-                  
-                ],
-              ),
-            ),
                 );
               },
             ),
@@ -416,7 +501,10 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: Colors.grey.shade200),
@@ -432,10 +520,13 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
   }
 
   Widget _buildContactField(int index, AppState appState) {
-    String label = index == 0 
-        ? appState.tr('EMERGENCY CONTACT * (Primary Guardian Phone)', 'جهة اتصال الطوارئ * (هاتف الوصي الأساسي)')
+    String label = index == 0
+        ? appState.tr(
+            'EMERGENCY CONTACT * (Primary Guardian Phone)',
+            'جهة اتصال الطوارئ * (هاتف الوصي الأساسي)',
+          )
         : appState.tr('Additional Contact $index', 'جهة اتصال إضافية $index');
-        
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -454,9 +545,18 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
               child: TextField(
                 controller: _contactControllers[index],
                 decoration: InputDecoration(
-                  hintText: appState.tr('e.g., 01119988299', 'مثال: 01119988299'),
-                  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  hintText: appState.tr(
+                    'e.g., 01119988299',
+                    'مثال: 01119988299',
+                  ),
+                  hintStyle: TextStyle(
+                    color: Colors.grey.shade400,
+                    fontSize: 13,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey.shade200),
@@ -485,7 +585,11 @@ class _WearerIdentityPageState extends State<WearerIdentityPage> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.red.shade400, width: 1.5),
                   ),
-                  child: Icon(Icons.close, color: Colors.red.shade700, size: 24),
+                  child: Icon(
+                    Icons.close,
+                    color: Colors.red.shade700,
+                    size: 24,
+                  ),
                 ),
               ),
             ],
